@@ -12,7 +12,7 @@
     // For nodejs:
     "lib": ["ES2022"],
     "types": ["node"],
-    "moduleResolution": "nodenext", // or "Node16"
+    "moduleResolution": "nodenext",
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
 
