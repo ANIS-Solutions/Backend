@@ -1,7 +1,7 @@
 {
   "name": "anis-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "This is a backend for Anis project.",
   "type": "module",
   "scripts": {
     "dev": "tsx --watch src/server.ts",
