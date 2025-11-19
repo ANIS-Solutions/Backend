@@ -11,12 +11,6 @@
   "useTabs": false,
   "quoteProps": "as-needed",
   "proseWrap": "preserve",
-  // "importOrder": [
-  //   "^@core/(.*)$",
-  //   "^@models/(.*)$",
-  //   "^@utils/(.*)$",
-  //   "^[../]",
-  //   "^[./]"
-  // ],
+
   "importOrderSeparation": true
 }
