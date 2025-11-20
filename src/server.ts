@@ -2,7 +2,7 @@ import express from 'express';
 import morgan from 'morgan';
 
 import config from '@/configs';
-import routes from '@/rsoutes';
+import routes from '@/routes';
 
 const app = express();
 
