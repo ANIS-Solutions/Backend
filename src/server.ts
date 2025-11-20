@@ -1,4 +1,6 @@
 import express from 'express';
+import morgan from 'morgan';
+
 import config from '@/configs';
 import routes from '@/routes';
 
@@ -6,6 +8,7 @@ const app = express();
 
 (async () => {
   try {
+    app.use(morgan('dev'));
     app.use('/api/v1', routes);
     app.listen(config.PORT, () => {
       console.log(`-> START: Server Running: http://localhost:${config.PORT}`);

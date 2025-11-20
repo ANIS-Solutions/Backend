@@ -1,10 +1,12 @@
 *.env
 *.env.*
-!.env.example
+*.md
+*.txt
+
+# Exclude files that sure to share it.
+!*.env.example
+!README.md
 
 /node_modules
-
-*.note.txt
-
 /dist
 _/
