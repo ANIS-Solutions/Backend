@@ -10,17 +10,17 @@ const Configuration: UserConfig = {
       RuleConfigSeverity.Error,
       'always',
       [
-        'feat', // New feature
-        'fix', // Bug fix
-        'docs', // Documentation
-        'style', // Code style changes (formatting, etc)
-        'refactor', // Code refactoring
-        'test', // Adding tests
-        'build', // Build system or external dependencies
-        'ci', // CI configuration
-        'chore', // Other changes
-        'revert', // Revert previous commit
-        'perf', // Performance improvement
+        'feat',
+        'fix',
+        'docs',
+        'style',
+        'refactor',
+        'test',
+        'build',
+        'ci',
+        'chore',
+        'revert',
+        'perf',
       ],
     ],
     'subject-case': [RuleConfigSeverity.Error, 'always', 'lower-case'],

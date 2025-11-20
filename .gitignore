@@ -3,7 +3,7 @@
 *.md
 *.txt
 
-# Exclude files that sure to share it.
+# Exclude files that sure to share it:
 !*.env.example
 !README.md
 
