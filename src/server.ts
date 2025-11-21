@@ -9,8 +9,7 @@ const app = express();
 (async () => {
   try {
     app.use(morgan('dev'));
-    app.use( '/api/v1',
-      routes, );
+    app.use('/api/v1', routes);
     console.log(process.env.PORT);
 
     app.listen(config.PORT, () => {
