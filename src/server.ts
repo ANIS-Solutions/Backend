@@ -1,15 +1,17 @@
 import express from 'express';
 import morgan from 'morgan';
 
-import config from '@/configs';
-import routes from '@/routes';
+import config from '@/configs/base';
+import routes from '@/routes/base';
 
 const app = express();
 
 (async () => {
   try {
+    // dotenv.config({ path: './config.env' });
     app.use(morgan('dev'));
     app.use('/api/v1', routes);
+    console.log(process.env.PORT);
     app.listen(config.PORT, () => {
       console.log(`-> START: Server Running: http://localhost:${config.PORT}`);
     });

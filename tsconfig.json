@@ -7,13 +7,13 @@
 
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
-    // "module": "nodenext",
+    "module": "nodenext",
     "target": "es2022",
     // For nodejs:
     "lib": ["ES2022"],
     "types": ["node"],
-    "moduleResolution": "bundler",
-    "esModuleInterop": true,
+    "moduleResolution": "nodenext",
+    // "esModuleInterop":,
     "allowSyntheticDefaultImports": true,
 
     // Other Outputs
@@ -32,18 +32,24 @@
     // "noUnusedParameters": true,
     // "noFallthroughCasesInSwitch": true,
     // "noPropertyAccessFromIndexSignature": true,
+    // "baseUrl": ".",
 
     // Recommended Options
     "strict": true,
     // "jsx": "react-jsx",
-    "verbatimModuleSyntax": true,
+    "verbatimModuleSyntax": false,
     // "isolatedModules": true,
     // "noUncheckedSideEffectImports": true,
     // "moduleDetection": "force",
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*.js"]
     }
+  },
+  "tsc-alias": {
+    // https://stackoverflow.com/questions/59179787/tsc-doesnt-compile-alias-paths
+    "resolveFullPaths": true,
+    "verbose": false
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
