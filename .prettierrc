@@ -10,7 +10,6 @@
   "endOfLine": "lf",
   "useTabs": false,
   "quoteProps": "as-needed",
-  "proseWrap": "preserve",
-
-  "importOrderSeparation": true
+  "proseWrap": "preserve"
+  
 }
