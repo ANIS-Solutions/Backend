@@ -10,10 +10,12 @@ const app = express();
   try {
     // dotenv.config({ path: './config.env' });
     app.use(morgan('dev'));
-    app.use('/api/v1', routes);
-    console.log(process.env.PORT);
+        app.use('/api/v1', routes);
+        console.log(process.env.PORT);
     app.listen(config.PORT, () => {
-      console.log(`-> START: Server Running: http://localhost:${config.PORT}`);
+      console.log(  
+          `-> START: Server Running: http://localhost:${config.PORT}/api/v1`,
+      );
     });
   } catch (err) {
     console.log('-> FAILURE: Failed to start the server, ', err);
