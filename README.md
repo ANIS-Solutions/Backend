@@ -1,3 +1,5 @@
+![](./_assets/anisBackend-asset.jpg)
+
 # ANIS Backend
 
 Backend service for ANIS - a parental control and child care monitoring system.
