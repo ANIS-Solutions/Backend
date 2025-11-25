@@ -1,10 +1,14 @@
 import express from 'express';
 import morgan from 'morgan';
+import cors from 'cors';
 
 import config from '@/configs/base';
 import routes from '@/routes/base';
 
 const app = express();
+
+// app.use(cors());
+// app.options('*', cors());
 
 (async () => {
   try {
