@@ -10,6 +10,7 @@ const Configuration: UserConfig = {
       RuleConfigSeverity.Error,
       'always',
       [
+        'add',
         'feat',
         'fix',
         'docs',
