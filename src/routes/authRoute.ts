@@ -8,7 +8,7 @@ import {
   signup,
   verify_email,
   verify_otp,
-} from '@/controllers/authController';
+} from '@controllers/authController';
 import { Router } from 'express';
 
 const authRouter = Router();

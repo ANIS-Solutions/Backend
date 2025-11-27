@@ -1,5 +1,5 @@
-import config from '@/configs/base';
-import routes from '@/routes/base';
+import config from '@configs/base';
+import routes from '@routes/base';
 import cors from 'cors';
 import express from 'express';
 import rateLimit from 'express-rate-limit';
