@@ -1,21 +1,37 @@
-import express from 'express';
-import morgan from 'morgan';
-import cors from 'cors';
-
 import config from '@/configs/base';
 import routes from '@/routes/base';
+import cors from 'cors';
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import morgan from 'morgan';
 
 const app = express();
+app.use(helmet());
+app.use(
+  cors({
+    origin: config.CLIENT_URL || `http://localhost:${config.PORT}`,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
+    credentials: true,
+  }),
+);
 
-// app.use(cors());
-// app.options('*', cors());
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 50,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: 'Too many requests from this IP, please try again after 15 minutes',
+});
 
-(async () => {
+app.use(limiter);
+
+/* eslint-disable no-console */
+const startServer = (): void => {
   try {
     app.use(morgan('dev'));
+    app.use(express.json());
     app.use('/api/v1', routes);
-    console.log(process.env.PORT);
-
     app.listen(config.PORT, () => {
       console.log(
         `-> START: Server Running: http://localhost:${config.PORT}/api/v1`,
@@ -23,15 +39,19 @@ const app = express();
     });
   } catch (err) {
     console.log('-> FAILURE: Failed to start the server, ', err);
+    process.exit(1);
   }
-})();
+};
 
-const handleServerShutdown = async () => {
+startServer();
+
+const handleServerShutdown = (): void => {
   try {
     console.log('-> SHUTDOWN: Server shutdown.');
     process.exit(0);
   } catch (err) {
     console.log('-> ERROR: Server shutdown with error, ', err);
+    process.exit(1);
   }
 };
 

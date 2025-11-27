@@ -43,7 +43,7 @@
     // "moduleDetection": "force",
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/*.js"]
+      "@*": ["./src/*.js"]
     }
   },
   "tsc-alias": {

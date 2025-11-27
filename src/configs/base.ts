@@ -3,7 +3,8 @@ import dotenv from 'dotenv';
 dotenv.config({ path: './config.env' });
 
 const config = {
-  PORT: process.env.PORT || 3000,
+  PORT: process.env.PORT ?? 3000,
+  CLIENT_URL: '',
   DATABASE: process.env.DATABASE,
   DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
   SECRET: process.env.SECRET,
