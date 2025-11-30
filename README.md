@@ -7,6 +7,8 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 
 ## Tech Stack
 
+<!-- Get colors & icons : https://simpleicons.org/ -->
+
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
@@ -19,6 +21,7 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/prettier-1A2C34?logo=prettier&logoColor=white)
 ![Commitlint](https://img.shields.io/badge/Commitlint-000000?logo=commitlint&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)
 ![PNPM](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)
 
 ---

@@ -45,7 +45,7 @@ export default tseslint.config(
       // TypeScript specific rules
       '@typescript-eslint/no-unused-vars': [
         'error',
-        { argsIgnorePattern: 'req|res' },
+        { argsIgnorePattern: 'req|res|next' },
       ],
       '@typescript-eslint/explicit-function-return-type': 'warn',
       '@typescript-eslint/explicit-module-boundary-types': 'warn',

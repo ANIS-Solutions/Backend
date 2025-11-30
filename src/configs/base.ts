@@ -2,19 +2,28 @@ import dotenv from 'dotenv';
 
 dotenv.config({ path: './config.env' });
 
+const verifyEnvVar = (key: string): string => {
+  const value = process.env[key];
+  if (!value) {
+    throw new Error(`CRITICAL ERROR: Missing environment variable: ${key}.`);
+  }
+  return value;
+};
+
 const config = {
-  PORT: process.env.PORT ?? 3000,
+  PORT: +process.env.PORT! || 3000,
   CLIENT_URL: '',
-  DATABASE: process.env.DATABASE,
-  DATABASE_PASSWORD: process.env.DATABASE_PASSWORD,
-  SECRET: process.env.SECRET,
-  JWT_EXPIRES_IN: process.env.JWT_EXPIRES_IN,
-  JWT_COOKIE_EXPIRES_IN: process.env.JWT_COOKIE_EXPIRES_IN,
-  EMAIL_USERNAME: process.env.EMAIL_USERNAME,
-  EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
-  EMAIL_HOST: process.env.EMAIL_HOST,
-  EMAIL_PORT: process.env.EMAIL_PORT,
-  EMAIL_FROM: process.env.EMAIL_FROM,
+  DATABASE: verifyEnvVar('DATABASE'),
+  DATABASE_USERNAME: verifyEnvVar('DATABASE_USERNAME'),
+  DATABASE_PASSWORD: verifyEnvVar('DATABASE_PASSWORD'),
+  JWT_SECRET: verifyEnvVar('JWT_SECRET'),
+  JWT_EXPIRES_IN: verifyEnvVar('JWT_EXPIRES_IN'),
+  JWT_COOKIE_EXPIRES_IN: verifyEnvVar('JWT_COOKIE_EXPIRES_IN'),
+  // EMAIL_USERNAME: verifyEnvVar('EMAIL_USERNAME'),
+  // EMAIL_PASSWORD: verifyEnvVar('EMAIL_PASSWORD'),
+  // EMAIL_HOST: verifyEnvVar('EMAIL_HOST'),
+  // EMAIL_PORT: verifyEnvVar('EMAIL_PORT'),
+  // EMAIL_FROM: verifyEnvVar('EMAIL_FROM'),
 };
 
 export default config;
