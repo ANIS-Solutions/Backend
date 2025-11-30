@@ -24,6 +24,7 @@ const Configuration: UserConfig = {
       ],
     ],
     'body-max-length': async () => [0, 'always', 250],
+    'body-max-line-length': async () => [0, 'always', 250],
     'subject-case': [RuleConfigSeverity.Error, 'always', 'lower-case'],
   },
 
