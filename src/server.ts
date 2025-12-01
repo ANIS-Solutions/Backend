@@ -1,4 +1,5 @@
 import config from '@configs/base';
+import dbConnect from '@configs/db';
 import routes from '@routes/base';
 import cors from 'cors';
 import express from 'express';
@@ -27,10 +28,11 @@ const limiter = rateLimit({
 app.use(limiter);
 
 /* eslint-disable no-console */
-const startServer = (): void => {
+const startServer = async (): Promise<void> => {
   try {
     app.use(morgan('dev'));
     app.use(express.json());
+    await dbConnect();
     app.use('/api/v1', routes);
     app.listen(config.PORT, () => {
       console.log(
@@ -43,7 +45,7 @@ const startServer = (): void => {
   }
 };
 
-startServer();
+await startServer();
 
 const handleServerShutdown = (): void => {
   try {

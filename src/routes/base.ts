@@ -8,6 +8,7 @@ router.get('/', (req, res) => {
     message: 'API is a live',
     status: 'ok',
     version: '1.0.0',
+    database_status: 'live ...',
     timestamp: new Date().toISOString(),
   });
 });
