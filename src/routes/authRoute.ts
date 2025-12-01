@@ -4,8 +4,8 @@ import {
   login,
   logout,
   refresh_token,
+  register,
   reset_password,
-  signup,
   verify_email,
   verify_otp,
 } from '@controllers/authController';
@@ -13,7 +13,7 @@ import { Router } from 'express';
 
 const authRouter = Router();
 
-authRouter.post('/signup', signup);
+authRouter.post('/register', register);
 authRouter.post('/login', login);
 authRouter.get('/logout', logout);
 
