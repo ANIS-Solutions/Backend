@@ -13,19 +13,19 @@ import z from 'zod';
 //   birthDate: Date;
 // }
 
-// "email": "abbas.1@anis.com",
-// "password": "abcd1234",
-// "phone": "00000000000",
-// "firstName": "Ziko",
-// "lastName": "Mofied",
-// "birthDate": "11/05/2020",
 export const registerSchema = z.object({
   body: z.object({
     email: z.email('Invalid email address'),
     password: z.string().min(8, 'Password must be at least 8 characters'),
     phone: z.string().min(10, 'Phone number'),
-    firstName: z.string().min(2, 'First name required'),
-    lastName: z.string().min(2, 'Last name required'),
+    firstName: z
+      .string()
+      .min(2, 'First name required')
+      .max(14, 'No name more than 14 char'),
+    lastName: z
+      .string()
+      .min(2, 'Last name required')
+      .max(14, 'No name more than 14 char'),
     birthDate: z.coerce.date(),
   }),
 });

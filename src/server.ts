@@ -49,10 +49,10 @@ await startServer();
 
 const handleServerShutdown = (): void => {
   try {
-    console.log('-> SHUTDOWN: Server shutdown.');
+    console.log('\n-> SHUTDOWN: Server shutdown.');
     process.exit(0);
   } catch (err) {
-    console.log('-> ERROR: Server shutdown with error, ', err);
+    console.log('\n-> ERROR: Server shutdown with error, ', err);
     process.exit(1);
   }
 };
