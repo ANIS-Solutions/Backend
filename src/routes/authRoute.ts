@@ -5,15 +5,17 @@ import {
   logout,
   refresh_token,
   register,
+  registerSchema,
   reset_password,
   verify_email,
   verify_otp,
 } from '@controllers/authController';
+import { authValidate } from '@middlewares/validationMiddleware';
 import { Router } from 'express';
 
 const authRouter = Router();
 
-authRouter.post('/register', register);
+authRouter.post('/register', authValidate(registerSchema), register);
 authRouter.post('/login', login);
 authRouter.get('/logout', logout);
 

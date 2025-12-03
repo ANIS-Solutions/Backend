@@ -1,8 +1,10 @@
 import { ParentModel } from '@models/authModels';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
+import { passwordStrength } from 'check-password-strength';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-import z from 'zod';
+import { phone } from 'phone';
+import { z } from 'zod';
 
 // interface IRegister {
 //   email: string;
@@ -15,22 +17,59 @@ import z from 'zod';
 
 export const registerSchema = z.object({
   body: z.object({
-    email: z.email('Invalid email address'),
-    password: z.string().min(8, 'Password must be at least 8 characters'),
-    phone: z.string().min(10, 'Phone number'),
+    email: z.email('Invalid email address').trim().toLowerCase(),
+    password: z
+      .string()
+      .min(8, 'Password must be at least 8 characters')
+      .refine(
+        (pass) => {
+          const verdict = passwordStrength(pass);
+          return (
+            verdict.contains.length == 4 &&
+            ['Medium', 'Strong'].includes(verdict.value)
+          );
+        },
+        {
+          message:
+            'Password is weak. It must include uppercase, lowercase, numbers, and symbols',
+        },
+      ),
+    // phone: z.string().min(10, 'Phone number'),
+    phone: z.string().transform((phone_number: string, ctx): string => {
+      const ret = phone(phone_number);
+      if (!ret.isValid) {
+        ctx.addIssue({
+          code: 'custom', //? z.ZodIssueCode.custom => Deprecated
+          message: 'Invalid phone number',
+        });
+        return z.NEVER;
+      }
+      return ret.phoneNumber;
+    }),
     firstName: z
       .string()
+      .trim()
       .min(2, 'First name required')
-      .max(14, 'No name more than 14 char'),
+      .max(14, 'No name more than 14 char')
+      .regex(/^[\p{L}\s'-]+$/u, 'First name contains invalid characters'), //! /^[a-zA-Z\s\-']+$/
     lastName: z
       .string()
+      .trim()
       .min(2, 'Last name required')
-      .max(14, 'No name more than 14 char'),
-    birthDate: z.coerce.date(),
+      .max(14, 'No name more than 14 char')
+      .regex(/^[\p{L}\s'-]+$/u, 'Last name contains invalid characters'),
+
+    birthDate: z.coerce.date().refine(
+      (date) => {
+        const today = new Date();
+        return today.getFullYear() - date.getFullYear() >= 18;
+      },
+      { message: 'The parent must older than 18 years old.' },
+    ),
   }),
 });
 
-type RegisterInput = z.infer<typeof registerSchema>['body'];
+export type RegisterInput = z.infer<typeof registerSchema>['body'];
 
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 export const register = catchAsync(
@@ -40,11 +79,13 @@ export const register = catchAsync(
     next: NextFunction,
   ): Promise<Response | void> => {
     const { email, password, phone, firstName, lastName, birthDate } = req.body;
-    const existing = await ParentModel.findOne({ email });
-    if (existing)
+    const existing = await ParentModel.findOne({ $or: [{ email }, { phone }] });
+    if (existing) {
+      const field = existing.email === email ? 'Email' : 'Phone number';
       return res
         .status(HttpStatusCode.CONFLICT)
-        .json({ message: 'Email already exists.' });
+        .json({ success: false, message: `${field} already exists.` });
+    }
     const passwordHash: string = password;
     const newUser = await ParentModel.create({
       email,
@@ -54,10 +95,17 @@ export const register = catchAsync(
       lastName,
       birthDate,
     });
+    //? option-1
+    // const userResponse = newUser.toObject();
+    // delete (userResponse as { password?: string }).password;
+    //? option-2
+    // const userObject = newUser.toObject();
+    // const { password: _, ...userResponse } = userObject;
 
     return res.status(HttpStatusCode.CREATED).json({
-      message: 'Register Successfully.',
-      user: newUser,
+      success: true,
+      message: 'Registration successful',
+      data: { user: newUser },
     });
   },
 );

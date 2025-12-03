@@ -1,4 +1,3 @@
-// import bcrypt from 'bcrypt';
 import config from '@configs/base';
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Schema } from 'mongoose';
