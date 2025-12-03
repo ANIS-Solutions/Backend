@@ -1,7 +1,7 @@
 import { ParentModel } from '@models/authModels';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
-import { passwordStrength } from 'check-password-strength';
+import { DiversityType, passwordStrength } from 'check-password-strength';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 import { phone } from 'phone';
 import { z } from 'zod';
@@ -15,25 +15,45 @@ import { z } from 'zod';
 //   birthDate: Date;
 // }
 
+// export const hamada = (userId: number): string => {
+//   return jwt.sign({ userId }, config.JWT_SECRET, {
+//     expiresIn: config.JWT_EXPIRES_IN,
+//   } as SignOptions);
+// };
+
 export const registerSchema = z.object({
   body: z.object({
     email: z.email('Invalid email address').trim().toLowerCase(),
     password: z
       .string()
-      .min(8, 'Password must be at least 8 characters')
-      .refine(
-        (pass) => {
-          const verdict = passwordStrength(pass);
-          return (
-            verdict.contains.length == 4 &&
-            ['Medium', 'Strong'].includes(verdict.value)
-          );
-        },
-        {
-          message:
-            'Password is weak. It must include uppercase, lowercase, numbers, and symbols',
-        },
-      ),
+      // .min(8, 'Password must be at least 8 characters')
+      .superRefine((password, ctx) => {
+        const verdict = passwordStrength(password);
+
+        const missing: string[] = [];
+        ['lowercase', 'uppercase', 'number', 'symbol'].map((el) => {
+          if (!verdict.contains.includes(el as DiversityType)) missing.push(el);
+        });
+
+        const isStrong =
+          !missing.length &&
+          (verdict.length >= 8 || ['Medium', 'Strong'].includes(verdict.value));
+        if (isStrong) return;
+
+        let message = 'Password is weak.';
+        if (missing.length) {
+          message += ` It must include: ${missing.join(', ')}.`;
+        }
+        if (verdict.length < 8) {
+          message += ` It's length ${verdict.length} is invalid, must be more than 8 characters.`;
+        }
+
+        ctx.addIssue({
+          code: 'custom',
+          message,
+        });
+      }),
+
     // phone: z.string().min(10, 'Phone number'),
     phone: z.string().transform((phone_number: string, ctx): string => {
       const ret = phone(phone_number);
@@ -45,19 +65,19 @@ export const registerSchema = z.object({
         return z.NEVER;
       }
       return ret.phoneNumber;
-    }),
+    }), //ds: sddsds
     firstName: z
       .string()
       .trim()
       .min(2, 'First name required')
       .max(14, 'No name more than 14 char')
-      .regex(/^[\p{L}\s'-]+$/u, 'First name contains invalid characters'), //! /^[a-zA-Z\s\-']+$/
+      .regex(/^[\p{L}\s'-]+$/u, 'First name contains non-alphabtic characters'), //! /^[a-zA-Z\s\-']+$/
     lastName: z
       .string()
       .trim()
       .min(2, 'Last name required')
       .max(14, 'No name more than 14 char')
-      .regex(/^[\p{L}\s'-]+$/u, 'Last name contains invalid characters'),
+      .regex(/^[\p{L}\s'-]+$/u, 'Last name contains non-alphabtic characters'),
 
     birthDate: z.coerce.date().refine(
       (date) => {
@@ -79,13 +99,13 @@ export const register = catchAsync(
     next: NextFunction,
   ): Promise<Response | void> => {
     const { email, password, phone, firstName, lastName, birthDate } = req.body;
-    const existing = await ParentModel.findOne({ $or: [{ email }, { phone }] });
-    if (existing) {
-      const field = existing.email === email ? 'Email' : 'Phone number';
-      return res
-        .status(HttpStatusCode.CONFLICT)
-        .json({ success: false, message: `${field} already exists.` });
-    }
+    // const existing = await ParentModel.findOne({ $or: [{ email }, { phone }] });
+    // if (existing) {
+    //   const field = existing.email === email ? 'Email' : 'Phone number';
+    //   return res
+    //     .status(HttpStatusCode.CONFLICT)
+    //     .json({ success: false, message: `${field} already exists.` });
+    // }
     const passwordHash: string = password;
     const newUser = await ParentModel.create({
       email,

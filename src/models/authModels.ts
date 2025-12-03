@@ -30,14 +30,16 @@ const ParentSchema: Schema = new Schema(
       trim: true,
       index: true, // B-Tree index
     },
+    phone: {
+      type: String,
+      unique: true,
+      index: true,
+      required: true,
+    },
     password: {
       type: String,
       required: true,
       select: false,
-    },
-    phone: {
-      type: String,
-      required: true,
     },
     firstName: {
       type: String,
@@ -130,5 +132,8 @@ ParentSchema.pre('save', async function () {
   const salt = await bcrypt.genSalt(config.BYCRPT_SALT_ROUNDS);
   user.password = await bcrypt.hash(user.password, salt);
 });
+// Source - https://stackoverflow.com/a/38946126
+// Posted by robertklep, modified by community. See post 'Timeline' for change history
+// Retrieved 2025-12-03, License - CC BY-SA 4.0
 
 export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);

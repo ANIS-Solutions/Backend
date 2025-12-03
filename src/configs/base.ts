@@ -11,7 +11,7 @@ const verifyEnvVar = (key: string): string => {
 };
 
 const config = {
-  // DEV_ENV: process.env.NODE_ENV?.trim() === 'dev',
+  IS_DEV_ENV: process.env.NODE_ENV?.trim() === 'dev',
   PORT: +process.env.PORT! || 3000,
   CLIENT_URL: '',
   DATABASE: verifyEnvVar('DATABASE'),

@@ -1,5 +1,6 @@
 import config from '@configs/base';
 import dbConnect from '@configs/db';
+import globalErrorHandler from '@middlewares/errorMiddleware';
 import routes from '@routes/base';
 import cors from 'cors';
 import express from 'express';
@@ -34,11 +35,13 @@ const startServer = async (): Promise<void> => {
     app.use(express.json());
     await dbConnect();
     app.use('/api/v1', routes);
+
     app.listen(config.PORT, () => {
       console.log(
         `-> START: Server Running: http://localhost:${config.PORT}/api/v1`,
       );
     });
+    app.use(globalErrorHandler);
   } catch (err) {
     console.log('-> FAILURE: Failed to start the server, ', err);
     process.exit(1);

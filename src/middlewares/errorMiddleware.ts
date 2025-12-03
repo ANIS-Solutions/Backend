@@ -1,20 +1,36 @@
-import { AppError } from '@utils/AppError';
-import HttpStatusCode from '@utils/HttpStatusCode';
+import { getError } from '@controllers/errorController';
+import AppError from '@utils/AppError';
 import { NextFunction, Request, Response } from 'express';
+import { ZodError } from 'zod';
 
-export const globalErrorHandler = (
-  err: AppError | Error,
+export default (
+  err: AppError | ZodError,
   req: Request,
   res: Response,
   next: NextFunction,
-): void => {
-  const statusCode =
-    (err as AppError).statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;
-  const message = err.message || 'Internal Server Error';
+): Response => {
+  /* eslint-disable no-console */
+  console.log(err);
+  /* eslint-enable */
+  if (err instanceof ZodError) {
+    const errors = err.issues.map((issue) => ({
+      field: issue.path.join('.'),
+      message: issue.message,
+    }));
 
-  res.status(statusCode).json({
-    status: (err as AppError).status || 'error',
-    message,
-    stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
-  });
+    return res.status(400).json({
+      status: 'fail',
+      message: 'Validation Error',
+      errors,
+    });
+  }
+  // if (err instanceof AppError) {
+  //   return res.status(err.statusCode).json({
+  //     status: err.status,
+  //     message: err.message,
+  //     stack: config.IS_DEV_ENV ? err.stack : undefined,
+  //   });
+  // }
+
+  return getError(err, res);
 };
