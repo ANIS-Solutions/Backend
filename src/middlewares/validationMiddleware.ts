@@ -1,4 +1,4 @@
-import { RegisterInput, registerSchema } from '@controllers/authController';
+import { RegisterInput, registerSchema } from '@schemas/authSchema';
 import HttpStatusCode from '@utils/HttpStatusCode';
 import { RequestHandler } from 'express';
 import { ZodError } from 'zod';

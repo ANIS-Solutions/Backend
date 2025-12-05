@@ -1,6 +1,6 @@
 import config from '@configs/base';
 import bcrypt from 'bcryptjs';
-import mongoose, { Document, Schema } from 'mongoose';
+import mongoose, { Document, Model, Schema } from 'mongoose';
 
 export interface IParent extends Document {
   firstName: string;
@@ -18,9 +18,17 @@ export interface IParent extends Document {
   createdAt: Date;
   updatedAt?: Date;
   fullName?: string;
+  passwordChangedAt: Date;
 }
-
-const ParentSchema: Schema = new Schema(
+interface IParentMethods {
+  correctPassword(
+    candidatePassword: string,
+    userPassword: string,
+  ): Promise<boolean>;
+  changePasswordAfter(JWTTimestamp: number): boolean;
+}
+type ParentModelType = Model<IParent, object, IParentMethods>;
+const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
   {
     email: {
       type: String,
@@ -70,28 +78,13 @@ const ParentSchema: Schema = new Schema(
       expiresAt: { type: Date },
     },
     refreshToken: { type: String },
+    passwordChangedAt: { type: Date, default: Date.now() },
   },
   {
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (
-        doc,
-        ret,
-      ):
-        | Pick<
-            IParent,
-            | 'firstName'
-            | 'lastName'
-            | 'email'
-            | 'phone'
-            | 'isVerified'
-            | 'birthDate'
-            | 'createdAt'
-            | 'updatedAt'
-            | 'password'
-          >
-        | undefined {
+      transform: function (doc, ret): object {
         const {
           firstName,
           lastName,
@@ -102,6 +95,7 @@ const ParentSchema: Schema = new Schema(
           createdAt,
           updatedAt,
           password,
+          passwordChangedAt,
         } = ret;
         return {
           firstName,
@@ -113,6 +107,7 @@ const ParentSchema: Schema = new Schema(
           createdAt,
           password,
           updatedAt,
+          passwordChangedAt,
         };
       },
     },
@@ -129,11 +124,36 @@ ParentSchema.pre('save', async function () {
   if (!user.isModified('password')) {
     return;
   }
-  const salt = await bcrypt.genSalt(config.BYCRPT_SALT_ROUNDS);
+  const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
   user.password = await bcrypt.hash(user.password, salt);
 });
 // Source - https://stackoverflow.com/a/38946126
-// Posted by robertklep, modified by community. See post 'Timeline' for change history
-// Retrieved 2025-12-03, License - CC BY-SA 4.0
 
-export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);
+ParentSchema.methods.correctPassword = async function (
+  candidatePassword: string,
+  userPassword: string,
+): Promise<boolean> {
+  return await bcrypt.compare(candidatePassword, userPassword);
+};
+ParentSchema.methods.changePasswordAfter = function (
+  JWTTimestamp: number,
+): boolean {
+  if (this.createdAt === this.passwordChangedAt) {
+    return false;
+  }
+  // console.log(
+  //   parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10),
+  //   JWTTimestamp,
+  // );
+  // console.log((parseInt(`${Date.now() / 1000}`, 10) - JWTTimestamp) / 60);
+  // console.log(JWTTimestamp);
+  // console.log(JWTTimestamp - parseInt(`${Date.now().getTime() / 1000}`, 10));
+  return (
+    parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10) < JWTTimestamp
+  );
+};
+// export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);
+export const ParentModel = mongoose.model<IParent, ParentModelType>(
+  'Parent',
+  ParentSchema,
+);

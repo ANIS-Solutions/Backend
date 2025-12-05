@@ -1,6 +1,7 @@
 import config from '@configs/base';
 import AppError from '@utils/AppError';
 import HttpStatusCode from '@utils/HttpStatusCode';
+import logger from '@utils/logger';
 import { Response } from 'express';
 
 const sendErrDEV = (
@@ -8,6 +9,8 @@ const sendErrDEV = (
   prodErr: string,
   res: Response,
 ): Response => {
+  // logger.error('Something wrong!!!!!!!!! - auth middleware');
+
   return res.status(err.statusCode).json({
     status: err.status || 'error',
     productionErrorMsg: prodErr,
@@ -22,8 +25,7 @@ const sendErrProd = (err: AppError, res: Response): Response => {
       message: err.message,
     });
   } else {
-    /* eslint-disable no-console */
-    console.error('Something wrong!!!!!!!!!');
+    logger.error('Something wrong!!!!!!!!!');
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       status: 'error',
       message: 'Something wrong!!!!!!!!!',
@@ -55,21 +57,36 @@ const handleDuplicateFieldsDB = (err: MongoError): AppError => {
   return new AppError(message, HttpStatusCode.BAD_REQUEST);
 };
 const handleValidationErrorDB = (err: MongoError): AppError => {
-  const errors = Object.values(err.errors ?? {}).map((el) => el.message);
-  const message = `Invalid input data. ${errors.join(', ')}`;
+  const errors = Object.values(err.errors ?? {}).map((el) =>
+    el.message?.replaceAll('Path', '').replaceAll('.', ''),
+  );
+  const message = `Invalid input data.${errors.join(',')}`;
   return new AppError(message, HttpStatusCode.BAD_REQUEST);
 };
+const handleJWTError = (): AppError => {
+  const message = `Invalid token, Please log in again!`;
+  return new AppError(message, HttpStatusCode.UNAUTHORIZED);
+};
+const handleJWTExpiredError = (): AppError => {
+  const message = `Token Expired, Please log in again!`;
+  return new AppError(message, HttpStatusCode.UNAUTHORIZED);
+};
+
 const navigateErrors = (err: AppError): AppError => {
   let error = { ...err };
   if (err.name === 'CastError') error = handleCastErrorDB(error);
   if ((err as MongoError).code === 11000) error = handleDuplicateFieldsDB(err);
   if ((err as MongoError).name === 'ValidationError')
     error = handleValidationErrorDB(err);
-
+  if (err.name === 'JsonWebTokenError') error = handleJWTError();
+  if (err.name === 'TokenExpiredError') error = handleJWTExpiredError();
   return error;
 };
 
-export const getError = (err: AppError, res: Response): Response => {
+export const getError = (
+  err: AppError,
+  res: Response,
+): Response | undefined => {
   const statusCode = err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;
   // console.log('====================================\nerr.status');
   // console.log(err.statusCode);
@@ -83,7 +100,7 @@ export const getError = (err: AppError, res: Response): Response => {
     // console.log('====================================\nerr.status');
     // console.log(err.statusCode);
     return sendErrDEV(err, prodErr.message, res);
-  } else {
+  } else if (config.IS_PROD_ENV) {
     const prodErr = navigateErrors(err);
     return sendErrProd(prodErr, res);
   }

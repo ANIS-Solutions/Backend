@@ -1,64 +1,39 @@
+import { Server } from 'http';
+
+import app from '@app';
 import config from '@configs/base';
 import dbConnect from '@configs/db';
-import globalErrorHandler from '@middlewares/errorMiddleware';
-import routes from '@routes/base';
-import cors from 'cors';
-import express from 'express';
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
-import morgan from 'morgan';
+import logger from '@utils/logger';
+import {
+  sigTermHandler,
+  uncaughtExceptionHandler,
+  unhandledRejectionHandler,
+} from '@utils/serverHandlers';
 
-const app = express();
-app.use(helmet());
-app.use(
-  cors({
-    origin: config.CLIENT_URL || `http://localhost:${config.PORT}`,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-  }),
-);
+process.on('uncaughtException', uncaughtExceptionHandler);
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: 'Too many requests from this IP, please try again after 15 minutes',
-});
+let server: Server;
 
-app.use(limiter);
-
-/* eslint-disable no-console */
 const startServer = async (): Promise<void> => {
   try {
-    app.use(morgan('dev'));
-    app.use(express.json());
     await dbConnect();
-    app.use('/api/v1', routes);
+    logger.info('-> DB Connected successfully');
 
-    app.listen(config.PORT, () => {
-      console.log(
-        `-> START: Server Running: http://localhost:${config.PORT}/api/v1`,
+    server = app.listen(config.PORT, () => {
+      logger.info(
+        `-> START: Server Running in ${config.NODE_ENV} mode on: http://localhost:${config.PORT}/api/v1`,
       );
     });
-    app.use(globalErrorHandler);
   } catch (err) {
-    console.log('-> FAILURE: Failed to start the server, ', err);
+    logger.error('-> FAILURE: Failed to connect to DB or start server', err);
     process.exit(1);
   }
 };
+void startServer();
 
-await startServer();
+process.on('unhandledRejection', (err: Error) => {
+  unhandledRejectionHandler(err, server);
+});
 
-const handleServerShutdown = (): void => {
-  try {
-    console.log('\n-> SHUTDOWN: Server shutdown.');
-    process.exit(0);
-  } catch (err) {
-    console.log('\n-> ERROR: Server shutdown with error, ', err);
-    process.exit(1);
-  }
-};
-
-process.on('SIGTERM', handleServerShutdown);
-process.on('SIGINT', handleServerShutdown);
+process.on('SIGTERM', () => sigTermHandler(server));
+process.on('SIGINT', () => sigTermHandler(server));

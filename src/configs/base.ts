@@ -7,19 +7,22 @@ const verifyEnvVar = (key: string): string => {
   if (!value) {
     throw new Error(`CRITICAL ERROR: Missing environment variable: ${key}.`);
   }
-  return value;
+  return value.trim();
 };
 
 const config = {
+  NODE_ENV: verifyEnvVar('NODE_ENV'),
   IS_DEV_ENV: process.env.NODE_ENV?.trim() === 'dev',
+  IS_PROD_ENV: process.env.NODE_ENV?.trim() === 'production',
   PORT: +process.env.PORT! || 3000,
   CLIENT_URL: '',
   DATABASE: verifyEnvVar('DATABASE'),
-  BYCRPT_SALT_ROUNDS: +verifyEnvVar('BYCRPT_SALT_ROUNDS'),
+  BCRYPT_SALT_ROUNDS: +verifyEnvVar('BCRYPT_SALT_ROUNDS'),
   DATABASE_USERNAME: verifyEnvVar('DATABASE_USERNAME'),
   DATABASE_PASSWORD: verifyEnvVar('DATABASE_PASSWORD'),
   JWT_SECRET: verifyEnvVar('JWT_SECRET'),
   JWT_EXPIRES_IN: verifyEnvVar('JWT_EXPIRES_IN'),
+  JWT_REFRESH_EXPIRES_IN: verifyEnvVar('JWT_REFRESH_EXPIRES_IN'),
   JWT_COOKIE_EXPIRES_IN: verifyEnvVar('JWT_COOKIE_EXPIRES_IN'),
   // EMAIL_USERNAME: verifyEnvVar('EMAIL_USERNAME'),
   // EMAIL_PASSWORD: verifyEnvVar('EMAIL_PASSWORD'),

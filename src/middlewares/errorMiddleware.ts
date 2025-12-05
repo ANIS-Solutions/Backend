@@ -1,5 +1,6 @@
 import { getError } from '@controllers/errorController';
 import AppError from '@utils/AppError';
+import logger from '@utils/logger';
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
 
@@ -9,15 +10,12 @@ export default (
   res: Response,
   next: NextFunction,
 ): Response => {
-  /* eslint-disable no-console */
-  console.log(err);
-  /* eslint-enable */
+  logger.warn(err);
   if (err instanceof ZodError) {
     const errors = err.issues.map((issue) => ({
       field: issue.path.join('.'),
       message: issue.message,
     }));
-
     return res.status(400).json({
       status: 'fail',
       message: 'Validation Error',
@@ -32,5 +30,5 @@ export default (
   //   });
   // }
 
-  return getError(err, res);
+  return getError(err, res)!;
 };

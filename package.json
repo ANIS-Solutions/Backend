@@ -15,7 +15,7 @@
     "clean:dist": "rm -rf dist",
     "clean:node": "rm -rf node_modules/ && pnpm install",
     "prepare": "husky",
-    "tree": "tree -a -I 'node_modules|dist|.git|.husky|*.log|*.map|.env*|*.txt|*.md' --dirsfirst > tree.note.txt"
+    "tree": "tree -a -I 'node_modules|dist|.git|.husky|*.log|*.map|.env*|*.txt|*.md' --dirsfirst > tree.log"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -41,6 +41,7 @@
     "mongoose": "^9.0.0",
     "morgan": "^1.10.1",
     "phone": "^3.1.67",
+    "winston": "^3.18.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {

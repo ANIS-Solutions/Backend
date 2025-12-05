@@ -1,0 +1,49 @@
+.
+├── _assets
+│  └── anisBackend-asset.jpg
+├── src
+│  ├── configs
+│  │  ├── base.ts
+│  │  └── db.ts
+│  ├── controllers
+│  │  ├── authController.ts
+│  │  ├── errorController.ts
+│  ├── middlewares
+│  │  ├── errorMiddleware.ts
+│  │  └── validationMiddleware.ts
+│  ├── models
+│  │  ├── authModels.ts
+│  ├── public
+│  │  └── .gitkeep
+│  ├── routes
+│  │  ├── authRoute.ts
+│  │  ├── base.ts
+│  ├── uploads
+│  │  └── .gitkeep
+│  ├── utils
+│  │  ├── AppError.ts
+│  │  ├── catchAsync.ts
+│  │  ├── HttpStatusCode.ts
+│  │  ├── logger.ts
+│  │  └── serverHandlers.ts
+│  ├── app.ts
+│  └── server.ts
+├── .vscode
+│  ├── extensions.json
+│  ├── launch.json
+│  └── settings.json
+├── commitlint.config.ts
+├── config.env
+├── config.env.example
+├── Dockerfile
+├── .dockerignore
+├── eslint.config.ts
+├── .gitignore
+├── .nvmrc
+├── package.json
+├── pnpm-lock.yaml
+├── .prettierignore
+├── .prettierrc
+└── tsconfig.json
+
+13 directories, 41 files
