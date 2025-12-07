@@ -51,7 +51,8 @@ export const authMiddleware = catchAsync(
         new AppError('The user no longer exists.', HttpStatusCode.UNAUTHORIZED),
       );
     }
-    console.log((decoded.exp! - parseInt(`${Date.now() / 1000}`, 10)) / 60);
+    // console.log((decoded.exp! - parseInt(`${Date.now() / 1000}`, 10)) / 60);
+    // console.log(decoded.iat);
 
     if (decoded.iat && !stillUser.changePasswordAfter(decoded.iat)) {
       return next(

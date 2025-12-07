@@ -90,11 +90,31 @@ export const registerSchema = z.object({
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>['body'];
+
 export const loginSchema = z.object({
   body: z.object({
     email: z.email('Invalid email format').trim().toLowerCase(),
     password: z.string().min(1, 'Password is required'),
   }),
 });
-
 export type LoginInput = z.infer<typeof loginSchema>['body'];
+
+export const forgetPasswordSchema = z.object({
+  body: z.object({
+    email: z.email('Invalid email format').trim().toLowerCase(),
+  }),
+});
+export type ForgetPasswordInput = z.infer<typeof forgetPasswordSchema>['body'];
+export const OTPSchema = z.object({
+  body: z.object({
+    email: z.email('Invalid email format').trim().toLowerCase(),
+  }),
+});
+export type OTPInput = z.infer<typeof OTPSchema>['body'];
+export const VerifyOTPSchema = z.object({
+  body: z.object({
+    email: z.email('Invalid email format.').trim().toLowerCase(),
+    otpCode: z.string('Invalid OTP.').length(6, 'OTP must be 6 digits.'),
+  }),
+});
+export type VerifyOTPInput = z.infer<typeof VerifyOTPSchema>['body'];

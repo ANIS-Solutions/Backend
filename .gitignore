@@ -2,6 +2,7 @@
 *.env.*
 *.md
 *.txt
+*.log
 
 # Exclude files that sure to share it: 
 !*.env.example

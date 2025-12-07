@@ -1,6 +1,12 @@
 /* eslint-disable no-console */
 import { ParentModel } from '@models/authModels';
-import { LoginInput, RegisterInput } from '@schemas/authSchema';
+import {
+  ForgetPasswordInput,
+  LoginInput,
+  OTPInput,
+  RegisterInput,
+  VerifyOTPInput,
+} from '@schemas/authSchema';
 import { signAccessToken } from '@services/authService';
 import AppError from '@utils/AppError';
 import { catchAsync } from '@utils/catchAsync';
@@ -28,6 +34,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 //     expiresIn: config.JWT_EXPIRES_IN,
 //   } as SignOptions);
 // };
+
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 export const register = catchAsync(
   async (
@@ -127,22 +134,112 @@ export const testOperation: RequestHandler = catchAsync(
     }
   },
 );
+export const forget_password = async (
+  req: Request<{}, {}, ForgetPasswordInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  const currUserEmail: string = req.body.email;
 
+  const currUser = await ParentModel.findOne({ email: currUserEmail });
+  if (!currUser) {
+    return next(
+      new AppError(
+        'There is no user here with this email address.',
+        HttpStatusCode.NOT_FOUND,
+      ),
+    );
+  }
+  const resetToken = currUser.createPasswordResetToken();
+  console.log(currUser);
+  console.log(resetToken);
+  return res
+    .status(HttpStatusCode.OK)
+    .send({ msg: 'hamada yel3b', resetToken });
+};
+export const generate_otp = catchAsync(
+  async (req: Request<{}, {}, OTPInput>, res: Response, next: NextFunction) => {
+    const { email } = req.body;
+    const currUser = await ParentModel.findOne({ email }).select('+otp');
+    if (!currUser) {
+      // SECURITY: Return 200 OK even if user doesn't exists
+      console.log('wink wink : not user');
+      return res.status(HttpStatusCode.OK).json({
+        success: true,
+        message: 'OTP sent successfully.',
+      });
+    }
+    const cooldown = 60_000;
+    if (
+      currUser.otp?.lastRequest &&
+      Date.now() - currUser.otp.lastRequest.getTime() < cooldown
+    ) {
+      return next(
+        new AppError(
+          `Please wait ${parseInt(`${cooldown / 1000}`, 10)} minute before requesting another OTP`,
+          HttpStatusCode.TOO_MANY_REQUESTS,
+        ),
+      );
+    }
+    const otp = await currUser.generateOTP('register');
+    await currUser.save({ validateModifiedOnly: true });
+    console.log(`USER ${email} -> ${otp}`);
+    // Send mail from here.
+    return res.status(HttpStatusCode.OK).send({
+      success: true,
+      message: 'OTP sent successfully.',
+      otp,
+    });
+  },
+);
+export const verify_otp = catchAsync(
+  async (
+    req: Request<{}, {}, VerifyOTPInput>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { email, otpCode } = req.body;
+    const currUser = await ParentModel.findOne({ email });
+    console.log(currUser);
+    if (!currUser || !currUser?.isActive) {
+      console.log('wink wink : not user');
+      return res.status(HttpStatusCode.OK).json({
+        success: true,
+        message: 'Your account email is inactive.',
+      });
+    }
+
+    if (
+      !currUser?.otp?.expiresAt ||
+      currUser.otp.expiresAt.getTime() < Date.now()
+    ) {
+      return res.status(HttpStatusCode.BAD_REQUEST).json({
+        success: false,
+        message: 'OTP is invalid or expired.',
+      });
+    }
+
+    const otp = await currUser.verifyOTP(otpCode, currUser.otp.code);
+    console.log(`USER ${email} -> ${otp}`);
+    currUser.otp = undefined;
+    currUser.isVerified = true;
+    await currUser.save({ validateModifiedOnly: true });
+    const token = signAccessToken({ userId: currUser._id.toString() });
+    return res.status(HttpStatusCode.OK).send({
+      success: true,
+      message: 'OTP verified successfully.',
+      token,
+    });
+  },
+);
 // export const logout: RequestHandler = async (req, res, next) => {
 //   res.send('logout endpoint');
 // };
-// export const verify_otp: RequestHandler = async (req, res, next) => {
-//   res.send('verify_otp endpoint');
-// };
-// export const verify_email: RequestHandler = async (req, res, next) => {
-//   res.send('verify_email endpoint');
-// };
+
 // export const change_password: RequestHandler = async (req, res, next) => {
 //   res.send('change_password endpoint');
 // };
-// export const forget_password: RequestHandler = async (req, res, next) => {
-//   res.send('forget_password endpoint');
-// };
+
 // export const reset_password: RequestHandler = async (req, res, next) => {
 //   res.send('reset_password endpoint');
 // };

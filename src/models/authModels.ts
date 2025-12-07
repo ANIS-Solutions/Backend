@@ -1,3 +1,5 @@
+import crypto from 'crypto';
+
 import config from '@configs/base';
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Model, Schema } from 'mongoose';
@@ -10,15 +12,23 @@ export interface IParent extends Document {
   phone: string;
   isVerified: boolean;
   birthDate: Date;
-  otp?: {
-    code: string;
-    expiresAt: Date;
-  };
+  otp:
+    | {
+        code: string;
+        reason: string;
+        expiresAt: Date;
+        reqCount: number;
+        lastRequest: Date;
+      }
+    | undefined;
   refreshToken?: string;
   createdAt: Date;
   updatedAt?: Date;
   fullName?: string;
   passwordChangedAt: Date;
+  passwordResetToken: string;
+  passwordResetTokenExpire: Date;
+  isActive: boolean;
 }
 interface IParentMethods {
   correctPassword(
@@ -26,6 +36,9 @@ interface IParentMethods {
     userPassword: string,
   ): Promise<boolean>;
   changePasswordAfter(JWTTimestamp: number): boolean;
+  createPasswordResetToken(): string;
+  generateOTP(reason: string): Promise<string>;
+  verifyOTP(candidateOTP: string, hashOtp: string): Promise<boolean>;
 }
 type ParentModelType = Model<IParent, object, IParentMethods>;
 const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
@@ -75,10 +88,24 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
     },
     otp: {
       code: { type: String },
+      reason: { type: String },
       expiresAt: { type: Date },
+      reqCount: { type: Number },
+      lastRequest: { type: Date },
     },
     refreshToken: { type: String },
     passwordChangedAt: { type: Date, default: Date.now() },
+    passwordResetToken: {
+      type: String,
+    },
+    passwordResetTokenExpire: {
+      type: Date,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
+      required: true,
+    },
   },
   {
     timestamps: true,
@@ -93,9 +120,13 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
           isVerified,
           birthDate,
           createdAt,
+          otp,
           updatedAt,
           password,
           passwordChangedAt,
+          passwordResetToken,
+          passwordResetTokenExpire,
+          isActive,
         } = ret;
         return {
           firstName,
@@ -105,9 +136,13 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
           isVerified,
           birthDate,
           createdAt,
+          otp,
           password,
           updatedAt,
           passwordChangedAt,
+          passwordResetToken,
+          passwordResetTokenExpire,
+          isActive,
         };
       },
     },
@@ -151,6 +186,38 @@ ParentSchema.methods.changePasswordAfter = function (
   return (
     parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10) < JWTTimestamp
   );
+};
+ParentSchema.methods.createPasswordResetToken = function (): string {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  // console.log(this.passwordResetToken);
+  this.passwordResetTokenExpire = new Date(
+    Date.now() + config.PASSWORD_RESET_TOKEN_EXPIRES * 60 * 1000,
+  );
+  return this.passwordResetToken;
+};
+ParentSchema.methods.verifyOTP = async function (
+  candidateOTP: string,
+  hashOtp: string,
+): Promise<boolean> {
+  return await bcrypt.compare(candidateOTP, hashOtp);
+};
+ParentSchema.methods.generateOTP = async function (
+  reason: string,
+): Promise<string> {
+  const otp = crypto.randomInt(100_000, 999_999).toString();
+  const hashOtp = await bcrypt.hash(otp, config.BCRYPT_SALT_ROUNDS);
+  this.otp = {
+    code: hashOtp,
+    expiresAt: new Date(Date.now() + config.OTP_EXPIRES_IN * 60_000),
+    lastRequest: new Date(Date.now()),
+    reason,
+    reqCount: this.otp?.reqCount ? this.otp?.reqCount + 1 : 1,
+  };
+  return otp;
 };
 // export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);
 export const ParentModel = mongoose.model<IParent, ParentModelType>(
