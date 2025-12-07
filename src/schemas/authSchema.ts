@@ -8,7 +8,7 @@ export const registerSchema = z.object({
       email: z.email('Invalid email address').trim().toLowerCase(),
       password: z
         .string()
-        // .min(8, 'Password must be at least 8 characters')
+        .trim()
         .superRefine((password, ctx) => {
           const verdict = passwordStrength(password);
 
@@ -39,7 +39,6 @@ export const registerSchema = z.object({
         }),
       confirmPassword: z.string(),
 
-      // phone: z.string().min(10, 'Phone number'),
       phone: z.string().transform((phone_number: string, ctx): string => {
         const ret = phone(phone_number);
         if (!ret.isValid) {
@@ -118,3 +117,39 @@ export const VerifyOTPSchema = z.object({
   }),
 });
 export type VerifyOTPInput = z.infer<typeof VerifyOTPSchema>['body'];
+
+export const resetPasswordSchema = z.object({
+  params: z.object({
+    token: z.string('Invalid token.'),
+  }),
+  body: z.object({
+    password: z.string().superRefine((password, ctx) => {
+      const verdict = passwordStrength(password);
+
+      const missing: string[] = [];
+      ['lowercase', 'uppercase', 'number', 'symbol'].map((el) => {
+        if (!verdict.contains.includes(el as DiversityType)) missing.push(el);
+      });
+
+      const isStrong =
+        !missing.length &&
+        (verdict.length >= 8 || ['Medium', 'Strong'].includes(verdict.value));
+      if (isStrong) return;
+
+      let message = 'Password is weak.';
+      if (missing.length) {
+        message += ` It must include: ${missing.join(', ')}.`;
+      }
+      if (verdict.length < 8) {
+        message += ` It's length ${verdict.length} is invalid, must be more than 8 characters.`;
+      }
+
+      ctx.addIssue({
+        code: 'custom',
+        message,
+      });
+    }),
+    confirmPassword: z.string(),
+  }),
+});
+export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;

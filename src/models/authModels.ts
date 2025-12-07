@@ -26,8 +26,8 @@ export interface IParent extends Document {
   updatedAt?: Date;
   fullName?: string;
   passwordChangedAt: Date;
-  passwordResetToken: string;
-  passwordResetTokenExpire: Date;
+  passwordResetToken: string | undefined;
+  passwordResetTokenExpire: Date | undefined;
   isActive: boolean;
 }
 interface IParentMethods {
@@ -127,6 +127,7 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
           passwordResetToken,
           passwordResetTokenExpire,
           isActive,
+          fullName,
         } = ret;
         return {
           firstName,
@@ -143,6 +144,7 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
           passwordResetToken,
           passwordResetTokenExpire,
           isActive,
+          fullName,
         };
       },
     },
@@ -155,6 +157,14 @@ ParentSchema.virtual('fullName').get(function (this: IParent) {
 });
 
 ParentSchema.pre('save', async function () {
+  const user = this as unknown as IParent;
+  if (!user.isModified('password')) {
+    return;
+  }
+  const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
+  user.password = await bcrypt.hash(user.password, salt);
+});
+ParentSchema.pre('save', async function (next) {
   const user = this as unknown as IParent;
   if (!user.isModified('password')) {
     return;
@@ -197,7 +207,7 @@ ParentSchema.methods.createPasswordResetToken = function (): string {
   this.passwordResetTokenExpire = new Date(
     Date.now() + config.PASSWORD_RESET_TOKEN_EXPIRES * 60 * 1000,
   );
-  return this.passwordResetToken;
+  return resetToken;
 };
 ParentSchema.methods.verifyOTP = async function (
   candidateOTP: string,

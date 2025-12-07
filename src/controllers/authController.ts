@@ -1,17 +1,20 @@
 /* eslint-disable no-console */
+import crypto from 'crypto';
+
 import { ParentModel } from '@models/authModels';
 import {
   ForgetPasswordInput,
   LoginInput,
   OTPInput,
   RegisterInput,
+  ResetPasswordInput,
   VerifyOTPInput,
 } from '@schemas/authSchema';
 import { signAccessToken } from '@services/authService';
+import sendResetTokenEmail from '@services/sendResetTokenEmail';
 import AppError from '@utils/AppError';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
-import logger from '@utils/logger';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
 
 // interface IRegister {
@@ -38,7 +41,7 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 export const register = catchAsync(
   async (
-    req: Request<{}, {}, RegisterInput>,
+    req: Request<{}, {}, RegisterInput>, // req.params, req.query, req.body
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
@@ -50,10 +53,9 @@ export const register = catchAsync(
         .status(HttpStatusCode.CONFLICT)
         .json({ success: false, message: `${field} already exists.` });
     }
-    const passwordHash: string = password;
     const newUser = await ParentModel.create({
       email,
-      password: passwordHash,
+      password,
       phone,
       firstName,
       lastName,
@@ -66,14 +68,14 @@ export const register = catchAsync(
     // const userObject = newUser.toObject();
     // const { password: _, ...userResponse } = userObject;
     const token = signAccessToken({ userId: newUser._id.toString() });
-    logger.info(newUser._id.toString());
-    logger.info(newUser._id);
+    // logger.info(newUser._id.toString());
+    // logger.info(newUser._id);
     return res.status(HttpStatusCode.CREATED).json({
       success: true,
       message: 'Registration successful',
       data: { user: newUser },
       token,
-      refresh_token: 'sss',
+      // refresh_token: 'sss',
     });
   },
 );
@@ -134,29 +136,7 @@ export const testOperation: RequestHandler = catchAsync(
     }
   },
 );
-export const forget_password = async (
-  req: Request<{}, {}, ForgetPasswordInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  const currUserEmail: string = req.body.email;
 
-  const currUser = await ParentModel.findOne({ email: currUserEmail });
-  if (!currUser) {
-    return next(
-      new AppError(
-        'There is no user here with this email address.',
-        HttpStatusCode.NOT_FOUND,
-      ),
-    );
-  }
-  const resetToken = currUser.createPasswordResetToken();
-  console.log(currUser);
-  console.log(resetToken);
-  return res
-    .status(HttpStatusCode.OK)
-    .send({ msg: 'hamada yel3b', resetToken });
-};
 export const generate_otp = catchAsync(
   async (req: Request<{}, {}, OTPInput>, res: Response, next: NextFunction) => {
     const { email } = req.body;
@@ -229,6 +209,89 @@ export const verify_otp = catchAsync(
       success: true,
       message: 'OTP verified successfully.',
       token,
+    });
+  },
+);
+export const forget_password = async (
+  req: Request<{}, {}, ForgetPasswordInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  const currUserEmail: string = req.body.email;
+
+  const currUser = await ParentModel.findOne({ email: currUserEmail });
+  if (!currUser) {
+    return res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: 'Email sent successfully.',
+    });
+  }
+  console.log(
+    'Check Point 1 --------------------------------------------------------------',
+  );
+  const resetToken = currUser.createPasswordResetToken();
+  await currUser.save({ validateBeforeSave: false });
+  console.log(currUser);
+  console.log(resetToken);
+  const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+  console.log(
+    'Check Point 1 --------------------------------------resetToken done ------------------------',
+  );
+  const message = `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+  await sendResetTokenEmail({
+    email: 'ah.abbas333@gmail.com',
+    subject: 'Your Password Reset Token (Valid for 10 min)',
+    message,
+  });
+  console.log(
+    'Check Point 1 ------------------------------------------mail set  done--------------------',
+  );
+  // if (!emailStatus) {
+  //   return next(
+  //     new AppError(
+  //       'There was an error sending the email. Try again later!',
+  //       HttpStatusCode.INTERNAL_SERVER_ERROR,
+  //     ),
+  //   );
+  // }
+  res.status(HttpStatusCode.OK).json({
+    success: true,
+    message: 'Reset token sent to email!',
+  });
+};
+export const reset_password = catchAsync(
+  async (req: Request, res: Response, next: NextFunction) => {
+    // if (!req?.params?.token) {
+    //   return next(new AppError('Token not founded.', HttpStatusCode.BAD_REQUEST));
+    // }
+    const { token } = req.params as ResetPasswordInput['params'];
+    const { password } = req.body as ResetPasswordInput['body'];
+    console.log('ana token');
+    console.log(token);
+    const hashToken = crypto.createHash('sha256').update(token).digest('hex');
+    const currUser = await ParentModel.findOne({
+      passwordResetToken: hashToken, //92b9211d8ee7c55bef7be362379438b1f267c73fbee80d866e306f72c5b45117
+      // passwordResetTokenExpire: { $gt: Date.now() - 1000 }, 92b9211d8ee7c55bef7be362379438b1f267c73fbee80d866e306f72c5b45117
+    });
+    console.log(currUser);
+    if (!currUser) {
+      return next(
+        new AppError(
+          'Token is invalid or has expired.',
+          HttpStatusCode.BAD_REQUEST,
+        ),
+      );
+    }
+    currUser.password = password;
+    currUser.passwordChangedAt = new Date(Date.now());
+    currUser.passwordResetToken = undefined;
+    currUser.passwordResetTokenExpire = undefined;
+    await currUser.save();
+    const newToken = signAccessToken({ userId: currUser._id.toString() });
+    return res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: 'Password reset successful!',
+      token: newToken,
     });
   },
 );

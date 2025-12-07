@@ -26,11 +26,16 @@ const config = {
   OTP_EXPIRES_IN: +verifyEnvVar('OTP_EXPIRES_IN'),
   PASSWORD_RESET_TOKEN_EXPIRES: +verifyEnvVar('PASSWORD_RESET_TOKEN_EXPIRES'),
   JWT_COOKIE_EXPIRES_IN: verifyEnvVar('JWT_COOKIE_EXPIRES_IN'),
-  // EMAIL_USERNAME: verifyEnvVar('EMAIL_USERNAME'),
-  // EMAIL_PASSWORD: verifyEnvVar('EMAIL_PASSWORD'),
-  // EMAIL_HOST: verifyEnvVar('EMAIL_HOST'),
-  // EMAIL_PORT: verifyEnvVar('EMAIL_PORT'),
-  // EMAIL_FROM: verifyEnvVar('EMAIL_FROM'),
+  EMAIL_USER: verifyEnvVar('EMAIL_USER'),
+  EMAIL_PASSWORD: verifyEnvVar('EMAIL_PASSWORD'),
+  EMAIL_HOST: verifyEnvVar('EMAIL_HOST'),
+  EMAIL_SERVICE: verifyEnvVar('EMAIL_SERVICE'),
+  EMAIL_PORT: +verifyEnvVar('EMAIL_PORT'),
+  MAILTRAP_TOKEN: verifyEnvVar('MAILTRAP_TOKEN'),
+  DEV_EMAIL_HOST: verifyEnvVar('DEV_EMAIL_HOST'),
+  DEV_EMAIL_PORT: +verifyEnvVar('DEV_EMAIL_PORT'),
+  DEV_EMAIL_USER: verifyEnvVar('DEV_EMAIL_USER'),
+  DEV_EMAIL_PASSWORD: verifyEnvVar('DEV_EMAIL_PASSWORD'),
 };
 
 export default config;

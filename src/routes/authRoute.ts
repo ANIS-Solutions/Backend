@@ -7,7 +7,7 @@ import {
   // logout,
   // refresh_token,
   // registerSchema,
-  // reset_password,
+  reset_password,
   testOperation,
   // verify_email,
   verify_otp,
@@ -19,6 +19,7 @@ import {
   forgetPasswordSchema,
   OTPSchema,
   registerSchema,
+  resetPasswordSchema,
   VerifyOTPSchema,
 } from '@schemas/authSchema';
 import { Router } from 'express';
@@ -51,8 +52,12 @@ authRouter.post(
   authValidate(forgetPasswordSchema),
   forget_password,
 );
-// authRouter.patch('/reset-password', reset_password);
 
+authRouter.patch(
+  '/reset-password/:token',
+  authValidate(resetPasswordSchema),
+  reset_password,
+);
 // authRouter.post('/refresh-token', refresh_token);
 authRouter.get('/test-operation', authMiddleware, testOperation);
 

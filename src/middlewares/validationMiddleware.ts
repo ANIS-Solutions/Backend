@@ -18,7 +18,7 @@ export const authValidate = (schema: ZodSchema): RequestHandler =>
       params: req.params ?? {},
     })) as ValidationParses;
     // if (!okay) return next(new AppError('', HttpStatusCode.BAD_REQUEST));
-    // console.log('before: req.body');
+    // console.log('before: ');
     // console.log(req.body);
     // console.log('okay');
     // console.log(okay);
