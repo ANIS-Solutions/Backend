@@ -1,6 +1,6 @@
 {
   "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "editor.formatOnSave": true,
+  "editor.formatOnSave": false,
   // "todo-tree.highlights.defaultHighlight": {
   //   "icon": "alert",
   //   "type": "text",
@@ -10,16 +10,16 @@
   //   "iconColour": "blue"
   // },
   "todo-tree.filtering.excludeGlobs": [
-    "**/vendor/**",
-    "**/node_modules/**",
-    "**/dist/**",
-    "**/bower_components/**",
-    "**/build/**",
-    "**/.vscode/**",
-    "**/.github/**",
-    "**/_output/**",
-    "**/*.min.*",
-    "**/*.map"
+    "vendor/**",
+    "node_modules/**",
+    "dist/**",
+    "bower_components/**",
+    "build/**",
+    ".vscode/**",
+    ".github/**",
+    "_output/**",
+    "*.min.*",
+    "*.map"
   ],
   "todo-tree.general.tags": ["@todo", "REVIEW", "TODO", "FIXME"],
   "todo-tree.general.tagGroups": {

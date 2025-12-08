@@ -1,5 +1,6 @@
 import { getError } from '@controllers/errorController';
 import AppError from '@utils/AppError';
+import HttpStatusCode from '@utils/HttpStatusCode';
 import logger from '@utils/logger';
 import { NextFunction, Request, Response } from 'express';
 import { ZodError } from 'zod';
@@ -16,7 +17,7 @@ export default (
       field: issue.path.join('.'),
       message: issue.message,
     }));
-    return res.status(400).json({
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
       status: 'fail',
       message: 'Validation Error',
       errors,
