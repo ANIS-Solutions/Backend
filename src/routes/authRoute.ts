@@ -43,9 +43,6 @@ authRouter.get(
   generate_otp,
 );
 
-// authRouter.get('/verify-email', verify_email);
-// authRouter.post('/verify-email', verify_email);
-
 // authRouter.patch('/change-password', change_password);
 authRouter.post(
   '/forget-password',

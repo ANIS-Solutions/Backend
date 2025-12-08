@@ -30,6 +30,7 @@ export interface IParent extends Document {
   passwordResetTokenExpire: Date | undefined;
   isActive: boolean;
 }
+
 interface IParentMethods {
   correctPassword(
     candidatePassword: string,
@@ -40,6 +41,7 @@ interface IParentMethods {
   generateOTP(reason: string): Promise<string>;
   verifyOTP(candidateOTP: string, hashOtp: string): Promise<boolean>;
 }
+
 type ParentModelType = Model<IParent, object, IParentMethods>;
 const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
   {
@@ -164,6 +166,7 @@ ParentSchema.pre('save', async function () {
   const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
   user.password = await bcrypt.hash(user.password, salt);
 });
+
 ParentSchema.pre('save', async function (next) {
   const user = this as unknown as IParent;
   if (!user.isModified('password')) {
@@ -180,41 +183,37 @@ ParentSchema.methods.correctPassword = async function (
 ): Promise<boolean> {
   return await bcrypt.compare(candidatePassword, userPassword);
 };
+
 ParentSchema.methods.changePasswordAfter = function (
   JWTTimestamp: number,
 ): boolean {
   if (this.createdAt === this.passwordChangedAt) {
     return false;
   }
-  // console.log(
-  //   parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10),
-  //   JWTTimestamp,
-  // );
-  // console.log((parseInt(`${Date.now() / 1000}`, 10) - JWTTimestamp) / 60);
-  // console.log(JWTTimestamp);
-  // console.log(JWTTimestamp - parseInt(`${Date.now().getTime() / 1000}`, 10));
   return (
     parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10) < JWTTimestamp
   );
 };
+
 ParentSchema.methods.createPasswordResetToken = function (): string {
   const resetToken = crypto.randomBytes(32).toString('hex');
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
-  // console.log(this.passwordResetToken);
   this.passwordResetTokenExpire = new Date(
     Date.now() + config.PASSWORD_RESET_TOKEN_EXPIRES * 60 * 1000,
   );
   return resetToken;
 };
+
 ParentSchema.methods.verifyOTP = async function (
   candidateOTP: string,
   hashOtp: string,
 ): Promise<boolean> {
   return await bcrypt.compare(candidateOTP, hashOtp);
 };
+
 ParentSchema.methods.generateOTP = async function (
   reason: string,
 ): Promise<string> {
@@ -229,6 +228,7 @@ ParentSchema.methods.generateOTP = async function (
   };
   return otp;
 };
+
 // export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);
 export const ParentModel = mongoose.model<IParent, ParentModelType>(
   'Parent',

@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import crypto from 'crypto';
 
 import { ParentModel } from '@models/authModels';
@@ -15,22 +14,8 @@ import sendResetTokenEmail from '@services/sendResetTokenEmail';
 import AppError from '@utils/AppError';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
+import logger from '@utils/logger';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
-
-// interface IRegister {
-//   email: string;
-//   password: string;
-//   phone: string;
-//   firstName: string;
-//   lastName: string;
-//   birthDate: Date;
-// }
-
-// export const signToken = (obj: JwtObject): string => {
-//   return jwt.sign(obj, config.JWT_SECRET, {
-//     expiresIn: config.JWT_EXPIRES_IN,
-//   } as SignOptions);
-// };
 
 /* eslint-disable @typescript-eslint/no-empty-object-type */
 export const register = catchAsync(
@@ -62,14 +47,11 @@ export const register = catchAsync(
     // const userObject = newUser.toObject();
     // const { password: _, ...userResponse } = userObject;
     const token = signAccessToken({ userId: newUser._id.toString() });
-    // logger.info(newUser._id.toString());
-    // logger.info(newUser._id);
     return res.status(HttpStatusCode.CREATED).json({
       success: true,
       message: 'Registration successful',
       data: { user: newUser },
       token,
-      // refresh_token: 'sss',
     });
   },
 );
@@ -81,8 +63,6 @@ export const login: RequestHandler = catchAsync(
     next: NextFunction,
   ) => {
     const { email, password } = req.body;
-    console.log(req.body);
-
     if (!email || !password) {
       return next(
         new AppError(
@@ -137,7 +117,6 @@ export const generate_otp = catchAsync(
     const currUser = await ParentModel.findOne({ email }).select('+otp');
     if (!currUser) {
       // SECURITY: Return 200 OK even if user doesn't exists
-      console.log('wink wink : not user');
       return res.status(HttpStatusCode.OK).json({
         success: true,
         message: 'OTP sent successfully.',
@@ -157,7 +136,7 @@ export const generate_otp = catchAsync(
     }
     const otp = await currUser.generateOTP('register');
     await currUser.save({ validateModifiedOnly: true });
-    console.log(`USER ${email} -> ${otp}`);
+    logger.warn(`USER ${email} -> ${otp}`);
     // Send mail from here.
     return res.status(HttpStatusCode.OK).send({
       success: true,
@@ -174,9 +153,7 @@ export const verify_otp = catchAsync(
   ) => {
     const { email, otpCode } = req.body;
     const currUser = await ParentModel.findOne({ email });
-    console.log(currUser);
     if (!currUser || !currUser?.isActive) {
-      console.log('wink wink : not user');
       return res.status(HttpStatusCode.OK).json({
         success: true,
         message: 'Your account email is inactive.',
@@ -194,7 +171,7 @@ export const verify_otp = catchAsync(
     }
 
     const otp = await currUser.verifyOTP(otpCode, currUser.otp.code);
-    console.log(`USER ${email} -> ${otp}`);
+    logger.warn(`USER ${email} -> ${otp}`);
     currUser.otp = undefined;
     currUser.isVerified = true;
     await currUser.save({ validateModifiedOnly: true });
@@ -220,34 +197,17 @@ export const forget_password = async (
       message: 'Email sent successfully.',
     });
   }
-  console.log(
-    'Check Point 1 --------------------------------------------------------------',
-  );
   const resetToken = currUser.createPasswordResetToken();
   await currUser.save({ validateBeforeSave: false });
-  console.log(currUser);
-  console.log(resetToken);
   const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
-  console.log(
-    'Check Point 1 --------------------------------------resetToken done ------------------------',
-  );
+
   const message = `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
   await sendResetTokenEmail({
     email: 'ah.abbas333@gmail.com',
     subject: 'Your Password Reset Token (Valid for 10 min)',
     message,
   });
-  console.log(
-    'Check Point 1 ------------------------------------------mail set  done--------------------',
-  );
-  // if (!emailStatus) {
-  //   return next(
-  //     new AppError(
-  //       'There was an error sending the email. Try again later!',
-  //       HttpStatusCode.INTERNAL_SERVER_ERROR,
-  //     ),
-  //   );
-  // }
+
   res.status(HttpStatusCode.OK).json({
     success: true,
     message: 'Reset token sent to email!',
@@ -255,19 +215,13 @@ export const forget_password = async (
 };
 export const reset_password = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // if (!req?.params?.token) {
-    //   return next(new AppError('Token not founded.', HttpStatusCode.BAD_REQUEST));
-    // }
     const { token } = req.params as ResetPasswordInput['params'];
     const { password } = req.body as ResetPasswordInput['body'];
-    console.log('ana token');
-    console.log(token);
     const hashToken = crypto.createHash('sha256').update(token).digest('hex');
     const currUser = await ParentModel.findOne({
-      passwordResetToken: hashToken, //92b9211d8ee7c55bef7be362379438b1f267c73fbee80d866e306f72c5b45117
+      passwordResetToken: hashToken,
       // passwordResetTokenExpire: { $gt: Date.now() - 1000 }, 92b9211d8ee7c55bef7be362379438b1f267c73fbee80d866e306f72c5b45117
     });
-    console.log(currUser);
     if (!currUser) {
       return next(
         new AppError(
@@ -297,9 +251,6 @@ export const reset_password = catchAsync(
 //   res.send('change_password endpoint');
 // };
 
-// export const reset_password: RequestHandler = async (req, res, next) => {
-//   res.send('reset_password endpoint');
-// };
 // export const refresh_token: RequestHandler = async (req, res, next) => {
 //   res.send('refresh_token endpoint');
 // };

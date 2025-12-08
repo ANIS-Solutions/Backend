@@ -7,7 +7,6 @@ import { NextFunction, Request, Response } from 'express';
 
 export const authMiddleware = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
-    // const authHeader = req.headers.authorization?.split(' ')[1];
     let token;
     if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
@@ -20,30 +19,8 @@ export const authMiddleware = catchAsync(
         ),
       );
     }
-    // try {
-    //   const payload = verifyToken(authHeader);
-    //   if (!payload) {
-    //     return res.status(HttpStatusCode.UNAUTHORIZED).send({
-    //       message: 'Unauthorized destination for user.',
-    //     });
-    //   }
-    // } catch (err) {
-    //   return res
-    //     .status(HttpStatusCode.UNAUTHORIZED)
-    //     .send({ message: 'Unauthorized destination for user.', error: err });
-    // }
-    // try {
+
     const decoded = verifyToken(token);
-    // console.log(decoded);
-    // } catch (err) {
-    //   console.log(err, '===========');
-    //   return next(
-    //     new AppError(
-    //       err, //'Invalid or expired token. Please log in again.',
-    //       HttpStatusCode.UNAUTHORIZED,
-    //     ),
-    //   );
-    // }
 
     const stillUser = await ParentModel.findById(decoded.userId);
     if (!stillUser) {
@@ -51,8 +28,6 @@ export const authMiddleware = catchAsync(
         new AppError('The user no longer exists.', HttpStatusCode.UNAUTHORIZED),
       );
     }
-    // console.log((decoded.exp! - parseInt(`${Date.now() / 1000}`, 10)) / 60);
-    // console.log(decoded.iat);
 
     if (decoded.iat && !stillUser.changePasswordAfter(decoded.iat)) {
       return next(
@@ -62,9 +37,8 @@ export const authMiddleware = catchAsync(
         ),
       );
     }
-    // const ss = new Date(+decoded.iat!).toISOString();
-    req.user = decoded;
 
+    req.user = decoded;
     next();
   },
 );

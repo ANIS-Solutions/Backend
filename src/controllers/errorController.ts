@@ -9,8 +9,6 @@ const sendErrDEV = (
   prodErr: string,
   res: Response,
 ): Response => {
-  // logger.error('Something wrong!!!!!!!!! - auth middleware');
-
   return res.status(err.statusCode).json({
     status: err.status || 'error',
     productionErrorMsg: prodErr,
@@ -18,6 +16,7 @@ const sendErrDEV = (
     stack: err.stack,
   });
 };
+
 const sendErrProd = (err: AppError, res: Response): Response => {
   if (err.isOperational) {
     return res.status(err.statusCode).json({
@@ -32,12 +31,10 @@ const sendErrProd = (err: AppError, res: Response): Response => {
     });
   }
 };
-/* eslint-disable @typescript-eslint/no-unsafe-member-access  */
-/* eslint-disable @typescript-eslint/no-explicit-any */
+
+/* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any  */
 const handleCastErrorDB = (err: any): AppError => {
   const msg = `Invalid ${err.path}: ${err.value}`;
-  /* eslint-enable */
-
   return new AppError(msg, HttpStatusCode.BAD_REQUEST);
 };
 
@@ -50,12 +47,11 @@ interface MongoError extends Error {
 const handleDuplicateFieldsDB = (err: MongoError): AppError => {
   const field = Object.keys(err.keyValue ?? {})[0];
   const value = Object.values(err.keyValue ?? {})[0];
-  // console.log(Object.keys(err.keyValue ?? {}));
-  // console.log(Object.values(err.keyValue ?? {}));
   const message = `Duplicate field value: '${value}'. Please use another ${field}!`;
 
   return new AppError(message, HttpStatusCode.BAD_REQUEST);
 };
+
 const handleValidationErrorDB = (err: MongoError): AppError => {
   const errors = Object.values(err.errors ?? {}).map((el) =>
     el.message?.replaceAll('Path', '').replaceAll('.', ''),
@@ -63,10 +59,12 @@ const handleValidationErrorDB = (err: MongoError): AppError => {
   const message = `Invalid input data.${errors.join(',')}`;
   return new AppError(message, HttpStatusCode.BAD_REQUEST);
 };
+
 const handleJWTError = (): AppError => {
   const message = `Invalid token, Please log in again!`;
   return new AppError(message, HttpStatusCode.UNAUTHORIZED);
 };
+
 const handleJWTExpiredError = (): AppError => {
   const message = `Token Expired, Please log in again!`;
   return new AppError(message, HttpStatusCode.UNAUTHORIZED);
@@ -88,8 +86,6 @@ export const getError = (
   res: Response,
 ): Response | undefined => {
   const statusCode = err.statusCode || HttpStatusCode.INTERNAL_SERVER_ERROR;
-  // console.log('====================================\nerr.status');
-  // console.log(err.statusCode);
 
   const message = err.message || 'Internal Server Error';
   err.statusCode = statusCode;
@@ -97,8 +93,6 @@ export const getError = (
   if (config.IS_DEV_ENV) {
     const prodErr = navigateErrors(err);
     err.statusCode = prodErr.statusCode;
-    // console.log('====================================\nerr.status');
-    // console.log(err.statusCode);
     return sendErrDEV(err, prodErr.message, res);
   } else if (config.IS_PROD_ENV) {
     const prodErr = navigateErrors(err);
