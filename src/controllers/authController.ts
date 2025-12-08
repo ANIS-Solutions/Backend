@@ -26,12 +26,6 @@ import { NextFunction, Request, RequestHandler, Response } from 'express';
 //   birthDate: Date;
 // }
 
-// export const hamada = (userId: number): string => {
-//   return jwt.sign({ userId }, config.JWT_SECRET, {
-//     expiresIn: config.JWT_EXPIRES_IN,
-//   } as SignOptions);
-// };
-
 // export const signToken = (obj: JwtObject): string => {
 //   return jwt.sign(obj, config.JWT_SECRET, {
 //     expiresIn: config.JWT_EXPIRES_IN,
