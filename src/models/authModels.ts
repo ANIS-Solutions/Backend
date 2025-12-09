@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 
 import config from '@configs/base';
+import logger from '@utils/logger';
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
@@ -21,7 +22,7 @@ export interface IParent extends Document {
         lastRequest: Date;
       }
     | undefined;
-  refreshToken?: string;
+  refreshToken?: string | undefined;
   createdAt: Date;
   updatedAt?: Date;
   fullName?: string;
@@ -39,7 +40,7 @@ interface IParentMethods {
   changePasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
   generateOTP(reason: string): Promise<string>;
-  verifyOTP(candidateOTP: string, hashOtp: string): Promise<boolean>;
+  verifyOTP(candidateOTP: string, reason: string): Promise<boolean>;
 }
 
 type ParentModelType = Model<IParent, object, IParentMethods>;
@@ -167,20 +168,14 @@ ParentSchema.pre('save', async function () {
   user.password = await bcrypt.hash(user.password, salt);
 });
 
-ParentSchema.pre('save', async function (next) {
-  const user = this as unknown as IParent;
-  if (!user.isModified('password')) {
-    return;
-  }
-  const salt = await bcrypt.genSalt(config.BCRYPT_SALT_ROUNDS);
-  user.password = await bcrypt.hash(user.password, salt);
-});
 // Source - https://stackoverflow.com/a/38946126
 
 ParentSchema.methods.correctPassword = async function (
   candidatePassword: string,
   userPassword: string,
 ): Promise<boolean> {
+  logger.warn(`candidatePassword - ${candidatePassword}`);
+  logger.warn(`userPassword - ${userPassword}`);
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
@@ -209,9 +204,18 @@ ParentSchema.methods.createPasswordResetToken = function (): string {
 
 ParentSchema.methods.verifyOTP = async function (
   candidateOTP: string,
-  hashOtp: string,
+  reason: string,
 ): Promise<boolean> {
-  return await bcrypt.compare(candidateOTP, hashOtp);
+  console.log(this.otp);
+  console.log(this.otp?.reason === reason);
+  // console.log(this.otp?.expiresAt.getTime() > Date.now());
+  // console.log(await bcrypt.compare(candidateOTP, this.otp.code));
+
+  return (
+    this.otp?.reason === reason &&
+    this.otp.expiresAt.getTime() > Date.now() &&
+    (await bcrypt.compare(candidateOTP, this.otp.code))
+  );
 };
 
 ParentSchema.methods.generateOTP = async function (

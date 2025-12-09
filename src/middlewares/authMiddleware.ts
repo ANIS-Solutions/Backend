@@ -23,7 +23,7 @@ export const authMiddleware = catchAsync(
     const decoded = verifyToken(token);
 
     const stillUser = await ParentModel.findById(decoded.userId);
-    if (!stillUser) {
+    if (!stillUser || !stillUser.isActive) {
       return next(
         new AppError('The user no longer exists.', HttpStatusCode.UNAUTHORIZED),
       );

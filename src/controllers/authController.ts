@@ -2,11 +2,15 @@ import crypto from 'crypto';
 
 import { ParentModel } from '@models/authModels';
 import {
+  ChangePasswordInput,
+  DeactivateAccountInput,
   ForgetPasswordInput,
   LoginInput,
+  LogoutInput,
   OTPInput,
   RegisterInput,
   ResetPasswordInput,
+  UpdateProfileInput,
   VerifyOTPInput,
 } from '@schemas/authSchema';
 import { signAccessToken } from '@services/authService';
@@ -14,10 +18,13 @@ import sendResetTokenEmail from '@services/sendResetTokenEmail';
 import AppError from '@utils/AppError';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
-import logger from '@utils/logger';
 import { NextFunction, Request, RequestHandler, Response } from 'express';
+import { JwtPayload } from 'jsonwebtoken';
 
 /* eslint-disable @typescript-eslint/no-empty-object-type */
+
+// ===============================  Register Account  ===============================
+
 export const register = catchAsync(
   async (
     req: Request<{}, {}, RegisterInput>, // req.params, req.query, req.body
@@ -56,6 +63,8 @@ export const register = catchAsync(
   },
 );
 
+// ===============================    Login Account   ===============================
+
 export const login: RequestHandler = catchAsync(
   async (
     req: Request<{}, {}, LoginInput>,
@@ -63,15 +72,8 @@ export const login: RequestHandler = catchAsync(
     next: NextFunction,
   ) => {
     const { email, password } = req.body;
-    if (!email || !password) {
-      return next(
-        new AppError(
-          'Please provide email and password',
-          HttpStatusCode.BAD_REQUEST,
-        ),
-      );
-    }
     const currUser = await ParentModel.findOne({ email }).select('+password');
+
     if (
       !currUser ||
       !(await currUser.correctPassword(password, currUser.password))
@@ -92,28 +94,11 @@ export const login: RequestHandler = catchAsync(
   },
 );
 
-export const testOperation: RequestHandler = catchAsync(
-  async (req, res, next): Promise<Response> => {
-    try {
-      const users = await ParentModel.find({});
-      return res.status(HttpStatusCode.OK).json({
-        success: true,
-        message: 'iam test operations',
-        users,
-      });
-    } catch (err) {
-      return res.status(HttpStatusCode.SERVICE_UNAVAILABLE).json({
-        success: false,
-        message: 'iam error from test operations',
-        err,
-      });
-    }
-  },
-);
+// ===============================    Generate OTP    ===============================
 
 export const generate_otp = catchAsync(
   async (req: Request<{}, {}, OTPInput>, res: Response, next: NextFunction) => {
-    const { email } = req.body;
+    const { email, reason } = req.body;
     const currUser = await ParentModel.findOne({ email }).select('+otp');
     if (!currUser) {
       // SECURITY: Return 200 OK even if user doesn't exists
@@ -134,9 +119,8 @@ export const generate_otp = catchAsync(
         ),
       );
     }
-    const otp = await currUser.generateOTP('register');
+    const otp = await currUser.generateOTP(reason);
     await currUser.save({ validateModifiedOnly: true });
-    logger.warn(`USER ${email} -> ${otp}`);
     // Send mail from here.
     return res.status(HttpStatusCode.OK).send({
       success: true,
@@ -145,36 +129,35 @@ export const generate_otp = catchAsync(
     });
   },
 );
+
+// ===============================     Verify OTP     ===============================
+
 export const verify_otp = catchAsync(
   async (
     req: Request<{}, {}, VerifyOTPInput>,
     res: Response,
     next: NextFunction,
   ) => {
-    const { email, otpCode } = req.body;
+    const { email, otp, reason } = req.body;
     const currUser = await ParentModel.findOne({ email });
-    if (!currUser || !currUser?.isActive) {
+
+    if (!currUser || !currUser.isActive) {
       return res.status(HttpStatusCode.OK).json({
         success: true,
         message: 'Your account email is inactive.',
       });
     }
 
-    if (
-      !currUser?.otp?.expiresAt ||
-      currUser.otp.expiresAt.getTime() < Date.now()
-    ) {
+    if (!(await currUser.verifyOTP(otp, reason))) {
       return res.status(HttpStatusCode.BAD_REQUEST).json({
         success: false,
         message: 'OTP is invalid or expired.',
       });
     }
-
-    const otp = await currUser.verifyOTP(otpCode, currUser.otp.code);
-    logger.warn(`USER ${email} -> ${otp}`);
     currUser.otp = undefined;
     currUser.isVerified = true;
     await currUser.save({ validateModifiedOnly: true });
+
     const token = signAccessToken({ userId: currUser._id.toString() });
     return res.status(HttpStatusCode.OK).send({
       success: true,
@@ -183,36 +166,44 @@ export const verify_otp = catchAsync(
     });
   },
 );
-export const forget_password = async (
-  req: Request<{}, {}, ForgetPasswordInput>,
-  res: Response,
-  next: NextFunction,
-) => {
-  const currUserEmail: string = req.body.email;
 
-  const currUser = await ParentModel.findOne({ email: currUserEmail });
-  if (!currUser) {
-    return res.status(HttpStatusCode.OK).json({
-      success: true,
-      message: 'Email sent successfully.',
+// ===============================   Forget Password  ===============================
+
+export const forget_password = catchAsync(
+  async (
+    req: Request<{}, {}, ForgetPasswordInput>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const currUserEmail: string = req.body.email;
+
+    const currUser = await ParentModel.findOne({ email: currUserEmail });
+    if (!currUser) {
+      return res.status(HttpStatusCode.OK).json({
+        success: true,
+        message: 'Email sent successfully.',
+      });
+    }
+    const resetToken = currUser.createPasswordResetToken();
+    await currUser.save({ validateBeforeSave: false });
+    // const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
+    const resetURL = `${req.protocol}://${req.get('host')}/api/v1/auth/reset-password/${resetToken}`;
+    const message = `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
+    await sendResetTokenEmail({
+      email: 'ah.abbas333@gmail.com',
+      subject: 'Your Password Reset Token (Valid for 10 min)',
+      message,
     });
-  }
-  const resetToken = currUser.createPasswordResetToken();
-  await currUser.save({ validateBeforeSave: false });
-  const resetURL = `${process.env.CLIENT_URL}/reset-password/${resetToken}`;
 
-  const message = `Forgot your password? Submit a PATCH request with your new password to: ${resetURL}.\nIf you didn't forget your password, please ignore this email!`;
-  await sendResetTokenEmail({
-    email: 'ah.abbas333@gmail.com',
-    subject: 'Your Password Reset Token (Valid for 10 min)',
-    message,
-  });
+    res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: 'Reset token sent to email!',
+    });
+  },
+);
 
-  res.status(HttpStatusCode.OK).json({
-    success: true,
-    message: 'Reset token sent to email!',
-  });
-};
+// ===============================   Reset Password   ===============================
+
 export const reset_password = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
     const { token } = req.params as ResetPasswordInput['params'];
@@ -243,14 +234,130 @@ export const reset_password = catchAsync(
     });
   },
 );
-// export const logout: RequestHandler = async (req, res, next) => {
-//   res.send('logout endpoint');
-// };
 
-// export const change_password: RequestHandler = async (req, res, next) => {
-//   res.send('change_password endpoint');
-// };
+// =============================== Deactivate Account ===============================
 
+export const deactivate_account: RequestHandler = async (
+  req: Request<{}, {}, DeactivateAccountInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { otp, reason } = req.body;
+  const { userId } = req.user as JwtPayload;
+  const currUser = await ParentModel.findById(userId);
+
+  if (!currUser || !currUser.isActive) {
+    return res.status(HttpStatusCode.UNAUTHORIZED).json({
+      success: true,
+      message: 'Email already inactive.',
+    });
+  }
+
+  if (!(await currUser.verifyOTP(otp, reason))) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      success: false,
+      message: 'OTP is invalid or expired.',
+    });
+  }
+  currUser.isActive = false;
+  await currUser.save({ validateBeforeSave: false });
+
+  return res.status(HttpStatusCode.OK).json({
+    success: true,
+    message: 'Account is deactivated successfully!',
+  });
+};
+
+export const logout: RequestHandler = async (
+  req: Request<{}, {}, LogoutInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  // const { email } = req.body;
+  const { userId } = req.user as JwtPayload;
+  const currUser = await ParentModel.findById({ userId });
+
+  if (!currUser || !currUser.isActive) {
+    return res.status(HttpStatusCode.UNAUTHORIZED).json({
+      success: true,
+      message: 'Email is not registered or deactivated.',
+    });
+  }
+  currUser.refreshToken = undefined;
+  await currUser.save({ validateBeforeSave: false });
+
+  return res.status(HttpStatusCode.OK).json({
+    success: true,
+    message: 'logged out successfully!',
+  });
+};
+
+export const change_password: RequestHandler = async (
+  req: Request<{}, {}, ChangePasswordInput>,
+  res: Response,
+  next: NextFunction,
+) => {
+  const { oldPassword, password } = req.body;
+  const { userId } = req.user as JwtPayload;
+  const currUser = await ParentModel.findById(userId).select('+password');
+
+  if (
+    !currUser ||
+    !(await currUser?.correctPassword(oldPassword, currUser.password))
+  ) {
+    return res.status(HttpStatusCode.UNAUTHORIZED).json({
+      success: true,
+      message: 'Password changed failed.',
+    });
+  }
+  currUser.password = password;
+  await currUser.save();
+  return res.status(HttpStatusCode.OK).json({
+    success: true,
+    message: 'password changed successfully!',
+  });
+};
+
+export const update_profile: RequestHandler = async (
+  req: Request<{}, {}, UpdateProfileInput>,
+  res: Response,
+  next: NextFunction,
+): Promise<Response> => {
+  const all = req.body;
+  const { userId } = req.user as JwtPayload;
+  const currUser = await ParentModel.findByIdAndUpdate(userId, all, {
+    returnOriginal: false,
+  });
+  if (!currUser) {
+    return res.status(HttpStatusCode.BAD_REQUEST).json({
+      success: true,
+      message: 'User not founded!',
+    });
+  }
+  await currUser.save();
+  return res.status(HttpStatusCode.OK).json({
+    success: true,
+    message: 'Profile updated successfully!',
+  });
+};
 // export const refresh_token: RequestHandler = async (req, res, next) => {
 //   res.send('refresh_token endpoint');
 // };
+export const testOperation: RequestHandler = catchAsync(
+  async (req, res, next): Promise<Response> => {
+    try {
+      const users = await ParentModel.find({});
+      return res.status(HttpStatusCode.OK).json({
+        success: true,
+        message: 'iam test operations',
+        users,
+      });
+    } catch (err) {
+      return res.status(HttpStatusCode.SERVICE_UNAVAILABLE).json({
+        success: false,
+        message: 'iam error from test operations',
+        err,
+      });
+    }
+  },
+);
