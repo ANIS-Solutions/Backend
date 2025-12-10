@@ -29,6 +29,8 @@ export interface IParent extends Document {
   passwordChangedAt: Date;
   passwordResetToken: string | undefined;
   passwordResetTokenExpire: Date | undefined;
+  reactivateToken: string | undefined;
+  reactivateTokenExpire: Date | undefined;
   isActive: boolean;
 }
 
@@ -39,6 +41,7 @@ interface IParentMethods {
   ): Promise<boolean>;
   changePasswordAfter(JWTTimestamp: number): boolean;
   createPasswordResetToken(): string;
+  createReactivateToken(): string;
   generateOTP(reason: string): Promise<string>;
   verifyOTP(candidateOTP: string, reason: string): Promise<boolean>;
 }
@@ -102,6 +105,12 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
       type: String,
     },
     passwordResetTokenExpire: {
+      type: Date,
+    },
+    reactivateToken: {
+      type: String,
+    },
+    reactivateTokenExpire: {
       type: Date,
     },
     isActive: {
@@ -202,12 +211,22 @@ ParentSchema.methods.createPasswordResetToken = function (): string {
   return resetToken;
 };
 
+ParentSchema.methods.createReactivateToken = function (): string {
+  const resetToken = crypto.randomBytes(32).toString('hex');
+  this.passwordResetToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+  this.passwordResetTokenExpire = new Date(
+    Date.now() + config.PASSWORD_RESET_TOKEN_EXPIRES * 60 * 1000,
+  );
+  return resetToken;
+};
+
 ParentSchema.methods.verifyOTP = async function (
   candidateOTP: string,
   reason: string,
 ): Promise<boolean> {
-  console.log(this.otp);
-  console.log(this.otp?.reason === reason);
   // console.log(this.otp?.expiresAt.getTime() > Date.now());
   // console.log(await bcrypt.compare(candidateOTP, this.otp.code));
 

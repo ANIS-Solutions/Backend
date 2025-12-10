@@ -5,7 +5,7 @@ import { $RefinementCtx } from 'zod/v4/core';
 
 // =============================== Schema's Utility ===============================
 
-const otpReasons = z.literal(['register', 'deactivate']); // TODO: To be updated.
+const otpReasons = z.literal(['register', 'deactivate', 'verify email']); // TODO: To be updated.
 
 const validatePassword = (
   password: string,
@@ -51,6 +51,7 @@ const validatePhone = (
   }
   return ret.phoneNumber;
 };
+
 const checkConfirmPassword = (
   { password, confirmPassword }: { confirmPassword: string; password: string },
   ctx: $RefinementCtx,
@@ -157,10 +158,19 @@ export type DeactivateAccountInput = z.infer<
   typeof deactivateAccountSchema
 >['body'];
 
-export const logoutSchema = z.object({
+export const reactivatePasswordSchema = z.object({
   body: z.object({
-    email: z.email('Invalid email format.').trim().toLowerCase(),
+    email: z.email('Invalid email format').trim().toLowerCase(),
   }),
+});
+export type ReactivatePasswordInput = z.infer<
+  typeof reactivatePasswordSchema
+>['body'];
+
+export const logoutSchema = z.object({
+  // body: z.object({
+  //   email: z.email('Invalid email format.').trim().toLowerCase(),
+  // }),
 });
 export type LogoutInput = z.infer<typeof logoutSchema>['body'];
 
@@ -174,6 +184,7 @@ export const changePasswordSchema = z.object({
     .superRefine(checkConfirmPassword),
 });
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>['body'];
+
 export const updateProfileSchema = z.object({
   body: z.object({
     email: z.email('Invalid email address').trim().toLowerCase().optional(),

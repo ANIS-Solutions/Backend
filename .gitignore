@@ -3,6 +3,7 @@
 *.md
 *.txt
 *.log
+*.cast
 
 # Exclude files that sure to share it: 
 !*.env.example

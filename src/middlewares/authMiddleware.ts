@@ -11,6 +11,12 @@ export const authMiddleware = catchAsync(
     if (req.headers.authorization?.startsWith('Bearer')) {
       token = req.headers.authorization.split(' ')[1];
     }
+    const cookies = req.cookies as { refreshToken: string };
+    if (!cookies) return next(new AppError('', HttpStatusCode.UNAUTHORIZED));
+    const refreshDecoded = verifyToken(cookies.refreshToken);
+    if (!refreshDecoded)
+      return next(new AppError('', HttpStatusCode.UNAUTHORIZED));
+
     if (!token) {
       return next(
         new AppError(
@@ -23,12 +29,20 @@ export const authMiddleware = catchAsync(
     const decoded = verifyToken(token);
 
     const stillUser = await ParentModel.findById(decoded.userId);
+
     if (!stillUser || !stillUser.isActive) {
       return next(
         new AppError('The user no longer exists.', HttpStatusCode.UNAUTHORIZED),
       );
     }
-
+    if (!stillUser.refreshToken) {
+      return next(
+        new AppError(
+          'You are not logged in! log in firstly.',
+          HttpStatusCode.UNAUTHORIZED,
+        ),
+      );
+    }
     if (decoded.iat && !stillUser.changePasswordAfter(decoded.iat)) {
       return next(
         new AppError(

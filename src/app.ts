@@ -2,6 +2,7 @@ import config from '@configs/base';
 import globalErrorHandler from '@middlewares/errorMiddleware';
 import routes from '@routes/base';
 import logger from '@utils/logger';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application } from 'express';
 import rateLimit from 'express-rate-limit';
@@ -12,6 +13,8 @@ const app: Application = express();
 
 app.use(helmet());
 
+app.use(cookieParser());
+
 app.use(
   cors({
     origin: config.CLIENT_URL || `http://localhost:${config.PORT}`,
@@ -19,11 +22,13 @@ app.use(
     credentials: true,
   }),
 );
+
 const morganStream = {
   write: (message: string): void => {
     logger.info(message.trim());
   },
 };
+
 if (config.IS_DEV_ENV) {
   app.use(morgan('dev', { stream: morganStream }));
 }
