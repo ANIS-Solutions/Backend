@@ -63,6 +63,7 @@
     "@types/morgan": "^1.9.10",
     "@types/node": "^24.10.1",
     "conventional-changelog-atom": "^5.0.0",
+    "cross-env": "^10.1.0",
     "eslint": "^9.39.1",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
