@@ -5,6 +5,8 @@ import HttpStatusCode from '@utils/HttpStatusCode';
 import { Router } from 'express';
 import mongoose from 'mongoose';
 
+import questRouter from './questRoute.js';
+
 const router = Router();
 
 router.get('/', (req, res) => {
@@ -30,6 +32,7 @@ router.get('/', (req, res) => {
 
 router.use('/auth', authRouter);
 router.use('/children', childrenRouter);
+router.use('/quest', questRouter);
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {
   next(
