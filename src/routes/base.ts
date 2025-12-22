@@ -1,4 +1,5 @@
 import authRouter from '@routes/authRoute';
+import childrenRouter from '@routes/childrenRouter';
 import AppError from '@utils/AppError';
 import HttpStatusCode from '@utils/HttpStatusCode';
 import { Router } from 'express';
@@ -28,7 +29,7 @@ router.get('/', (req, res) => {
 });
 
 router.use('/auth', authRouter);
-
+router.use('/children', childrenRouter);
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {
   next(

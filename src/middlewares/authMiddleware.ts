@@ -51,8 +51,8 @@ export const authMiddleware = catchAsync(
         ),
       );
     }
-
-    req.user = decoded;
+    req.user = stillUser;
+    // req.user = decoded;
     next();
   },
 );

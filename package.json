@@ -4,8 +4,8 @@
   "description": "This is a backend for Anis project.",
   "type": "module",
   "scripts": {
-    "dev": "NODE_ENV=dev tsx --watch src/server.ts",
-    "start": "NODE_ENV=production node dist/server.js",
+    "dev": "cross-env NODE_ENV=dev tsx --watch src/server.ts",
+    "start": "cross-env NODE_ENV=production node dist/server.js",
     "build": "tsc && tsc-alias",
     "type-check": "tsc --noEmit",
     "lint": "eslint .",
