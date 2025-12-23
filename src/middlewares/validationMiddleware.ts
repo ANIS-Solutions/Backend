@@ -18,7 +18,12 @@ export const authValidate = (schema: ZodSchema): RequestHandler =>
     })) as ValidationParses;
 
     if (okay.body) req.body = okay.body;
-    if (okay.query) req.query = okay.query;
-    if (okay.params) req.params = okay.params;
+
+    if (okay.query) {
+      Object.assign(req.query, okay.query);
+    }
+    if (okay.params) {
+      Object.assign(req.params, okay.params);
+    }
     next();
   });

@@ -1,7 +1,9 @@
 import { Types } from 'mongoose';
 
+// REVIEW: we standardize paths with @models
 import { IQuest, QuestModel, QuestStatus } from './../models/questModel.js';
 
+// REVIEW: we standardize errors with AppError through errorMiddleware
 class QuestError extends Error {
   constructor(message: string) {
     super(message);

@@ -364,7 +364,7 @@ export const reactivate_account = catchAsync(
     await currUser.save({ validateBeforeSave: false });
     const reactivateURL = `${req.protocol}://${req.get('host')}/api/v1/auth/reactivate/${reactivateToken}`;
     // const message = `Forgot your password? Submit a PATCH request with your new password to: ${reactivateURL}.\nIf you didn't forget your password, please ignore this email!`;
-    // TODO:
+    // TODO: Send Reactivate Email
     // await sendReactivateTokenEmail({
     //   email: 'ah.abbas333@gmail.com',
     //   subject: 'Your Password Reset Token (Valid for 10 min)',

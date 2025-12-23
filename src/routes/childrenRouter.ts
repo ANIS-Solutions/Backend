@@ -8,6 +8,7 @@ import { authValidate } from '@middlewares/validationMiddleware';
 import { createChildSchema } from '@schemas/childrenSchema';
 import { Router } from 'express';
 
+//FIXME: children?? -> Should be child, each time call this api child/add to add one child not many!
 const childrenRouter = Router();
 
 childrenRouter.post(

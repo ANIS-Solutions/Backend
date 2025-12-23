@@ -1,5 +1,6 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
+//REVIEW : Maybe replaced with id numbers?
 export enum QuestStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',
@@ -9,6 +10,7 @@ export enum QuestStatus {
   CANCELLED = 'cancelled',
   ARCHIVED = 'archived',
 }
+
 export interface IQuest extends Document {
   parent: mongoose.Types.ObjectId;
   child: mongoose.Types.ObjectId;
@@ -82,9 +84,9 @@ const QuestSchema = new Schema<IQuest>(
       points: {
         type: Number,
         min: 1,
-        required: function () {
+        required: function (): boolean {
           // required only if reward.type === 'points'
-          return this.reward?.type === 'points';
+          return this.reward.type === 'points';
         },
       },
 
@@ -106,7 +108,8 @@ const QuestSchema = new Schema<IQuest>(
         required: true,
       },
 
-      completedAt: Date,
+      //TODO : should be has default value
+      createdAt: Date,
       cancelledAt: Date,
     },
   },
@@ -129,6 +132,7 @@ QuestSchema.virtual('isActive').get(function (this: IQuest) {
 
 QuestSchema.pre('save', function () {
   if (this.schedule.endAt <= this.schedule.startAt) {
+    //REVIEW : should use our AppError through errorMiddleware
     throw new Error('schedule.endAt must be after schedule.startAt');
   }
 

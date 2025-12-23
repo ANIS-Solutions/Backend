@@ -26,7 +26,16 @@
     "api",
     "backend"
   ],
-  "author": "anis team",
+  "contributors": [
+    {
+      "name": "Ahmed Abbas",
+      "url": "https://github.com/3bbaas"
+    },
+    {
+      "name": "Hassnaa Nageh",
+      "url": "https://github.com/Hasnaa-Nageh"
+    }
+  ],
   "license": "ISC",
   "packageManager": "pnpm@10.17.0",
   "dependencies": {

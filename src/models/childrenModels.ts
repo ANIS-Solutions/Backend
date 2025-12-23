@@ -35,7 +35,7 @@ const ChildSchema = new Schema<IChildren>(
       required: true,
     },
     parent: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: mongoose.Types.ObjectId,
       ref: 'Parent',
       required: true,
     },
