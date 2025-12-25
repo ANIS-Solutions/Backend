@@ -1,43 +1,68 @@
 .
-├── _assets
-│  └── anisBackend-asset.jpg
 ├── src
-│  ├── configs
-│  │  ├── base.ts
-│  │  └── db.ts
-│  ├── controllers
-│  │  ├── authController.ts
-│  │  ├── errorController.ts
-│  ├── middlewares
-│  │  ├── errorMiddleware.ts
-│  │  └── validationMiddleware.ts
-│  ├── models
-│  │  ├── authModels.ts
-│  ├── public
-│  │  └── .gitkeep
-│  ├── routes
-│  │  ├── authRoute.ts
-│  │  ├── base.ts
-│  ├── uploads
-│  │  └── .gitkeep
-│  ├── utils
-│  │  ├── AppError.ts
-│  │  ├── catchAsync.ts
-│  │  ├── HttpStatusCode.ts
-│  │  ├── logger.ts
-│  │  └── serverHandlers.ts
-│  ├── app.ts
-│  └── server.ts
+│   ├── configs
+│   │   ├── base.ts
+│   │   └── db.ts
+│   ├── controllers
+│   │   ├── authController.ts
+│   │   ├── childrenController.ts
+│   │   ├── errorController.ts
+│   │   ├── questController.ts
+│   │   └── reportController.ts
+│   ├── doc
+│   ├── middlewares
+│   │   ├── authMiddleware.ts
+│   │   ├── errorMiddleware.ts
+│   │   ├── ratelimitMiddleware.ts
+│   │   └── validationMiddleware.ts
+│   ├── models
+│   │   ├── authModels.ts
+│   │   ├── childrenModels.ts
+│   │   ├── questModel.ts
+│   │   └── reportModel.ts
+│   ├── public
+│   ├── routes
+│   │   ├── authRoute.ts
+│   │   ├── base.ts
+│   │   ├── childrenRouter.ts
+│   │   ├── questRoute.ts
+│   │   └── reportRouter.ts
+│   ├── schemas
+│   │   ├── authSchema.ts
+│   │   ├── childrenSchema.ts
+│   │   ├── questSchema.ts
+│   │   └── reportSchema.ts
+│   ├── services
+│   │   ├── authService.ts
+│   │   ├── emailService.ts
+│   │   ├── questService.ts
+│   │   └── sendResetTokenEmail.ts
+│   ├── templates
+│   │   ├── REACTIVATE.html
+│   │   ├── RESET_PASSWORD.html
+│   │   └── VERIFY_OTP.html
+│   ├── types
+│   │   ├── express.d.ts
+│   │   └── jwt.d.ts
+│   ├── uploads
+│   ├── utils
+│   │   ├── AppError.ts
+│   │   ├── catchAsync.ts
+│   │   ├── HttpStatusCode.ts
+│   │   ├── logger.ts
+│   │   └── serverHandlers.ts
+│   ├── app.ts
+│   └── server.ts
 ├── .vscode
-│  ├── extensions.json
-│  ├── launch.json
-│  └── settings.json
+│   ├── extensions.json
+│   ├── launch.json
+│   └── settings.json
 ├── commitlint.config.ts
 ├── config.env
-├── config.env.example
 ├── Dockerfile
 ├── .dockerignore
 ├── eslint.config.ts
+├── .gitattributes
 ├── .gitignore
 ├── .nvmrc
 ├── package.json
@@ -46,4 +71,4 @@
 ├── .prettierrc
 └── tsconfig.json
 
-13 directories, 41 files
+17 directories, 64 files

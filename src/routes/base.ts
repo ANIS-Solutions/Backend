@@ -1,6 +1,7 @@
 import authRouter from '@routes/authRoute';
 import childrenRouter from '@routes/childrenRouter';
-import { reportRouter } from '@routes/reportRouter';
+import eduRouter from '@routes/eduRouter';
+import reportRouter from '@routes/reportRouter';
 import AppError from '@utils/AppError';
 import HttpStatusCode from '@utils/HttpStatusCode';
 import { Router } from 'express';
@@ -35,6 +36,7 @@ router.use('/auth', authRouter);
 router.use('/children', childrenRouter);
 router.use('/quest', questRouter);
 router.use('/report', reportRouter);
+router.use('/edu', eduRouter);
 
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {

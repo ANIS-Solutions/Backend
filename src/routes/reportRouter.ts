@@ -19,3 +19,5 @@ reportRouter.get(
   authValidate(getReportSchema),
   getReports,
 );
+
+export default reportRouter;
