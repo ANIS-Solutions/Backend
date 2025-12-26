@@ -7,6 +7,7 @@ import HttpStatusCode from '@utils/HttpStatusCode';
 import { Router } from 'express';
 import mongoose from 'mongoose';
 
+import { locationsRouter } from './locationsRouter.js';
 import questRouter from './questRoute.js';
 
 const router = Router();
@@ -37,6 +38,7 @@ router.use('/children', childrenRouter);
 router.use('/quest', questRouter);
 router.use('/report', reportRouter);
 router.use('/edu', eduRouter);
+router.use('/locations', locationsRouter);
 
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {

@@ -20,36 +20,53 @@ export interface IEdu {
   }[];
   location?: string | undefined;
   description?: string | undefined;
+  isActive: boolean;
 }
 
-const eduSchema = new Schema<IEdu>({
-  name: { type: String, required: true },
-  startDate: { type: Date },
-  endDate: { type: Date },
-  schedule: {
-    type: [
-      {
-        title: { type: String },
-        type: { type: ['SCHOOL', 'COURSE', 'PRIVATE_LESSON'] },
-        day: {
-          type: [
-            'Sunday',
-            'Monday',
-            'Tuesday',
-            'Wednesday',
-            'Thursday',
-            'Friday',
-            'Saturday',
-          ],
-          required: false,
+const eduSchema = new Schema<IEdu>(
+  {
+    name: { type: String, required: true },
+    startDate: { type: Date },
+    endDate: { type: Date },
+    schedule: {
+      type: [
+        {
+          title: { type: String },
+          type: { type: ['SCHOOL', 'COURSE', 'PRIVATE_LESSON'] },
+          day: {
+            type: [
+              'Sunday',
+              'Monday',
+              'Tuesday',
+              'Wednesday',
+              'Thursday',
+              'Friday',
+              'Saturday',
+            ],
+            required: false,
+          },
+          startTime: { type: String },
+          endTime: { type: String },
         },
-        startTime: { type: String },
-        endTime: { type: String },
-      },
-    ],
+      ],
+    },
+    location: { type: String, required: false },
+    description: { type: String, required: false },
+    isActive: {
+      type: Boolean,
+      default: true,
+    },
   },
-  location: { type: String, required: false },
-  description: { type: String, required: false },
-});
+  {
+    toJSON: {
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+      transform: function (doc, ret: any): object {
+        delete ret.__v;
+        delete ret._id;
+        return ret as object;
+      },
+    },
+  },
+);
 
 export const eduModel = mongoose.model<IEdu>('Edu', eduSchema);

@@ -123,41 +123,11 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (doc, ret): object {
-        const {
-          firstName,
-          lastName,
-          email,
-          phone,
-          isVerified,
-          birthDate,
-          createdAt,
-          otp,
-          updatedAt,
-          password,
-          passwordChangedAt,
-          passwordResetToken,
-          passwordResetTokenExpire,
-          isActive,
-          fullName,
-        } = ret;
-        return {
-          firstName,
-          lastName,
-          email,
-          phone,
-          isVerified,
-          birthDate,
-          createdAt,
-          otp,
-          password,
-          updatedAt,
-          passwordChangedAt,
-          passwordResetToken,
-          passwordResetTokenExpire,
-          isActive,
-          fullName,
-        };
+      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+      transform: function (doc, ret: any): object {
+        delete ret.__v;
+        delete ret._id;
+        return ret as object;
       },
     },
     toObject: { virtuals: true },

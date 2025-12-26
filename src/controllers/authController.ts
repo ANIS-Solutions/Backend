@@ -490,7 +490,7 @@ export const refresh_token = catchAsync(
     }
     const refreshToken = cookies.refreshToken;
     const decoded = verifyToken<JwtPayload>(refreshToken);
-    console.log(decoded);
+    // console.log(decoded);
 
     if (!decoded?.userId) {
       return next(
@@ -498,7 +498,7 @@ export const refresh_token = catchAsync(
       );
     }
     const currUser = await ParentModel.findById(decoded.userId);
-    console.log(decoded.userId);
+    // console.log(decoded.userId);
     if (
       !currUser ||
       !currUser.isActive ||
