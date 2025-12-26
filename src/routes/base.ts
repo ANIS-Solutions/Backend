@@ -1,13 +1,13 @@
 import authRouter from '@routes/authRoute';
 import childrenRouter from '@routes/childrenRouter';
 import eduRouter from '@routes/eduRouter';
+import locationsRouter from '@routes/locationsRouter';
 import reportRouter from '@routes/reportRouter';
 import AppError from '@utils/AppError';
 import HttpStatusCode from '@utils/HttpStatusCode';
 import { Router } from 'express';
 import mongoose from 'mongoose';
 
-import { locationsRouter } from './locationsRouter.js';
 import questRouter from './questRoute.js';
 
 const router = Router();
