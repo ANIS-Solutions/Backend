@@ -38,6 +38,7 @@ export default defineConfig(
     },
     // Rules that apply to all files
     rules: {
+      'linebreak-style': ['error', 'windows'],
       'no-console': 'warn',
       'no-unused-vars': 'off',
       'prefer-const': 'error',

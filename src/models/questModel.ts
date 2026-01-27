@@ -1,6 +1,6 @@
+import AppError from '@utils/AppError';
 import mongoose, { Document, Schema } from 'mongoose';
 
-//REVIEW : Maybe replaced with id numbers?
 export enum QuestStatus {
   PENDING = 'pending',
   IN_PROGRESS = 'in_progress',
@@ -17,9 +17,8 @@ export interface IQuest extends Document {
   title: string;
   description?: string;
   status: QuestStatus;
-
   target: {
-    king: string;
+    type: string;
     value: string;
   };
 
@@ -28,15 +27,12 @@ export interface IQuest extends Document {
     value: string;
     points?: number;
   };
-
   schedule: {
     startAt: Date;
     endAt: Date;
   };
-
   completedAt?: Date;
   cancelledAt?: Date;
-
   createdAt: Date;
   updatedAt: Date;
 }
@@ -60,8 +56,7 @@ const QuestSchema = new Schema<IQuest>(
       index: true,
     },
     target: {
-      /*type*/
-      king: {
+      kind: {
         type: String,
         required: true,
       },
@@ -71,8 +66,7 @@ const QuestSchema = new Schema<IQuest>(
       },
     },
     reward: {
-      /*type*/
-      king: {
+      type: {
         type: String,
         enum: ['points', 'gift'],
         required: true,
@@ -89,34 +83,32 @@ const QuestSchema = new Schema<IQuest>(
           return this.reward.type === 'points';
         },
       },
-
-      schedule: {
-        startAt: { type: Date, required: true },
-        endAt: { type: Date, required: true },
-      },
-
-      child: {
-        type: Schema.Types.ObjectId,
-        ref: 'Child',
-        required: true,
-        index: true,
-      },
-
-      parent: {
-        type: Schema.Types.ObjectId,
-        ref: 'Parent',
-        required: true,
-      },
-
-      //TODO : should be has default value
-      createdAt: Date,
-      cancelledAt: Date,
     },
+
+    schedule: {
+      startAt: { type: Date, required: true },
+      endAt: { type: Date, required: true },
+    },
+
+    child: {
+      type: Schema.Types.ObjectId,
+      ref: 'Child',
+      required: true,
+      index: true,
+    },
+
+    parent: {
+      type: Schema.Types.ObjectId,
+      ref: 'Parent',
+      required: true,
+    },
+
+    //TODO : should be has default value
+    createdAt: Date,
+    cancelledAt: Date,
   },
   {
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   },
 );
 QuestSchema.index({ parent: 1, status: 1 });
@@ -133,7 +125,7 @@ QuestSchema.virtual('isActive').get(function (this: IQuest) {
 QuestSchema.pre('save', function () {
   if (this.schedule.endAt <= this.schedule.startAt) {
     //REVIEW : should use our AppError through errorMiddleware
-    throw new Error('schedule.endAt must be after schedule.startAt');
+    throw new AppError('schedule.endAt must be after schedule.startAt', 400);
   }
 
   if (

@@ -10,9 +10,13 @@ const objectIdSchema = z
 //  Create Quest (Parent)
 export const createQuestSchema = z.object({
   body: z.object({
-    title: z.string().min(3, 'Title must be at least 3 characters').max(120),
+    title: z
+      .string()
+      .trim()
+      .min(3, 'Title must be at least 3 characters')
+      .max(120),
 
-    description: z.string().max(500).optional(),
+    description: z.string().trim().max(500).optional(),
 
     child: objectIdSchema,
 
@@ -45,9 +49,15 @@ export const createQuestSchema = z.object({
       .refine((data) => data.endAt > data.startAt, {
         message: 'endAt must be after startAt',
         path: ['endAt'],
+      })
+      .refine((data) => data.startAt >= new Date(), {
+        message: 'startAt cannot be in the past',
+        path: ['startAt'],
       }),
   }),
 });
+
+export type CreateQuestInput = z.infer<typeof createQuestSchema>['body'];
 
 //    Start Quest (Child)
 export const startQuestSchema = z.object({

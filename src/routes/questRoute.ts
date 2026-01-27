@@ -7,7 +7,7 @@ import { Router } from 'express';
 const questRouter = Router();
 
 questRouter.post(
-  '/',
+  '/add',
   authMiddleware,
   authValidate(createQuestSchema),
   CreateQuest,
