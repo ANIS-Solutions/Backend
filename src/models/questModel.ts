@@ -25,7 +25,7 @@ export interface IQuest extends Document {
   reward: {
     type: 'points' | 'gift';
     value: string;
-    points?: number;
+    points?: number | undefined;
   };
   schedule: {
     startAt: Date;

@@ -59,12 +59,25 @@ export const createQuestSchema = z.object({
 
 export type CreateQuestInput = z.infer<typeof createQuestSchema>['body'];
 
+//Get All Quests
+export const getAllQuestsSchema = z.object({
+  query: z.object({
+    status: z
+      .enum(Object.values(QuestStatus) as [QuestStatus, ...QuestStatus[]])
+      .optional(),
+    child: objectIdSchema.optional(),
+  }),
+});
+
+export type GetAllQuestsInput = z.infer<typeof getAllQuestsSchema>['query'];
+
 //    Start Quest (Child)
 export const startQuestSchema = z.object({
   params: z.object({
     questId: objectIdSchema,
   }),
 });
+export type startQuestInput = z.infer<typeof startQuestSchema>['params'];
 
 //    Complete Quest (Child)
 export const completeQuestSchema = z.object({
@@ -88,16 +101,5 @@ export const validateQuestSchema = z.object({
 export const cancelQuestSchema = z.object({
   params: z.object({
     questId: objectIdSchema,
-  }),
-});
-
-//    Get Quests (Query Filters)
-
-export const getQuestsSchema = z.object({
-  query: z.object({
-    status: z
-      .enum(Object.values(QuestStatus) as [QuestStatus, ...QuestStatus[]])
-      .optional(),
-    child: objectIdSchema.optional(),
   }),
 });

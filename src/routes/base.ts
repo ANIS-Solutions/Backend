@@ -1,3 +1,4 @@
+import appsRouter from '@routes/appRouter';
 import authRouter from '@routes/authRoute';
 import childrenRouter from '@routes/childrenRouter';
 import eduRouter from '@routes/eduRouter';
@@ -39,7 +40,7 @@ router.use('/quest', questRouter);
 router.use('/report', reportRouter);
 router.use('/edu', eduRouter);
 router.use('/locations', locationsRouter);
-
+router.use('/apps', appsRouter);
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {
   next(

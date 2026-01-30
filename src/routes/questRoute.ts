@@ -1,7 +1,15 @@
-import { CreateQuest } from '@controllers/questController';
+import {
+  CreateQuest,
+  getAllQuests,
+  // startQuest,
+} from '@controllers/questController';
 import { authMiddleware } from '@middlewares/authMiddleware';
 import { authValidate } from '@middlewares/validationMiddleware';
-import { createQuestSchema } from '@schemas/questSchema';
+import {
+  createQuestSchema,
+  getAllQuestsSchema,
+  startQuestSchema,
+} from '@schemas/questSchema';
 import { Router } from 'express';
 
 const questRouter = Router();
@@ -12,7 +20,21 @@ questRouter.post(
   authValidate(createQuestSchema),
   CreateQuest,
 );
-// questRouter.get('/child/:id');
+
+questRouter.get(
+  '/',
+  authMiddleware,
+  authValidate(getAllQuestsSchema),
+  getAllQuests,
+);
+
+questRouter.patch(
+  '/start',
+  authMiddleware,
+  authValidate(startQuestSchema),
+  // startQuest,
+);
+
 // questRouter.patch('/:id/start');
 // questRouter.patch('/:id/complete');
 // questRouter.patch('/:id/cancel');
