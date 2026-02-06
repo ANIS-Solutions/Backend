@@ -153,7 +153,6 @@ export const getApp = catchAsync(
   ) => {
     const { appId, childId } = req.params;
     const childApp = await AppModel.findOne({ _id: appId, child: childId });
-    console.log(childApp);
     if (!childApp) {
       return next(new AppError('App not found', HttpStatusCode.NOT_FOUND));
     }

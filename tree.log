@@ -1,96 +1,18 @@
-.
-├── src
-│   ├── configs
-│   │   ├── base.ts
-│   │   └── db.ts
-│   ├── core
-│   │   ├── controllers
-│   │   │   └── errorController.ts
-│   │   ├── middleware
-│   │   │   ├── authMiddleware.ts
-│   │   │   ├── errorMiddleware.ts
-│   │   │   ├── ratelimitMiddleware.ts
-│   │   │   └── validationMiddleware.ts
-│   │   ├── services
-│   │   │   └── emailService.ts
-│   │   └── utils
-│   │       ├── AppError.ts
-│   │       ├── catchAsync.ts
-│   │       ├── HttpStatusCode.ts
-│   │       ├── logger.ts
-│   │       └── serverHandlers.ts
-│   ├── http
-│   │   ├── apiRouter.ts
-│   │   └── healthRoute.ts
-│   ├── modules
-│   │   ├── app
-│   │   │   ├── appController.ts
-│   │   │   ├── appModel.ts
-│   │   │   ├── appRoute.ts
-│   │   │   └── appSchema.ts
-│   │   ├── auth
-│   │   │   ├── emails
-│   │   │   │   ├── REACTIVATE.html
-│   │   │   │   ├── RESET_PASSWORD.html
-│   │   │   │   └── VERIFY_OTP.html
-│   │   │   ├── authController.ts
-│   │   │   ├── authModel.ts
-│   │   │   ├── authRoute.ts
-│   │   │   ├── authSchema.ts
-│   │   │   ├── authService.ts
-│   │   │   ├── .gitkeep
-│   │   │   └── sendResetTokenEmail.ts
-│   │   ├── children
-│   │   │   ├── childrenController.ts
-│   │   │   ├── childrenModel.ts
-│   │   │   ├── childrenRoute.ts
-│   │   │   ├── childrenSchema.ts
-│   │   │   └── .gitkeep
-│   │   ├── education
-│   │   │   ├── eduController.ts
-│   │   │   ├── eduModel.ts
-│   │   │   ├── eduRoute.ts
-│   │   │   ├── eduSchema.ts
-│   │   │   └── eduServices.ts
-│   │   ├── locations
-│   │   │   ├── locationsController.ts
-│   │   │   ├── locationsModel.ts
-│   │   │   ├── locationsRoute.ts
-│   │   │   └── locationsSchema.ts
-│   │   ├── quest
-│   │   │   ├── questController.ts
-│   │   │   ├── questModel.ts
-│   │   │   ├── questRoute.ts
-│   │   │   ├── questSchema.ts
-│   │   │   └── questService.ts
-│   │   ├── report
-│   │   │   ├── reportController.ts
-│   │   │   ├── reportModel.ts
-│   │   │   ├── reportRoute.ts
-│   │   │   └── reportSchema.ts
-│   ├── public
-│   │   └── .gitkeep
-│   ├── types
-│   │   ├── express.d.ts
-│   │   └── jwt.d.ts
-│   ├── app.ts
-│   └── server.ts
-├── .vscode
-│   ├── extensions.json
-│   ├── launch.json
-│   └── settings.json
-├── commitlint.config.ts
-├── config.env
-├── Dockerfile
-├── .dockerignore
-├── eslint.config.ts
-├── .gitattributes
-├── .gitignore
-├── .nvmrc
-├── package.json
-├── pnpm-lock.yaml
-├── .prettierignore
-├── .prettierrc
-└── tsconfig.json
-
-23 directories, 76 files
+{
+  "scripts": {
+    "prepare": "husky",
+  },
+  "packageManager": "pnpm@10.17.0",
+  "dependencies": {
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+  },
+  "lint-staged": {
+    "*.{ts,js}": [
+      "eslint --fix",
+      "prettier --write"
+    ]
+  }
+}
