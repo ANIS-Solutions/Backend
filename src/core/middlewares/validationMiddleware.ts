@@ -1,6 +1,6 @@
 import { catchAsync } from '@core/utils/catchAsync';
 import { RequestHandler } from 'express';
-import { ZodSchema } from 'zod';
+import { ZodType } from 'zod';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- will be checked later.*/
 
@@ -9,7 +9,7 @@ interface ValidationParses {
   query?: any;
   params?: any;
 }
-export const authValidate = (schema: ZodSchema): RequestHandler =>
+export const authValidate = (schema: ZodType): RequestHandler =>
   catchAsync(async (req, res, next) => {
     const okay = (await schema.parseAsync({
       body: req.body ?? {},
@@ -17,8 +17,9 @@ export const authValidate = (schema: ZodSchema): RequestHandler =>
       params: req.params ?? {},
     })) as ValidationParses;
 
-    if (okay.body) req.body = okay.body;
-
+    if (okay.body) {
+      Object.assign(req.body, okay.body);
+    }
     if (okay.query) {
       Object.assign(req.query, okay.query);
     }
