@@ -1,5 +1,5 @@
 import config from '@configs/base';
-import logger from '@utils/logger';
+import logger from '@core/utils/logger';
 import mongoose from 'mongoose';
 
 const dbConnect = async (): Promise<void> => {

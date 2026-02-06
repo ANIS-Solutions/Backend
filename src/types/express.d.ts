@@ -1,4 +1,4 @@
-import { IParent } from '@models/authModels';
+import { IParent } from '@modules/auth/authModel';
 import { JwtPayload } from 'jsonwebtoken';
 
 import 'express';

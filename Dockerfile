@@ -1,16 +1,22 @@
-FROM node:20.1.0-alpine
+# this written for development only
+FROM node:current-bookworm-slim
 
-RUN corepack enable
+RUN apt-get update && apt-get install -y --no-install-recommends \
+  git curl \
+  && rm -rf /var/lib/apt/lists/*
+
+RUN npm install -g corepack@latest --force && \
+  rm -f /usr/local/bin/yarn /usr/local/bin/pnpm && \
+  corepack enable && \
+  corepack prepare pnpm@10.17.0 --activate
+
 WORKDIR /app
 
-RUN apk add --no-cache bash
-COPY package.json pnpm-lock.yaml* ./
+COPY pnpm*.yaml ./
+COPY package.json ./backend/
 
-RUN pnpm install
-
+WORKDIR /app/backend
 COPY . .
-
+RUN pnpm install --frozen-lockfile 
 EXPOSE 5000
 CMD ["pnpm", "dev"]
-# docker build -t my-bk1 .
-# docker run -it --rm -p 5000:5000 -v $(pwd):/app my-bk1

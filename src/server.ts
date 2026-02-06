@@ -3,12 +3,12 @@ import { Server } from 'http';
 import app from '@app';
 import config from '@configs/base';
 import dbConnect from '@configs/db';
-import logger from '@utils/logger';
 import {
   sigTermHandler,
   uncaughtExceptionHandler,
   unhandledRejectionHandler,
-} from '@utils/serverHandlers';
+} from '@core/handlers/serverHandlers';
+import logger from '@core/utils/logger';
 
 process.on('uncaughtException', uncaughtExceptionHandler);
 

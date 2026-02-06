@@ -1,7 +1,7 @@
 import config from '@configs/base';
-import globalErrorHandler from '@middlewares/errorMiddleware';
-import routes from '@routes/base';
-import logger from '@utils/logger';
+import globalErrorHandler from '@core/middlewares/errorMiddleware';
+import logger from '@core/utils/logger';
+import routes from '@http/apiRouter';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application } from 'express';

@@ -58,5 +58,8 @@
       "fontWeight": "900",
       "opacity": 70
     }
+  },
+  "[dockerfile]": {
+    "editor.defaultFormatter": "ms-azuretools.vscode-containers"
   }
 }
