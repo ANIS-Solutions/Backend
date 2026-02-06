@@ -1,7 +1,6 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { IParent } from '@models/authModels';
 import { ChildModel } from '@models/childrenModels';
-import { CreateChildInput } from '@schemas/childrenSchema';
+import { CreateChildInput, GetSingleChildInput } from '@schemas/childrenSchema';
 import { catchAsync } from '@utils/catchAsync';
 import HttpStatusCode from '@utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
@@ -23,13 +22,13 @@ export const add_children = catchAsync(
     }
 
     const { firstName, lastName, gender, hobbies, dob } = req.body;
-    // REVIEW: `authValidate(createChildSchema)` crying at the corner
-    if (!firstName || !lastName || gender === undefined || !dob) {
-      return res.status(HttpStatusCode.BAD_REQUEST).json({
-        success: false,
-        message: 'All fields are required',
-      });
-    }
+    // // REVIEW: `authValidate(createChildSchema)` crying at the corner
+    // if (!firstName || !lastName || !gender === undefined || !dob) {
+    //   return res.status(HttpStatusCode.BAD_REQUEST).json({
+    //     success: false,
+    //     message: 'All fields are required',
+    //   });
+    // }
     const child = await ChildModel.create({
       firstName,
       lastName,
@@ -39,17 +38,17 @@ export const add_children = catchAsync(
       dob,
       parent: parentId,
     });
-    // FIXME: Too much queries? parent infos can known from previous query.
-    const populatedChild = await ChildModel.findById(child._id).populate(
-      'parent',
-      'firstName lastName email',
-    );
+    // // FIXME: Too much queries? parent infos can known from previous query.
+    // const populatedChild = await ChildModel.findById(child._id).populate(
+    //   'parent',
+    //   'firstName lastName email',
+    // );
 
     return res.status(HttpStatusCode.CREATED).json({
       success: true,
       message: 'Child added successfully',
       data: {
-        child: populatedChild,
+        child,
       },
     });
   },
@@ -64,17 +63,17 @@ export const get_all_children = catchAsync(
   ): Promise<Response | void> => {
     const parentId = (req.user as IParent)._id;
 
-    // REVIEW: authMiddleware handle it!
-    if (!parentId) {
-      return res.status(HttpStatusCode.UNAUTHORIZED).json({
-        success: false,
-        message: 'Unauthorized: Parent not found',
-      });
-    }
-    // REVIEW: now parent get his children, why i return his information?
-    const children = await ChildModel.find({ parent: parentId })
-      .populate('parent', 'firstName lastName email')
-      .sort({ createdAt: -1 });
+    // // REVIEW: authMiddleware handle it!
+    // if (!parentId) {
+    //   return res.status(HttpStatusCode.UNAUTHORIZED).json({
+    //     success: false,
+    //     message: 'Unauthorized: Parent not found',
+    //   });
+    // }
+    // // REVIEW: now parent get his children, why i return his information?
+    const children = await ChildModel.find({ parent: parentId }).sort({
+      createdAt: -1,
+    });
 
     return res.status(HttpStatusCode.OK).json({
       success: true,
@@ -89,24 +88,24 @@ export const get_all_children = catchAsync(
 //=============== Get Single Children =====================//
 export const get_single_children = catchAsync(
   async (
-    req: Request,
+    req: Request<GetSingleChildInput>,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
     const parentId = (req.user as IParent)._id;
-    // REVIEW: authMiddleware handle it!
-    if (!parentId) {
-      return res.status(HttpStatusCode.UNAUTHORIZED).json({
-        success: false,
-        message: 'Unauthorized: Parent not found',
-      });
-    }
-    const childId = req.params.id;
-    // REVIEW: can handle in schema??
-    if (!childId) {
-      // REVIEW: should use our custom AppError throw error middleware
-      throw new Error('Child ID is required');
-    }
+    // // REVIEW: authMiddleware handle it!
+    // if (!parentId) {
+    //   return res.status(HttpStatusCode.UNAUTHORIZED).json({
+    //     success: false,
+    //     message: 'Unauthorized: Parent not found',
+    //   });
+    // }
+    const childId = req.params.childId;
+    // // REVIEW: can handle in schema??
+    // if (!childId) {
+    //   // REVIEW: should use our custom AppError throw error middleware
+    //   return next(new AppError('Child ID is required', 500));
+    // }
     // REVIEW: now parent get his children, why i return his information?
     const child = await ChildModel.findOne({
       _id: childId,

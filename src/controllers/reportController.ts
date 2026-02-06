@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { IParent } from '@models/authModels';
 import { ReportModel } from '@models/reportModel';
 import { GenerateReportInput, GetReportsInput } from '@schemas/reportSchema';

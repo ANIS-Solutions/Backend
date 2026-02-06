@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import crypto from 'crypto';
 
 import config from '@configs/base';

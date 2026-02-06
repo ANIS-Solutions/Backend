@@ -38,3 +38,11 @@ export const createChildSchema = z.object({
 });
 
 export type CreateChildInput = z.infer<typeof createChildSchema>['body'];
+export const getSingleChildSchema = z.object({
+  params: z.object({
+    childId: z.string(),
+  }),
+});
+export type GetSingleChildInput = z.infer<
+  typeof getSingleChildSchema
+>['params'];

@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { locationModel } from '@models/locationsModel';
 import { LocationsInput } from '@schemas/locationsSchema';
 import { catchAsync } from '@utils/catchAsync';

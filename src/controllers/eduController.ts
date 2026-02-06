@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { AddEduInput } from '@schemas/eduSchema';
 import { addEduService } from '@services/eduServices';
 import { catchAsync } from '@utils/catchAsync';

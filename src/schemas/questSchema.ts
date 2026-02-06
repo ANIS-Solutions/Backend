@@ -1,6 +1,5 @@
+import { QuestStatus } from '@models/questModel';
 import { z } from 'zod';
-
-import { QuestStatus } from './../models/questModel.js';
 
 //  Common Helpers
 const objectIdSchema = z
@@ -34,7 +33,7 @@ export const createQuestSchema = z.object({
       .superRefine((data, ctx) => {
         if (data.type === 'points' && !data.points) {
           ctx.addIssue({
-            code: z.ZodIssueCode.custom,
+            code: 'custom',
             message: 'Points are required when reward type is points',
             path: ['points'],
           });

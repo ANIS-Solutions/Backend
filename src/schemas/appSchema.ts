@@ -1,40 +1,48 @@
-import { z } from 'zod';
+import z from 'zod';
 
-const objectIdSchema = z
-  .string()
-  .regex(/^[0-9a-fA-F]{24}$/, 'Invalid ObjectId');
-
-export const getAllAppsSchema = z.object({
-  params: z.object({
-    childId: objectIdSchema,
-  }),
+const paramsSchema = z.object({
+  childId: z.string(),
+  appId: z.string(),
 });
-
-export type GetAllAppsInput = z.infer<typeof getAllAppsSchema>['params'];
-
-export const getSingleAppSchema = z.object({
-  params: z.object({
-    childId: objectIdSchema,
-    appId: objectIdSchema,
-  }),
-});
-
-export type getSingleAppInput = z.infer<typeof getSingleAppSchema>['params'];
-
-export const blockAppSchema = z.object({
+export const addAppSchema = z.object({
   body: z.object({
-    childId: objectIdSchema,
-    appId: objectIdSchema,
+    name: z.string(),
+    storeId: z.string(),
+    category: z.array(z.string()),
+    iconUrl: z.url(),
+    about: z.string(),
+    childId: z.string(),
   }),
 });
 
-export type blockAppInput = z.infer<typeof blockAppSchema>['body'];
+export type AddAppInput = z.infer<typeof addAppSchema>['body'];
 
-export const unblockAppSchema = z.object({
+export const removeAppSchema = z.object({
+  params: paramsSchema,
+});
+export type RemoveAppInput = z.infer<typeof removeAppSchema>['params'];
+export const updateAppSchema = z.object({
+  params: paramsSchema,
   body: z.object({
-    childId: objectIdSchema,
-    appId: objectIdSchema,
+    name: z.string().optional(),
+    iconUrl: z.string().url().optional(),
+    about: z.string().optional(),
+    category: z.array(z.string()).optional(),
   }),
 });
+export type UpdateAppInput = z.infer<typeof updateAppSchema>;
+export const toggleBlockSchema = z.object({
+  params: paramsSchema,
+  body: z.object({
+    isBlocked: z.boolean(),
+  }),
+});
+export type ToggleBlockInput = z.infer<typeof toggleBlockSchema>;
 
-export type unBlockAppInput = z.infer<typeof unblockAppSchema>['body'];
+export const setLimitSchema = z.object({
+  params: paramsSchema,
+  body: z.object({
+    dailyLimit: z.number().min(0, 'Limit cannot be negative'),
+  }),
+});
+export type SetLimitInput = z.infer<typeof setLimitSchema>;

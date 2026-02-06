@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-empty-object-type */
 import { IParent } from '@models/authModels';
 import { QuestModel } from '@models/questModel';
 import { CreateQuestInput, GetAllQuestsInput } from '@schemas/questSchema';
@@ -15,7 +14,6 @@ export const CreateQuest = catchAsync(
     const { title, description, child, target, reward, schedule } = req.body;
 
     const parentID = (req.user as IParent)._id;
-
     const newQuest = await QuestModel.create({
       title,
       child,
