@@ -2,8 +2,8 @@ import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 
-import { AddEduInput } from './eduSchema.js';
-import { addEduService } from './eduServices.js';
+import { AddEduInput } from './edu.schema.js';
+import { addEduService } from './edu.service.js';
 
 export const addEdu = catchAsync(
   async (

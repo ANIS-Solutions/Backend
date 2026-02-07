@@ -1,8 +1,8 @@
 import { Server } from 'http';
 
 import app from '@app';
-import config from '@configs/base';
-import dbConnect from '@configs/db';
+import config from '@config/base';
+import dbConnect from '@config/db';
 import {
   sigTermHandler,
   uncaughtExceptionHandler,

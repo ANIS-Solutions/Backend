@@ -1,17 +1,17 @@
-import { authMiddleware } from '@core/middlewares/authMiddleware';
-import { authValidate } from '@core/middlewares/validationMiddleware';
+import { authMiddleware } from '@core/middleware/authMiddleware';
+import { authValidate } from '@core/middleware/validationMiddleware';
 import { Router } from 'express';
 
 import {
   CreateQuest,
   getAllQuests,
   // startQuest,
-} from './questController.js';
+} from './quest.controller.js';
 import {
   createQuestSchema,
   getAllQuestsSchema,
   startQuestSchema,
-} from './questSchema.js';
+} from './quest.schema.js';
 
 const questRouter = Router();
 

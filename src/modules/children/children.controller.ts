@@ -2,9 +2,9 @@ import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 
-import { IParent } from '../auth/authModel.js';
-import { ChildModel } from './childrenModel.js';
-import { CreateChildInput, GetSingleChildInput } from './childrenSchema.js';
+import { IParent } from '../auth/auth.model.js';
+import { ChildModel } from './children.model.js';
+import { CreateChildInput, GetSingleChildInput } from './children.schema.js';
 
 //=============== Add Children =====================//
 export const add_children = catchAsync(

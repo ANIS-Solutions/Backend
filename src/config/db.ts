@@ -1,4 +1,4 @@
-import config from '@configs/base';
+import config from '@config/base';
 import logger from '@core/utils/logger';
 import mongoose from 'mongoose';
 

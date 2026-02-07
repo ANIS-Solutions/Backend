@@ -1,4 +1,4 @@
-import config from '@configs/base';
+import config from '@config/base';
 import rateLimit from 'express-rate-limit';
 
 export const otpLimiter = rateLimit({

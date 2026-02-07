@@ -1,4 +1,4 @@
-import { authValidate } from '@core/middlewares/validationMiddleware';
+import { authValidate } from '@core/middleware/validationMiddleware';
 import { Router } from 'express';
 
 import {
@@ -9,7 +9,7 @@ import {
   limitApp,
   removeApp,
   updateApp,
-} from './appController.js';
+} from './app.controller.js';
 import {
   addAppSchema,
   getAppSchema,
@@ -18,7 +18,7 @@ import {
   setLimitSchema,
   toggleBlockSchema,
   updateAppSchema,
-} from './appSchema.js';
+} from './app.schema.js';
 
 const appRouter = Router();
 

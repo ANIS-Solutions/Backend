@@ -1,9 +1,9 @@
-import { authMiddleware } from '@core/middlewares/authMiddleware';
+import { authMiddleware } from '@core/middleware/authMiddleware';
 import {
   otpLimiter,
   otpVerifyLimiter,
-} from '@core/middlewares/ratelimitMiddleware';
-import { authValidate } from '@core/middlewares/validationMiddleware';
+} from '@core/middleware/ratelimitMiddleware';
+import { authValidate } from '@core/middleware/validationMiddleware';
 import {
   changePasswordSchema,
   deactivateAccountSchema,
@@ -15,7 +15,7 @@ import {
   resetPasswordSchema,
   updateProfileSchema,
   VerifyOTPSchema,
-} from '@modules/auth/authSchema';
+} from '@modules/auth/auth.schema';
 import { Router } from 'express';
 
 import {
@@ -32,7 +32,7 @@ import {
   testOperation,
   update_profile,
   verify_otp,
-} from './authController.js';
+} from './auth.controller.js';
 
 const authRouter = Router();
 

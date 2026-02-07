@@ -1,14 +1,14 @@
-import { authMiddleware } from '@core/middlewares/authMiddleware';
-import { authValidate } from '@core/middlewares/validationMiddleware';
+import { authMiddleware } from '@core/middleware/authMiddleware';
+import { authValidate } from '@core/middleware/validationMiddleware';
 import {
   add_children,
   get_all_children,
   get_single_children,
-} from '@modules/children/childrenController';
+} from '@modules/children/children.controller';
 import {
   createChildSchema,
   getSingleChildSchema,
-} from '@modules/children/childrenSchema';
+} from '@modules/children/children.schema';
 import { Router } from 'express';
 
 //FIXME: children?? -> Should be child, each time call this api child/add to add one child not many!

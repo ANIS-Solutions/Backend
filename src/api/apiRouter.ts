@@ -1,13 +1,13 @@
+import healthRouter from '@api/healthRoute';
 import AppError from '@core/utils/AppError';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
-import healthRouter from '@http/healthRoute';
-import appRouter from '@modules/app/appRoute';
-import authRouter from '@modules/auth/authRoute';
-import childrenRouter from '@modules/children/childrenRoute';
-import eduRouter from '@modules/education/eduRoute';
-import locationsRouter from '@modules/locations/locationsRoute';
-import questRouter from '@modules/quest/questRoute';
-import reportRouter from '@modules/report/reportRoute';
+import appRouter from '@modules/app/app.route';
+import authRouter from '@modules/auth/auth.route';
+import childrenRouter from '@modules/children/children.route';
+import eduRouter from '@modules/education/edu.route';
+import locationsRouter from '@modules/locations/locations.route';
+import questRouter from '@modules/quest/quest.route';
+import reportRouter from '@modules/report/report.route';
 import { Router } from 'express';
 
 const router = Router();

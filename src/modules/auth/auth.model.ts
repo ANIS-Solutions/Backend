@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import config from '@configs/base';
+import config from '@config/base';
 import logger from '@core/utils/logger';
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Model, Schema } from 'mongoose';

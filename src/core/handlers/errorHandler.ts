@@ -1,4 +1,4 @@
-import config from '@configs/base';
+import config from '@config/base';
 import AppError from '@core/utils/AppError';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
 import logger from '@core/utils/logger';

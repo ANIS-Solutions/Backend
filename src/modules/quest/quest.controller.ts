@@ -1,10 +1,10 @@
 import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
-import { IParent } from '@modules/auth/authModel';
+import { IParent } from '@modules/auth/auth.model';
 import { NextFunction, Request, Response } from 'express';
 
-import { QuestModel } from './questModel.js';
-import { CreateQuestInput, GetAllQuestsInput } from './questSchema.js';
+import { QuestModel } from './quest.model.js';
+import { CreateQuestInput, GetAllQuestsInput } from './quest.schema.js';
 
 export const CreateQuest = catchAsync(
   async (

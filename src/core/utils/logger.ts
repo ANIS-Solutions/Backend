@@ -1,4 +1,4 @@
-import config from '@configs/base';
+import config from '@config/base';
 import winston from 'winston';
 
 const levels = {

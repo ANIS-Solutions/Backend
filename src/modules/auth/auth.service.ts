@@ -1,4 +1,4 @@
-import config from '@configs/base';
+import config from '@config/base';
 import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export type TokenPayload = Record<string, unknown>;

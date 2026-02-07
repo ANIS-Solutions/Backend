@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-import { QuestStatus } from './questModel.js';
+import { QuestStatus } from './quest.model.js';
 
 //  Common Helpers
 const objectIdSchema = z

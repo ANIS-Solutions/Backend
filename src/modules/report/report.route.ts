@@ -1,10 +1,10 @@
-import { authMiddleware } from '@core/middlewares/authMiddleware';
-import { authValidate } from '@core/middlewares/validationMiddleware';
-import { generateReport, getReports } from '@modules/report/reportController';
+import { authMiddleware } from '@core/middleware/authMiddleware';
+import { authValidate } from '@core/middleware/validationMiddleware';
+import { generateReport, getReports } from '@modules/report/report.controller';
 import {
   generateReportSchema,
   getReportSchema,
-} from '@modules/report/reportSchema';
+} from '@modules/report/report.schema';
 import { Router } from 'express';
 
 export const reportRouter = Router();

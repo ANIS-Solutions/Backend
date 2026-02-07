@@ -3,7 +3,7 @@ import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 
-import { AppModel } from './appModel.js';
+import { AppModel } from './app.model.js';
 import {
   AddAppInput,
   GetAppInput,
@@ -12,7 +12,7 @@ import {
   SetLimitInput,
   ToggleBlockInput,
   UpdateAppInput,
-} from './appSchema.js';
+} from './app.schema.js';
 
 export const addApp = catchAsync(
   async (

@@ -3,9 +3,9 @@ import HttpStatusCode from '@core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 
-import { IParent } from '../auth/authModel.js';
-import { ReportModel } from './reportModel.js';
-import { GenerateReportInput, GetReportsInput } from './reportSchema.js';
+import { IParent } from '../auth/auth.model.js';
+import { ReportModel } from './report.model.js';
+import { GenerateReportInput, GetReportsInput } from './report.schema.js';
 
 export const generateReport = catchAsync(
   async (

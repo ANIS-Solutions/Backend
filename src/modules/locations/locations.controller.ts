@@ -1,7 +1,7 @@
 import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
-import { locationModel } from '@modules/locations/locationsModel';
-import { LocationsInput } from '@modules/locations/locationsSchema';
+import { locationModel } from '@modules/locations/locations.model';
+import { LocationsInput } from '@modules/locations/locations.schema';
 import { NextFunction, Request, Response } from 'express';
 
 export const addLocation = catchAsync(

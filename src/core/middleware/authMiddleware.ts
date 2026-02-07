@@ -1,8 +1,8 @@
 import AppError from '@core/utils/AppError';
 import { catchAsync } from '@core/utils/catchAsync';
 import HttpStatusCode from '@core/utils/HttpStatusCode';
-import { ParentModel } from '@modules/auth/authModel';
-import { verifyToken } from '@modules/auth/authService';
+import { ParentModel } from '@modules/auth/auth.model';
+import { verifyToken } from '@modules/auth/auth.service';
 import { NextFunction, Request, Response } from 'express';
 
 export const authMiddleware = catchAsync(

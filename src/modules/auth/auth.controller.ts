@@ -1,6 +1,6 @@
 import crypto from 'crypto';
 
-import config from '@configs/base';
+import config from '@config/base';
 import { emailService } from '@core/handlers/emailHandler';
 import AppError from '@core/utils/AppError';
 import { catchAsync } from '@core/utils/catchAsync';
@@ -8,7 +8,7 @@ import HttpStatusCode from '@core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { ParentModel } from './authModel.js';
+import { ParentModel } from './auth.model.js';
 import {
   ChangePasswordInput,
   DeactivateAccountInput,
@@ -20,12 +20,12 @@ import {
   ResetPasswordInput,
   UpdateProfileInput,
   VerifyOTPInput,
-} from './authSchema.js';
+} from './auth.schema.js';
 import {
   signAccessToken,
   signRefreshToken,
   verifyToken,
-} from './authService.js';
+} from './auth.service.js';
 
 // ===============================  Register Account  ===============================
 
