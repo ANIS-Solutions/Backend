@@ -1,23 +1,23 @@
 import { Server } from 'http';
 
-import app from '@app';
-import config from '@config/base';
-import dbConnect from '@config/db';
+import config from '@/config/base';
+import dbConnect from '@/config/db';
 import {
   sigTermHandler,
   uncaughtExceptionHandler,
   unhandledRejectionHandler,
-} from '@core/handlers/serverHandlers';
-import logger from '@core/utils/logger';
+} from '@/core/handlers/server.handler';
+import logger from '@/core/utils/logger';
+import app from '@app';
 
 process.on('uncaughtException', uncaughtExceptionHandler);
 
-let server: Server;
+export let server: Server;
 
-const startServer = async (): Promise<void> => {
+export const startServer = async (): Promise<void> => {
   try {
     await dbConnect();
-    logger.info('-> DB Connected successfully');
+    // logger.info('-> DB Connected successfully');
 
     server = app.listen(config.PORT, () => {
       logger.info(

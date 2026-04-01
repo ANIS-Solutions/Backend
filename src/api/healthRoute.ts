@@ -1,4 +1,4 @@
-import HttpStatusCode from '@core/utils/HttpStatusCode';
+import HttpStatusCode from '@/core/utils/HttpStatusCode';
 import { Router } from 'express';
 import mongoose from 'mongoose';
 

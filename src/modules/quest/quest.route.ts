@@ -1,40 +1,34 @@
-import { authMiddleware } from '@core/middleware/authMiddleware';
-import { authValidate } from '@core/middleware/validationMiddleware';
+import { authMiddleware } from '@/core/middleware/auth.middleware';
+import { reqValidate } from '@/core/middleware/validation.middleware';
+import { API } from '@anis/shared';
 import { Router } from 'express';
 
-import {
-  CreateQuest,
-  getAllQuests,
-  // startQuest,
-} from './quest.controller.js';
-import {
-  createQuestSchema,
-  getAllQuestsSchema,
-  startQuestSchema,
-} from './quest.schema.js';
+import { AddQuest } from './quest.controller.js';
+import { addQuestSchema } from './quest.schema.js';
 
 const questRouter = Router();
+const { ADD, GET, GET_ALL, START } = API.QUEST.ROUTES;
 
-questRouter.post(
-  '/add',
+questRouter[ADD.method](
+  ADD.path,
   authMiddleware,
-  authValidate(createQuestSchema),
-  CreateQuest,
+  reqValidate(addQuestSchema),
+  AddQuest,
 );
 
-questRouter.get(
-  '/',
-  authMiddleware,
-  authValidate(getAllQuestsSchema),
-  getAllQuests,
-);
+// questRouter[GET.method](
+//   GET.path,
+//   authMiddleware,
+//   reqValidate(getAllQuestsSchema),
+//   getAllQuests,
+// );
 
-questRouter.patch(
-  '/start',
-  authMiddleware,
-  authValidate(startQuestSchema),
-  // startQuest,
-);
+// questRouter[START.method](
+//   START.path,
+//   authMiddleware,
+//   reqValidate(startQuestSchema),
+//   // startQuest,
+// );
 
 // questRouter.patch('/:id/start');
 // questRouter.patch('/:id/complete');

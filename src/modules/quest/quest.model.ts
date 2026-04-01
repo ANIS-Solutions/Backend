@@ -1,4 +1,4 @@
-import AppError from '@core/utils/AppError';
+import AppError from '@/core/utils/AppError';
 import mongoose, { Document, Schema } from 'mongoose';
 
 export enum QuestStatus {

@@ -1,4 +1,4 @@
-import config from '@config/base';
+import config from '@/config/base';
 import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export type TokenPayload = Record<string, unknown>;
@@ -38,8 +38,12 @@ export const signRefreshToken = (
 export const verifyToken = <T = JwtPayload>(
   token: string,
   options?: VerifyOptions,
-): T => {
-  return jwt.verify(token, config.JWT_SECRET, options) as T;
+): T | null => {
+  try {
+    return jwt.verify(token, config.JWT_SECRET, options) as T;
+  } catch (_err) {
+    return null;
+  }
 };
 
 /**

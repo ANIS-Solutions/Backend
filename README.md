@@ -21,6 +21,7 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 ![Nodemailer](https://img.shields.io/badge/Nodemailer-22B573?logo=nodemailer&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/prettier-1A2C34?logo=prettier&logoColor=white)
+![Jest](https://img.shields.io/badge/jest-C21325?logo=jest&logoColor=white)
 ![Commitlint](https://img.shields.io/badge/Commitlint-000000?logo=commitlint&logoColor=white)
 ![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)
 ![PNPM](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)

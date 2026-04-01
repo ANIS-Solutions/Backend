@@ -1,12 +1,9 @@
+import { toJSON } from '@/core/plugins/toJSON.plugin';
 import mongoose, { Document, Schema } from 'mongoose';
 
-export interface IChildren extends Document {
-  firstName: string;
-  lastName: string;
-  fullName?: string;
-  gender: boolean;
-  hobbies: string[];
-  dob: Date;
+import { IChild } from './child.schema.js';
+
+export interface IChildren extends IChild, Document {
   parent: mongoose.Types.ObjectId;
   createdAt: Date;
   updatedAt?: Date;
@@ -15,10 +12,6 @@ export interface IChildren extends Document {
 const ChildSchema = new Schema<IChildren>(
   {
     firstName: {
-      type: String,
-      required: true,
-    },
-    lastName: {
       type: String,
       required: true,
     },
@@ -52,35 +45,8 @@ const ChildSchema = new Schema<IChildren>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      transform: function (doc, ret): object {
-        const {
-          firstName,
-          lastName,
-          gender,
-          hobbies,
-          dob,
-          parent,
-          createdAt,
-          updatedAt,
-        } = ret;
-        return {
-          firstName,
-          lastName,
-          gender,
-          hobbies,
-          dob,
-          parent,
-          createdAt,
-          updatedAt,
-        };
-      },
     },
     toObject: { virtuals: true },
   },
 );
-
-ChildSchema.virtual('fullName').get(function (this: IChildren) {
-  return `${this.firstName} ${this.lastName}`;
-});
-
 export const ChildModel = mongoose.model<IChildren>('Child', ChildSchema);

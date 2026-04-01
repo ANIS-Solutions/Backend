@@ -1,7 +1,7 @@
-import { eduModel, IEdu } from './edu.model.js';
-import { AddEduInput } from './edu.schema.js';
+import { eduModel } from './edu.model.js';
+import { AddEduBodyInput, IEdu } from './edu.schema.js';
 
-export const addEduService = async (data: AddEduInput): Promise<IEdu> => {
+export const addEduService = async (data: AddEduBodyInput): Promise<IEdu> => {
   const edu = await eduModel.create({
     name: data.name,
     description: data.description,

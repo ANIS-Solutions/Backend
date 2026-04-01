@@ -1,13 +1,18 @@
-import routes from '@api/apiRouter';
-import config from '@config/base';
-import globalErrorHandler from '@core/middleware/errorMiddleware';
-import logger from '@core/utils/logger';
+import { dirname } from 'path';
+import { fileURLToPath } from 'url';
+
+import routes from '@/api/apiRouter';
+import config from '@/config/base';
+import globalErrorHandler from '@/core/middleware/error.middleware';
+import { limiter } from '@/core/middleware/ratelimit.middleware';
+import logger from '@/core/utils/logger';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import express, { Application } from 'express';
-import rateLimit from 'express-rate-limit';
 import helmet from 'helmet';
 import morgan from 'morgan';
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
 
 const app: Application = express();
 
@@ -33,19 +38,11 @@ if (config.IS_DEV_ENV) {
   app.use(morgan('dev', { stream: morganStream }));
 }
 
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  limit: 50,
-  standardHeaders: true,
-  legacyHeaders: false,
-  message: {
-    status: 'fail',
-    message:
-      'Too many requests from this IP, please try again after 15 minutes',
-  },
-});
+if (config.IS_PROD_ENV) {
+  app.use('/api', limiter);
+}
 
-app.use('/api', limiter);
+app.use('/public', express.static(__dirname + '/public'));
 
 app.use(express.json({ limit: '10kb' }));
 

@@ -5,7 +5,12 @@ import { $RefinementCtx } from 'zod/v4/core';
 
 // =============================== Schema's Utility ===============================
 
-const otpReasons = z.literal(['register', 'deactivate', 'verify email']); // TODO: To be updated.
+const otpReasons = z.enum([
+  'register',
+  'deactivate',
+  'verify_email',
+  'reset_password',
+]); // TODO: To be updated.
 
 const validatePassword = (
   password: string,
@@ -103,7 +108,7 @@ export const registerSchema = z.object({
     .superRefine(checkConfirmPassword),
 });
 
-export type RegisterInput = z.infer<typeof registerSchema>['body'];
+export type RegisterBodyInput = z.infer<typeof registerSchema>['body'];
 
 export const loginSchema = z.object({
   body: z.object({
@@ -111,14 +116,16 @@ export const loginSchema = z.object({
     password: z.string().min(1, 'Password is required'),
   }),
 });
-export type LoginInput = z.infer<typeof loginSchema>['body'];
+export type LoginBodyInput = z.infer<typeof loginSchema>['body'];
 
 export const forgetPasswordSchema = z.object({
   body: z.object({
     email: z.email('Invalid email format').trim().toLowerCase(),
   }),
 });
-export type ForgetPasswordInput = z.infer<typeof forgetPasswordSchema>['body'];
+export type ForgetPasswordBodyInput = z.infer<
+  typeof forgetPasswordSchema
+>['body'];
 
 export const OTPSchema = z.object({
   body: z.object({
@@ -126,7 +133,7 @@ export const OTPSchema = z.object({
     reason: otpReasons,
   }),
 });
-export type OTPInput = z.infer<typeof OTPSchema>['body'];
+export type OTPBodyInput = z.infer<typeof OTPSchema>['body'];
 
 export const VerifyOTPSchema = z.object({
   body: z.object({
@@ -135,7 +142,7 @@ export const VerifyOTPSchema = z.object({
     reason: otpReasons,
   }),
 });
-export type VerifyOTPInput = z.infer<typeof VerifyOTPSchema>['body'];
+export type VerifyOTPBodyInput = z.infer<typeof VerifyOTPSchema>['body'];
 
 export const resetPasswordSchema = z.object({
   params: z.object({
@@ -146,7 +153,12 @@ export const resetPasswordSchema = z.object({
     confirmPassword: z.string(),
   }),
 });
-export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+export type ResetPasswordBodyInput = z.infer<
+  typeof resetPasswordSchema
+>['body'];
+export type ResetPasswordParamsInput = z.infer<
+  typeof resetPasswordSchema
+>['params'];
 
 export const deactivateAccountSchema = z.object({
   body: z.object({
@@ -183,7 +195,9 @@ export const changePasswordSchema = z.object({
     })
     .superRefine(checkConfirmPassword),
 });
-export type ChangePasswordInput = z.infer<typeof changePasswordSchema>['body'];
+export type ChangePasswordBodyInput = z.infer<
+  typeof changePasswordSchema
+>['body'];
 
 export const updateProfileSchema = z.object({
   body: z.object({
@@ -218,4 +232,6 @@ export const updateProfileSchema = z.object({
       .optional(),
   }),
 });
-export type UpdateProfileInput = z.infer<typeof updateProfileSchema>['body'];
+export type UpdateProfileBodyInput = z.infer<
+  typeof updateProfileSchema
+>['body'];

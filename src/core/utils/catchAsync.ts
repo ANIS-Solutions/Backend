@@ -23,7 +23,7 @@ export const catchAsync = <
     req: Request<P, ResBody, ReqBody, ReqQuery>,
     res: Response,
     next: NextFunction,
-  ): void => {
-    fn(req, res, next).catch(next);
+  ): Promise<any> => {
+    return Promise.resolve(fn(req, res, next)).catch(next);
   };
 };

@@ -1,4 +1,4 @@
-import { catchAsync } from '@core/utils/catchAsync';
+import { catchAsync } from '@/core/utils/catchAsync';
 import { RequestHandler } from 'express';
 import { ZodType } from 'zod';
 
@@ -9,7 +9,7 @@ interface ValidationParses {
   query?: any;
   params?: any;
 }
-export const authValidate = (schema: ZodType): RequestHandler =>
+export const reqValidate = (schema: ZodType): RequestHandler =>
   catchAsync(async (req, res, next) => {
     const okay = (await schema.parseAsync({
       body: req.body ?? {},

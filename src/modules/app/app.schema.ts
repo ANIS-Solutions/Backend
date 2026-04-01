@@ -25,7 +25,7 @@ export const updateAppSchema = z.object({
   params: paramsSchema,
   body: z.object({
     name: z.string().optional(),
-    iconUrl: z.string().url().optional(),
+    iconUrl: z.string().optional(),
     about: z.string().optional(),
     category: z.array(z.string()).optional(),
   }),

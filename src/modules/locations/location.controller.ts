@@ -1,25 +1,23 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
 import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { AddLocationsBodyInput } from '@/modules/locations/location.schema';
 import { NextFunction, Request, Response } from 'express';
 
-import { AddEduBodyInput } from './edu.schema.js';
-import { addEduService } from './edu.services.js';
+import { addLocationService } from './location.services.js';
 
-export const addEdu = catchAsync(
+export const addLocation = catchAsync(
   async (
-    req: Request<{}, {}, AddEduBodyInput>,
+    req: Request<{}, {}, AddLocationsBodyInput>,
     res: Response,
     next: NextFunction,
   ) => {
-    const data = req.body;
-
-    const eduData = await addEduService(data);
+    const locData = await addLocationService(req.body);
     ApiResponse.success(
       res,
       HttpStatusCode.CREATED,
-      'Child Education added successfully',
-      eduData,
+      'The new safe location is added successfully!',
+      locData,
     );
   },
 );

@@ -1,12 +1,19 @@
-import { authMiddleware } from '@core/middleware/authMiddleware';
-import { authValidate } from '@core/middleware/validationMiddleware';
+import { authMiddleware } from '@/core/middleware/auth.middleware';
+import { reqValidate } from '@/core/middleware/validation.middleware';
+import { API } from '@anis/shared';
 import { Router } from 'express';
 
 import { addEdu } from './edu.controller.js';
-import { addEduSchema } from './edu.schema.js';
+import { addEduRequestSchema } from './edu.schema.js';
 
+const { ADD, GET, GET_ALL, DELETE, EDIT } = API.EDUCATION.ROUTES;
 export const eduRouter = Router();
 
-eduRouter.post('/add', authMiddleware, authValidate(addEduSchema), addEdu);
+eduRouter[ADD.method](
+  ADD.path,
+  authMiddleware,
+  reqValidate(addEduRequestSchema),
+  addEdu,
+);
 
 export default eduRouter;

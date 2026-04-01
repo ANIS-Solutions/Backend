@@ -1,5 +1,5 @@
-import { catchAsync } from '@core/utils/catchAsync';
-import HttpStatusCode from '@core/utils/HttpStatusCode';
+import { catchAsync } from '@/core/utils/catchAsync';
+import HttpStatusCode from '@/core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 

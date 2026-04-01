@@ -1,6 +1,6 @@
 import { Server } from 'http';
 
-import logger from '@core/utils/logger';
+import logger from '@/core/utils/logger';
 
 export const uncaughtExceptionHandler = (err: Error): void => {
   logger.error('UNCAUGHT EXCEPTION! Shutting down...');

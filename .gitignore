@@ -4,12 +4,15 @@
 *.txt
 *.log
 *.cast
-
+.*
+coverage/
 # Exclude files that sure to share it: 
 !*.env.example
 !README.md
+!.vscode
+!.husky
 
 /node_modules
 /dist
 _/
-*.bak
+*.bak*

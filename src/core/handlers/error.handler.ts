@@ -1,7 +1,7 @@
-import config from '@config/base';
-import AppError from '@core/utils/AppError';
-import HttpStatusCode from '@core/utils/HttpStatusCode';
-import logger from '@core/utils/logger';
+import config from '@/config/base';
+import AppError from '@/core/utils/AppError';
+import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import logger from '@/core/utils/logger';
 import { Response } from 'express';
 
 const sendErrDEV = (
@@ -11,6 +11,7 @@ const sendErrDEV = (
 ): Response => {
   return res.status(err.statusCode).json({
     status: err.status || 'error',
+    success: err.success,
     productionErrorMsg: prodErr,
     message: err.message,
     stack: err.stack,
@@ -21,12 +22,16 @@ const sendErrProd = (err: AppError, res: Response): Response => {
   if (err.isOperational) {
     return res.status(err.statusCode).json({
       status: err.status,
+      success: err.success,
+
       message: err.message,
     });
   } else {
     logger.error('Something wrong!!!!!!!!!');
     return res.status(HttpStatusCode.INTERNAL_SERVER_ERROR).json({
       status: 'error',
+      success: err.success,
+
       message: 'Something wrong!!!!!!!!!',
     });
   }
@@ -89,8 +94,9 @@ export const getError = (
 
   const message = err.message || 'Internal Server Error';
   err.statusCode = statusCode;
+  err.success = false;
   err.message = message;
-  if (config.IS_DEV_ENV) {
+  if (config.IS_DEV_ENV || config.IS_TEST_ENV) {
     const prodErr = navigateErrors(err);
     err.statusCode = prodErr.statusCode;
     return sendErrDEV(err, prodErr.message, res);

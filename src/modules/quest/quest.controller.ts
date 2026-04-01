@@ -1,78 +1,24 @@
-import { catchAsync } from '@core/utils/catchAsync';
-import HttpStatusCode from '@core/utils/HttpStatusCode';
-import { IParent } from '@modules/auth/auth.model';
+import ApiResponse from '@/core/handlers/api.handler';
+import { catchAsync } from '@/core/utils/catchAsync';
+import HttpStatusCode from '@/core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 
-import { QuestModel } from './quest.model.js';
-import { CreateQuestInput, GetAllQuestsInput } from './quest.schema.js';
+import { AddQuestBodyInput } from './quest.schema.js';
+import { addQuestService } from './quest.services.js';
 
-export const CreateQuest = catchAsync(
+export const AddQuest = catchAsync(
   async (
-    req: Request<{}, {}, CreateQuestInput>,
+    req: Request<{}, {}, AddQuestBodyInput>,
     res: Response,
     next: NextFunction,
   ) => {
-    const { title, description, child, target, reward, schedule } = req.body;
+    const questData = await addQuestService(req.user?._id, req.body);
 
-    const parentID = (req.user as IParent)._id;
-    const newQuest = await QuestModel.create({
-      title,
-      child,
-      parent: parentID,
-      target,
-      reward,
-      schedule,
-      ...(description && { description }),
-    });
-
-    return res.status(HttpStatusCode.CREATED).json({
-      success: true,
-      message: 'Quest created successfully',
-      data: { questId: newQuest._id },
-    });
+    ApiResponse.success(
+      res,
+      HttpStatusCode.CREATED,
+      'Quest created successfully',
+      questData,
+    );
   },
 );
-
-export const getAllQuests = catchAsync(
-  async (
-    // Request<Params, ResBody, ReqBody, Query>
-    req: Request<{}, {}, {}, GetAllQuestsInput>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const { status, child } = req.query;
-    const parentId = (req.user as IParent)._id;
-
-    const filter: Record<string, unknown> = {
-      parent: parentId,
-      ...(status && { status }),
-      ...(child && { child }),
-    };
-
-    const quests = await QuestModel.find(filter)
-      .populate('child', 'name age')
-      .sort({ createdAt: -1 });
-
-    return res.status(HttpStatusCode.OK).json({
-      success: true,
-      results: quests.length,
-      data: {
-        quests,
-      },
-    });
-  },
-);
-
-// export const startQuest = catchAsync(
-//   async (
-//     req: Request<startQuestInput, {}, {}, {}>,
-//     res: Response,
-//     next: NextFunction,
-//   ) => {
-//     const { questId } = req.params;
-//   },
-// );
-
-export const startQuest = (): void => {
-  //console.log('Hello');
-};

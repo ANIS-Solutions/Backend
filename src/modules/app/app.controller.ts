@@ -1,6 +1,6 @@
-import AppError from '@core/utils/AppError';
-import { catchAsync } from '@core/utils/catchAsync';
-import HttpStatusCode from '@core/utils/HttpStatusCode';
+import AppError from '@/core/utils/AppError';
+import { catchAsync } from '@/core/utils/catchAsync';
+import HttpStatusCode from '@/core/utils/HttpStatusCode';
 import { NextFunction, Request, Response } from 'express';
 
 import { AppModel } from './app.model.js';

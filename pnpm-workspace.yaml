@@ -1,0 +1,6 @@
+ignoredBuiltDependencies:
+  - mongodb-memory-server
+
+onlyBuiltDependencies:
+  - esbuild
+  - unrs-resolver

@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 
-import config from '@config/base';
-import logger from '@core/utils/logger';
+import config from '@/config/base';
+import { toJSON } from '@/core/plugins/toJSON.plugin';
 import bcrypt from 'bcryptjs';
 import mongoose, { Document, Model, Schema } from 'mongoose';
 
@@ -67,6 +67,7 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
       type: String,
       required: true,
       select: false,
+      private: true,
     },
     firstName: {
       type: String,
@@ -86,11 +87,11 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
     },
     createdAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     updatedAt: {
       type: Date,
-      default: Date.now(),
+      default: Date.now,
     },
     otp: {
       code: { type: String },
@@ -100,7 +101,7 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
       lastRequest: { type: Date },
     },
     refreshToken: { type: String },
-    passwordChangedAt: { type: Date, default: Date.now() },
+    passwordChangedAt: { type: Date, default: Date.now },
     passwordResetToken: {
       type: String,
     },
@@ -123,12 +124,12 @@ const ParentSchema = new Schema<IParent, ParentModelType, IParentMethods>(
     timestamps: true,
     toJSON: {
       virtuals: true,
-      /* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
-      transform: function (doc, ret: any): object {
-        delete ret.__v;
-        delete ret._id;
-        return ret as object;
-      },
+      ///* eslint-disable @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any */
+      // transform: function (doc, ret: any): object {
+      //   delete ret.__v;
+      //   delete ret._id;
+      //   return ret as object;
+      // },
     },
     toObject: { virtuals: true },
   },
@@ -153,8 +154,8 @@ ParentSchema.methods.correctPassword = async function (
   candidatePassword: string,
   userPassword: string,
 ): Promise<boolean> {
-  logger.warn(`candidatePassword - ${candidatePassword}`);
-  logger.warn(`userPassword - ${userPassword}`);
+  // logger.warn(`candidatePassword - ${candidatePassword}`);
+  // logger.warn(`userPassword - ${userPassword}`);
   return await bcrypt.compare(candidatePassword, userPassword);
 };
 
@@ -163,9 +164,11 @@ ParentSchema.methods.changePasswordAfter = function (
 ): boolean {
   if (this.createdAt === this.passwordChangedAt) {
     return false;
+    //   if (this.createdAt.getTime() === this.passwordChangedAt.getTime()) {
+    // return true;
   }
   return (
-    parseInt(`${this.passwordChangedAt.getTime() / 1000}`, 10) < JWTTimestamp
+    Math.floor(this.passwordChangedAt.getTime() / 1000) < /*=*/ JWTTimestamp
   );
 };
 
@@ -198,7 +201,8 @@ ParentSchema.methods.verifyOTP = async function (
   reason: string,
 ): Promise<boolean> {
   // console.log(this.otp?.expiresAt.getTime() > Date.now());
-  // console.log(await bcrypt.compare(candidateOTP, this.otp.code));
+  // if (this.otp?.code)
+  //   console.log(await bcrypt.compare(candidateOTP, this.otp.code));
 
   return (
     this.otp?.reason === reason &&
@@ -221,7 +225,7 @@ ParentSchema.methods.generateOTP = async function (
   };
   return otp;
 };
-
+ParentSchema.plugin(toJSON);
 // export const ParentModel = mongoose.model<IParent>('Parent', ParentSchema);
 export const ParentModel = mongoose.model<IParent, ParentModelType>(
   'Parent',
