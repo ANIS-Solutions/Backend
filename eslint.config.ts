@@ -54,7 +54,7 @@ export default defineConfig(
       '@typescript-eslint/explicit-module-boundary-types': 'warn',
       '@typescript-eslint/no-explicit-any': 'warn',
       '@typescript-eslint/prefer-as-const': 'error',
-      '@typescript-eslint/no-empty-object-type': 'off', // explicitly disabled
+      '@typescript-eslint/no-empty-object-type': 'off',
     },
   },
 

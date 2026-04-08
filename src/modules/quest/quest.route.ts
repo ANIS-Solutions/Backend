@@ -16,23 +16,4 @@ questRouter[ADD.method](
   AddQuest,
 );
 
-// questRouter[GET.method](
-//   GET.path,
-//   authMiddleware,
-//   reqValidate(getAllQuestsSchema),
-//   getAllQuests,
-// );
-
-// questRouter[START.method](
-//   START.path,
-//   authMiddleware,
-//   reqValidate(startQuestSchema),
-//   // startQuest,
-// );
-
-// questRouter.patch('/:id/start');
-// questRouter.patch('/:id/complete');
-// questRouter.patch('/:id/cancel');
-// questRouter.get('/history');
-// questRouter.get('/active');
 export default questRouter;

@@ -1,7 +1,7 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
 import { AddLocationsBodyInput } from '@/modules/locations/location.schema';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
 import { addLocationService } from './location.services.js';
@@ -17,7 +17,9 @@ export const addLocation = catchAsync(
       res,
       HttpStatusCode.CREATED,
       'The new safe location is added successfully!',
-      locData,
+      {
+        data: locData,
+      },
     );
   },
 );

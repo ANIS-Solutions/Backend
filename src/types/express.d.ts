@@ -1,12 +1,17 @@
-import { IParent } from '@/modules/auth/auth.model';
+import { IParent } from '@/modules/parent/parent.model';
 import { JwtPayload } from 'jsonwebtoken';
 
-// import 'express';
+export interface IAuthUser {
+  id: string;
+  email: string;
+  isActive: boolean;
+  role: 'PARENT' | 'CHILD';
+}
 
 declare global {
   namespace Express {
     interface Request {
-      user?: JwtPayload | IParent | undefined;
+      user?: IAuthUser;
       cookies: {
         refreshToken?: string;
         // eslint-disable-next-line

@@ -10,8 +10,11 @@
 │   │   └── healthRoute.ts
 │   ├── config
 │   │   ├── base.ts
-│   │   └── db.ts
+│   │   ├── db.ts
+│   │   └── redis.ts
 │   ├── core
+│   │   ├── cache
+│   │   │   └── cache.service.ts
 │   │   ├── handlers
 │   │   │   ├── api.handler.ts
 │   │   │   ├── email.handler.ts
@@ -25,24 +28,78 @@
 │   │   │   └── validation.middleware.ts
 │   │   ├── plugins
 │   │   │   └── toJSON.plugin.ts
+│   │   ├── queues
+│   │   │   └── email.queue.ts
 │   │   └── utils
 │   │       ├── AppError.ts
+│   │       ├── auth.utils.ts
 │   │       ├── catchAsync.ts
-│   │       ├── HttpStatusCode.ts
-│   │       └── logger.ts
+│   │       ├── logger.ts
+│   │       ├── routeBounder.ts
+│   │       └── schema.utils.ts
 │   ├── modules
 │   │   ├── app
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.model.ts
+│   │   │   ├── app.route.ts
+│   │   │   └── app.schema.ts
 │   │   ├── auth
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.route.ts
+│   │   │   ├── auth.schema.ts
+│   │   │   └── auth.services.ts
+│   │   ├── child
+│   │   │   ├── child.controller.ts
+│   │   │   ├── child.model.ts
+│   │   │   ├── child.route.ts
+│   │   │   ├── child.schema.ts
+│   │   │   └── child.services.ts
+│   │   ├── education
+│   │   │   ├── edu.controller.ts
+│   │   │   ├── edu.model.ts
+│   │   │   ├── edu.route.ts
+│   │   │   ├── edu.schema.ts
+│   │   │   └── edu.services.ts
+│   │   ├── email
+│   │   │   └── email.worker.ts
+│   │   ├── locations
+│   │   │   ├── location.controller.ts
+│   │   │   ├── location.model.ts
+│   │   │   ├── location.route.ts
+│   │   │   ├── location.schema.ts
+│   │   │   └── location.services.ts
+│   │   ├── parent
+│   │   │   ├── parent.controller.ts
+│   │   │   ├── parent.dto.ts
+│   │   │   ├── parent.model.ts
+│   │   │   ├── parent.route.ts
+│   │   │   ├── parent.schema.ts
+│   │   │   └── parent.services.ts
+│   │   ├── quest
+│   │   │   ├── quest.controller.ts
+│   │   │   ├── quest.model.ts
+│   │   │   ├── quest.route.ts
+│   │   │   ├── quest.schema.ts
+│   │   │   └── quest.services.ts
+│   │   └── report
+│   │       ├── report.controller.ts
+│   │       ├── report.model.ts
+│   │       ├── report.route.ts
+│   │       └── report.schema.ts
 │   ├── types
 │   │   ├── express.d.ts
 │   │   ├── jwt.d.ts
 │   │   ├── mongoose.d.ts
 │   │   └── response.types.d.ts
 │   ├── app.ts
-│   └── server.ts
+│   ├── server.ts
+│   └── worker.ts
+├── __tests__
 ├── commitlint.config.ts
 ├── config.env
+├── docker-compose.dev.yml
 ├── Dockerfile
+├── Dockerfile.dev
 ├── ecosystem.config.cjs
 ├── eslint.config.ts
 ├── jest.config.ts
@@ -51,4 +108,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.json
 
-21 directories, 72 files
+25 directories, 84 files

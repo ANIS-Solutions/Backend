@@ -74,15 +74,15 @@ http://localhost:5000/api/v1
 
 ## Development
 
-```bash
-# Start development server
-pnpm dev
+````bash
+# build containers
+docker compose -f docker-compose.dev.yml up --build
 
-# Build for production
-pnpm build
+# run containers
+docker compose -f docker-compose.dev.yml up
 
-# Run production server
-pnpm start
+# Stop containers
+docker compose -f docker-compose.dev.yml down
 ```
 
 ---
@@ -92,3 +92,5 @@ pnpm start
 If you find any issues, please open an Issue in the repository with detailed steps to reproduce the problem.
 
 _Bye! ... Bye!_
+```
+````

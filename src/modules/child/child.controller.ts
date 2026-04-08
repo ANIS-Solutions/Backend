@@ -1,9 +1,8 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
-import { IParent } from '../auth/auth.model.js';
 import {
   CreateChildBodyInput,
   GetSingleChildParamsInput,
@@ -24,14 +23,16 @@ export const add_children = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = (req.user as IParent)._id;
+    const parentId = req.user!.id;
 
     const childData = await addChildService(parentId, req.body);
     ApiResponse.success(
       res,
       HttpStatusCode.CREATED,
       'Child added successfully!',
-      childData,
+      {
+        data: childData,
+      },
     );
   },
 );
@@ -43,14 +44,11 @@ export const get_all_children = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = (req.user as IParent)._id;
+    const parentId = req.user!.id;
     const childrenData = await GetMyChildrenService(parentId);
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'The children data',
-      childrenData,
-    );
+    ApiResponse.success(res, HttpStatusCode.OK, 'The children data', {
+      data: childrenData,
+    });
   },
 );
 
@@ -61,14 +59,16 @@ export const get_single_children = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = (req.user as IParent)._id;
+    const parentId = req.user!.id;
     const childId = req.params.childId;
     const childData = await getMyChildService(parentId, childId);
     ApiResponse.success(
       res,
       HttpStatusCode.OK,
       'The child data is retrieved successfully',
-      childData,
+      {
+        data: childData,
+      },
     );
   },
 );
@@ -79,7 +79,7 @@ export const update_my_child = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = (req.user as IParent)._id;
+    const parentId = req.user!.id;
     const childId = req.params.childId;
     const newChildFields = req.body;
     const updatedChildData = await updateMyChild(
@@ -91,7 +91,9 @@ export const update_my_child = catchAsync(
       res,
       HttpStatusCode.OK,
       'The child data is updated successfully',
-      updatedChildData,
+      {
+        data: updatedChildData,
+      },
     );
   },
 );

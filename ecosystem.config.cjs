@@ -1,21 +1,39 @@
 module.exports = {
   apps: [
     {
-      name: 'anis-backend',
-      script: './dist/server.js', // Point to your BUILT file
-      instances: '6', // Use all CPU cores
-      exec_mode: 'cluster', // Enable clustering
-      watch: false, // Don't watch files in production
+      name: 'anis-api',
+      script: './dist/server.js',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      max_restarts: 10,
+      max_memory_restart: '300M',
+      watch: false,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
       env: {
-        // Default environment variables
         NODE_ENV: 'dev',
       },
       env_production: {
-        // Variables for when you run with --env production
         NODE_ENV: 'production',
         PORT: 5000,
-        // If you have a config.env file, you usually rely on dotenv in your code
-        // BUT for critical vars like NODE_ENV, set them here.
+      },
+    },
+
+    {
+      name: 'anis-worker',
+      script: './dist/worker.js',
+      exec_mode: 'fork',
+      instances: 1,
+      autorestart: true,
+      max_restarts: 10,
+      max_memory_restart: '200M',
+      watch: false,
+      log_date_format: 'YYYY-MM-DD HH:mm:ss',
+      env: {
+        NODE_ENV: 'dev',
+      },
+      env_production: {
+        NODE_ENV: 'production',
       },
     },
   ],

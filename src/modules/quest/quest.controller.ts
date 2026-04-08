@@ -1,6 +1,6 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
 import { AddQuestBodyInput } from './quest.schema.js';
@@ -18,7 +18,9 @@ export const AddQuest = catchAsync(
       res,
       HttpStatusCode.CREATED,
       'Quest created successfully',
-      questData,
+      {
+        data: questData,
+      },
     );
   },
 );

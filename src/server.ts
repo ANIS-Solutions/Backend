@@ -10,6 +10,8 @@ import {
 import logger from '@/core/utils/logger';
 import app from '@app';
 
+import '@/modules/email/email.listener';
+
 process.on('uncaughtException', uncaughtExceptionHandler);
 
 export let server: Server;

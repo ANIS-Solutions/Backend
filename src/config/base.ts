@@ -18,6 +18,7 @@ const config = {
   IS_PROD_ENV: process.env.NODE_ENV?.trim() === 'production',
   PORT: +process.env.PORT! || 3000,
   CLIENT_URL: 'http://localhost:3000',
+  BASE_URL: `http://localhost:${+process.env.PORT! || 3000}/api/v1`, // TODO: check later
   DATABASE: verifyEnvVar('DATABASE'),
   DATABASE_NAME: verifyEnvVar('DATABASE_NAME'),
   DATABASE_USERNAME: verifyEnvVar('DATABASE_USERNAME'),
@@ -27,7 +28,7 @@ const config = {
   JWT_EXPIRES_IN: verifyEnvVar('JWT_EXPIRES_IN'),
   JWT_REFRESH_EXPIRES_IN: verifyEnvVar('JWT_REFRESH_EXPIRES_IN'),
   OTP_EXPIRES_IN: +verifyEnvVar('OTP_EXPIRES_IN'),
-  PASSWORD_RESET_TOKEN_EXPIRES: +verifyEnvVar('PASSWORD_RESET_TOKEN_EXPIRES'),
+  TOKEN_EXPIRES: +verifyEnvVar('TOKEN_EXPIRES'),
   JWT_COOKIE_EXPIRES_IN: verifyEnvVar('JWT_COOKIE_EXPIRES_IN'),
   EMAIL_USER: verifyEnvVar('EMAIL_USER'),
   EMAIL_PASSWORD: verifyEnvVar('EMAIL_PASSWORD'),
@@ -42,7 +43,7 @@ const config = {
   REDIS_URL: verifyEnvVar('REDIS_URL'),
   REDIS_HOST: verifyEnvVar('REDIS_HOST'),
   REDIS_PORT: verifyEnvVar('REDIS_PORT'),
-  REDIS_PASSWORD: verifyEnvVar('REDIS_PASSWORD'),
+  REDIS_PASSWORD: process.env.REDIS_PASSWORD?.trim() ?? '',
 };
 
 export default config;

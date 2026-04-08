@@ -61,7 +61,7 @@ const config: Config = {
       {
         useESM: true,
         tsconfig: {
-          module: 'esnext', //nodenext
+          module: 'esnext',
           moduleResolution: 'nodenext',
           rootDir: undefined,
         },

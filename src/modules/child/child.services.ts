@@ -1,16 +1,11 @@
 import AppError from '@/core/utils/AppError';
 import { HttpStatusCode } from '@anis/shared';
-import { Types } from 'mongoose';
 
-import { ChildModel, IChildren } from './child.model.js';
-import {
-  CreateChildBodyInput,
-  IChild,
-  UpdateChildBodyInput,
-} from './child.schema.js';
+import { ChildModel } from './child.model.js';
+import { CreateChildBodyInput, UpdateChildBodyInput } from './child.schema.js';
 
 export const addChildService = async (
-  parentId: Types.ObjectId,
+  parentId: string,
   addChildData: CreateChildBodyInput,
 ) => {
   if (!parentId) {
@@ -28,17 +23,14 @@ export const addChildService = async (
   return child;
 };
 
-export const GetMyChildrenService = async (parentId: Types.ObjectId) => {
+export const GetMyChildrenService = async (parentId: string) => {
   const children = await ChildModel.find({ parent: parentId }).sort({
     createdAt: -1,
   });
   return children;
 };
 
-export const getMyChildService = async (
-  parentId: Types.ObjectId,
-  childId: string,
-) => {
+export const getMyChildService = async (parentId: string, childId: string) => {
   const child = await ChildModel.findOne({
     _id: childId,
     parent: parentId,
@@ -51,7 +43,7 @@ export const getMyChildService = async (
   return child;
 };
 export const updateMyChild = async (
-  parentId: Types.ObjectId,
+  parentId: string,
   childId: string,
   updatedChildData: UpdateChildBodyInput,
 ) => {

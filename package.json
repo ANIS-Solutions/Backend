@@ -18,7 +18,16 @@
     "clean:node": "rm -rf node_modules/ && pnpm install",
     "prepare": "husky",
     "tree": "tree -a -I 'node_modules|dist|_assets|coverage|*bak*|\\.*|\\.vscode|.git|.husky|*.log|*.map|.env*|*.txt|*.md' --dirsfirst > tree.log",
-    "test": "cross-env NODE_ENV=test DATABASE_NAME=integration_test_anis DOTENV_CONFIG_DEBUG=false NODE_OPTIONS=--experimental-vm-modules jest --no-coverage"
+    "test": "cross-env NODE_ENV=test DATABASE_NAME=integration_test_anis DOTENV_CONFIG_DEBUG=false NODE_OPTIONS=--experimental-vm-modules jest --no-coverage",
+    "docker:dev": "docker compose -f docker-compose.dev.yml up --build",
+    "docker:up": "docker compose -f docker-compose.dev.yml up",
+    "docker:dev:down": "docker compose -f docker-compose.dev.yml down",
+    "docker:dev:logs": "docker compose -f docker-compose.dev.yml logs -f api worker",
+    "pm2:start": "pnpm build && pm2 start ecosystem.config.cjs --env production",
+    "pm2:stop": "pm2 stop ecosystem.config.cjs",
+    "pm2:restart": "pm2 restart ecosystem.config.cjs --env production",
+    "pm2:logs": "pm2 logs",
+    "pm2:status": "pm2 status"
   },
   "engines": {
     "node": ">=16.0.0"
@@ -40,7 +49,7 @@
     }
   ],
   "license": "ISC",
-  "packageManager": "pnpm@10.17.0",
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
   "dependencies": {
     "@anis/shared": "link:../anis-shared",
     "@types/nodemailer": "^7.0.4",
@@ -54,20 +63,16 @@
     "express-rate-limit": "^8.2.1",
     "helmet": "^8.1.0",
     "ioredis": "^5.10.1",
-    "jest-mock": "^30.2.0",
     "jsonwebtoken": "^9.0.2",
-    "mjml": "^4.18.0",
     "mongoose": "^9.0.0",
     "morgan": "^1.10.1",
     "nodemailer": "^7.0.11",
     "phone": "^3.1.67",
     "pm2": "^6.0.14",
-    "uuid": "^13.0.0",
     "winston": "^3.18.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {
-    "@commitlint/cli": "^20.1.0",
     "@commitlint/config-conventional": "^20.0.0",
     "@commitlint/types": "^20.0.0",
     "@eslint/js": "^9.39.1",
@@ -95,7 +100,6 @@
     "prettier": "^3.6.2",
     "supertest": "^7.2.2",
     "ts-jest": "^29.4.6",
-    "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.16",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3",

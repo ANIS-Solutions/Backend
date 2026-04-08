@@ -1,25 +1,22 @@
-import crypto from 'crypto';
-
 import config from '@/config/base';
-import { emailService } from '@/core/handlers/email.handler';
+import { CacheService } from '@/core/cache/cache.service';
+import { AppEvents, eventBus } from '@/core/events/eventBus';
 import {
   signAccessToken,
   signRefreshToken,
   verifyToken,
 } from '@/core/handlers/jwt.handler';
 import AppError from '@/core/utils/AppError';
+import { AuthUtils } from '@/core/utils/auth.utils';
 import logger from '@/core/utils/logger';
-import { HttpStatusCode } from '@anis/shared';
+import { IParent, ParentModel } from '@/modules/parent/parent.model';
+import { API, createPath, emailReasons, HttpStatusCode } from '@anis/shared';
 import { JwtPayload } from 'jsonwebtoken';
 
-import { IParent, ParentModel } from './auth.model.js';
 import {
-  ChangePasswordBodyInput,
-  ForgetPasswordBodyInput,
   LoginBodyInput,
   OTPBodyInput,
   RegisterBodyInput,
-  UpdateProfileBodyInput,
   VerifyOTPBodyInput,
 } from './auth.schema.js';
 
@@ -44,18 +41,21 @@ export const registerService = async (
           : 'Phone number';
     throw new AppError(`${field} already exists.`, HttpStatusCode.CONFLICT);
   }
+  const hashPassword = await AuthUtils.hashPassword(password);
   const newUser = await ParentModel.create({
     email,
-    password,
+    password: hashPassword,
     phone,
     firstName,
     lastName,
     birthDate,
   });
-  const accessToken = signAccessToken({ userId: newUser._id.toString() });
+  const accessToken = signAccessToken({ userId: newUser.id });
+  logger.warn(newUser.id);
+  logger.warn(accessToken);
 
   const refreshToken = signRefreshToken({
-    userId: newUser._id.toString(),
+    userId: newUser.id,
   });
 
   newUser.refreshToken = refreshToken;
@@ -72,10 +72,9 @@ export const loginService = async (
 ): Promise<{ accessToken: string; refreshToken: string }> => {
   const { email, password } = loginData;
   const currUser = await ParentModel.findOne({ email }).select('+password');
-
   if (
     !currUser ||
-    !(await currUser.correctPassword(password, currUser.password))
+    !(await AuthUtils.verifyPassword(password, currUser.password))
   ) {
     throw new AppError(
       'Please provide correct email and password.',
@@ -88,9 +87,9 @@ export const loginService = async (
       HttpStatusCode.BAD_REQUEST,
     );
   }
-  const accessToken = signAccessToken({ userId: currUser._id.toString() });
+  const accessToken = signAccessToken({ userId: currUser.id });
   const refreshToken = signRefreshToken({
-    userId: currUser._id.toString(),
+    userId: currUser.id,
   });
 
   currUser.refreshToken = refreshToken;
@@ -108,35 +107,27 @@ export const generateOTPService = async (
   const currUser = await ParentModel.findOne({ email }).select('+otp');
   if (!currUser) return;
 
-  const cooldown = 60_000;
-  if (
-    currUser.otp?.lastRequest &&
-    Date.now() - currUser.otp.lastRequest.getTime() < cooldown
-  ) {
-    throw new AppError(
-      `Please wait ${parseInt(`${cooldown / 1000}`, 10)} minute before requesting another OTP`,
-      HttpStatusCode.TOO_MANY_REQUESTS,
-    );
-  }
-  const otp = await currUser.generateOTP(reason);
-  await currUser.save({ validateModifiedOnly: true });
-  const exp_date = new Date(Date.now() + config.OTP_EXPIRES_IN * 60_000);
-  emailService
-    .send({
-      to: currUser.email,
-      type: 'VERIFY_OTP',
-      data: {
-        name: currUser.firstName,
-        otp,
-        expiry_minutes: `${config.OTP_EXPIRES_IN}`,
-        expiry_time: `${exp_date.toLocaleString()}`,
-      },
-    })
-    .catch((err) => logger.error('Background email failed', err));
+  const { otp, hashOtp } = await AuthUtils.generateOTP();
+  await CacheService.setWithTTL(
+    `otp:${emailReasons[reason]}:${email}`,
+    hashOtp,
+    config.OTP_EXPIRES_IN * 60,
+  );
+
+  eventBus.emit(AppEvents.SEND_EMAIL, {
+    type: emailReasons.VERIFY_OTP,
+    to: currUser.email,
+    data: {
+      name: currUser.firstName,
+      otp,
+      expiry_minutes: `${config.OTP_EXPIRES_IN}`,
+      expiry_time: `${(Date.now() + config.OTP_EXPIRES_IN).toLocaleString()}`,
+    },
+  });
 };
 export const verifyOTPService = async (
   verifyOtpData: VerifyOTPBodyInput,
-): Promise<{ accessToken: string }> => {
+): Promise<{ accessToken: string } | null> => {
   const { email, otp, reason } = verifyOtpData;
   const currUser = await ParentModel.findOne({ email });
   if (!currUser || !currUser.isActive) {
@@ -145,157 +136,100 @@ export const verifyOTPService = async (
       HttpStatusCode.FORBIDDEN,
     );
   }
-
-  if (!(await currUser.verifyOTP(otp, reason))) {
+  const hashOtp = await CacheService.get(`otp:${reason}:${email}`);
+  if (!hashOtp || !(await AuthUtils.verifyOTP(otp, hashOtp))) {
     throw new AppError(
       `OTP is invalid or expired.`,
       HttpStatusCode.BAD_REQUEST,
     );
   }
-  currUser.otp = undefined;
-  currUser.isVerified = true;
-  await currUser.save({ validateModifiedOnly: true });
-
-  const accessToken = signAccessToken({ userId: currUser._id.toString() });
-  return { accessToken };
+  await CacheService.delete(`otp:${reason}:${email}`);
+  if (reason === emailReasons.VERIFY_EMAIL) {
+    currUser.isVerified = true;
+    await currUser.save({ validateModifiedOnly: true });
+    const accessToken = signAccessToken({ userId: currUser.id });
+    return { accessToken };
+  }
+  return null;
 };
 
 export const forgetPasswordService = async (
   email: string,
   protocol: string,
   host: string,
-): Promise<boolean> => {
+): Promise<string | boolean> => {
   const currUser = await ParentModel.findOne({ email });
   if (!currUser) return false;
 
-  const resetToken = currUser.createPasswordResetToken();
-  await currUser.save({ validateBeforeSave: false });
-  const resetURL = `${protocol}://${host}/api/v1/parent/reset-password/${resetToken}`;
-  emailService
-    .send({
-      to: currUser.email,
-      type: 'RESET_PASSWORD',
-      data: {
-        name: currUser.firstName,
-        reset_url: resetURL,
-        expiry_minutes: `${config.OTP_EXPIRES_IN}`,
+  const { token, hashedToken } = AuthUtils.generateCryptoToken();
+  await CacheService.setWithTTL(
+    `token:${emailReasons.RESET_PASSWORD}:${hashedToken}`,
+    currUser.id,
+    config.TOKEN_EXPIRES * 60,
+  );
+  const resetURL =
+    config.BASE_URL +
+    createPath(
+      {
+        path: `${API.AUTH.PREFIX}${API.AUTH.ROUTES.RESET_PASSWORD.path}` as const,
       },
-    })
-    .catch((err) => logger.error('Background email failed', err));
-  return true;
+      { token: token },
+    );
+
+  eventBus.emit(AppEvents.SEND_EMAIL, {
+    type: emailReasons.RESET_PASSWORD,
+    to: currUser.email,
+    data: {
+      name: currUser.firstName,
+      reset_url: resetURL,
+      expiry_minutes: `${config.OTP_EXPIRES_IN}`,
+    },
+  });
+
+  if (config.IS_DEV_ENV) return token;
+  else return true;
 };
 
 export const resetPasswordService = async (
   token: string,
   newPassword: string,
 ): Promise<{ accessToken: string }> => {
-  const hashToken = crypto.createHash('sha256').update(token).digest('hex');
-  const user = await ParentModel.findOne({
-    passwordResetToken: hashToken,
-    passwordResetTokenExpire: { $gt: Date.now() },
-    // passwordResetTokenExpire: { $gt: Date.now() - 1000 }, 92b9211d8ee7c55bef7be362379438b1f267c73fbee80d866e306f72c5b45117
-  });
+  const hashToken = AuthUtils.hashCryptoToken(token);
+  const userId = await CacheService.get(
+    `token:${emailReasons.RESET_PASSWORD}:${hashToken}`,
+  );
+  if (!userId) {
+    throw new AppError(
+      'Token is invalid or has expired.',
+      HttpStatusCode.BAD_REQUEST,
+    );
+  }
+  logger.error(userId);
+  const currUser = await ParentModel.findById(userId);
 
-  if (!user) {
+  if (!currUser) {
     throw new AppError(
       'Token is invalid or has expired.',
       HttpStatusCode.BAD_REQUEST,
     );
   }
 
-  user.password = newPassword;
-  user.passwordChangedAt = new Date(Date.now());
-  user.passwordResetToken = undefined;
-  user.passwordResetTokenExpire = undefined;
-  await user.save();
+  currUser.password = await AuthUtils.hashPassword(newPassword);
+  currUser.passwordChangedAt = new Date(Date.now() - 1000);
 
-  const accessToken = signAccessToken({ userId: user._id });
+  await currUser.save();
+
+  const accessToken = signAccessToken({ userId });
 
   return { accessToken };
 };
 
-export const deactivateAccountService = async (
-  otp: string,
-  reason: string,
-  userId: string | undefined,
-): Promise<void> => {
-  const currUser = await ParentModel.findById(userId);
-  if (!userId)
-    throw new AppError('Not authorized user!', HttpStatusCode.UNAUTHORIZED);
-  if (!currUser || !currUser.isActive) {
-    throw new AppError('Email already inactive.', HttpStatusCode.UNAUTHORIZED);
-  }
-
-  if (!(await currUser.verifyOTP(otp, reason))) {
-    throw new AppError(
-      'OTP is invalid or expired.',
-      HttpStatusCode.BAD_REQUEST,
-    );
-  }
-  currUser.isActive = false;
-  await currUser.save({ validateBeforeSave: false });
-};
-export const reactivateAccountService = async (
-  email: string,
-  protocol: string,
-  host: string,
-): Promise<void> => {
-  const currUser = await ParentModel.findOne({ email });
-  if (!currUser) {
-    return;
-  }
-  const reactivateToken = currUser.createReactivateToken();
-  await currUser.save({ validateBeforeSave: false });
-  const reactivateURL = `${protocol}://${host}/api/v1/auth/reactivate/${reactivateToken}`;
-  await emailService
-    .send({
-      to: currUser.email,
-      type: 'REACTIVATE',
-      data: {
-        name: currUser.firstName,
-        url: reactivateURL,
-      },
-    })
-    .catch((err) => logger.error('Background email failed', err));
-};
 export const logoutService = async (refreshToken: string): Promise<void> => {
   const currUser = await ParentModel.findOne({ refreshToken });
   if (currUser) {
     currUser.refreshToken = undefined;
     await currUser.save({ validateBeforeSave: false });
   }
-};
-
-export const changePasswordService = async (
-  reqBody: ChangePasswordBodyInput,
-  userId: string,
-): Promise<void> => {
-  const { oldPassword, password } = reqBody;
-
-  const currUser = await ParentModel.findById(userId).select('+password');
-
-  if (
-    !currUser ||
-    !(await currUser?.correctPassword(oldPassword, currUser.password))
-  ) {
-    throw new AppError('Password changed failed.', HttpStatusCode.UNAUTHORIZED);
-  }
-  currUser.password = password;
-  await currUser.save();
-};
-export const updateProfileService = async (
-  updatedData: UpdateProfileBodyInput,
-  userId: string | undefined,
-) => {
-  // TODO: check if it bypass mongoose plugin
-  const currUser = await ParentModel.findByIdAndUpdate(userId, updatedData, {
-    returnOriginal: false,
-  });
-  if (!currUser) {
-    throw new AppError('User not found!', HttpStatusCode.BAD_REQUEST);
-  }
-  await currUser.save();
-  return { currUser };
 };
 
 export const refreshTokenService = async (
@@ -326,12 +260,6 @@ export const refreshTokenService = async (
       HttpStatusCode.FORBIDDEN,
     );
   }
-  const accessToken = signAccessToken({ userId: currUser._id.toString() });
+  const accessToken = signAccessToken({ userId: currUser.id });
   return { accessToken };
-};
-export const getMeService = async (reqData: IParent) => {
-  const user = reqData;
-
-  const currUser = await ParentModel.findById(user._id);
-  return currUser;
 };

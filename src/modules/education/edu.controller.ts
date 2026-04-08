@@ -1,6 +1,6 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
 import { AddEduBodyInput } from './edu.schema.js';
@@ -19,7 +19,9 @@ export const addEdu = catchAsync(
       res,
       HttpStatusCode.CREATED,
       'Child Education added successfully',
-      eduData,
+      {
+        data: eduData,
+      },
     );
   },
 );

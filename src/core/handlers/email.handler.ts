@@ -4,16 +4,16 @@ import { fileURLToPath } from 'url';
 
 import config from '@/config/base';
 import logger from '@/core/utils/logger';
+import { emailReasons, emailTypes } from '@anis/shared';
 import nodemailer from 'nodemailer';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const TEMPLATE_DIR = path.join(process.cwd(), 'public', 'emails');
-// const src_path = path.join(__dirname, '..', '..', 'public', 'emails');
 
-type EmailType = 'RESET_PASSWORD' | 'VERIFY_OTP' | 'REACTIVATE';
+type EmailType = emailTypes;
 type IEmailData = Record<string, string | number>;
-interface IEmailOptions {
+export interface IEmailOptions {
   to: string;
   type: EmailType;
   data: IEmailData;
@@ -40,7 +40,8 @@ class EmailService {
   }
 
   private getSubject(template: EmailType): string {
-    if (template === 'VERIFY_OTP') return 'Verify Your Account';
+    if (template === emailReasons.VERIFY_EMAIL) return 'Verify Your Account';
+    if (template === emailReasons.VERIFY_OTP) return 'Verify Your Account';
     else if (template === 'RESET_PASSWORD') return 'Reset Your Password';
     else if (template === 'REACTIVATE') return 'Welcome to ANIS Solutions!';
     return 'Notification from ANIS';
@@ -50,9 +51,11 @@ class EmailService {
     data: IEmailData,
   ): Promise<string> {
     try {
-      const templatePath = path.join(TEMPLATE_DIR, `${templateName}.html`);
+      const templatePath = path.join(
+        TEMPLATE_DIR,
+        `${templateName.toString()}.html`,
+      );
       let htmlContent = await fs.readFile(templatePath, 'utf-8');
-      // console.log(htmlContent);
       const finalData: IEmailData = {
         dashboard_url: '#',
         unsubscribe_url: '#',
@@ -70,7 +73,10 @@ class EmailService {
 
       return htmlContent;
     } catch (error) {
-      logger.error(`Failed to load template ${templateName}:`, error);
+      logger.error(
+        `Failed to load template ${templateName.toString()}:`,
+        error,
+      );
       throw new Error('Email template loading failed');
     }
   }
@@ -91,7 +97,7 @@ class EmailService {
         text: 'placeholder text',
       };
       await this.transporter.sendMail(mailOptions);
-      logger.info(`Email sent to ${options.to} [${options.type}]`);
+      logger.info(`Email sent to ${options.to} [${options.type.toString()}]`);
     } catch (error) {
       logger.error('Email Send Error:', error);
     }

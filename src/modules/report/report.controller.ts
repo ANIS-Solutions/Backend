@@ -1,9 +1,7 @@
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
-import mongoose from 'mongoose';
 
-import { IParent } from '../auth/auth.model.js';
 import { ReportModel } from './report.model.js';
 import { GenerateReportInput, GetReportsInput } from './report.schema.js';
 
@@ -14,7 +12,7 @@ export const generateReport = catchAsync(
     next: NextFunction,
   ) => {
     const { report, childId } = req.body; // TODO: Auth special for FastAPI Services, for now use User Auth.
-    const parentID = (req.user as IParent)._id;
+    const parentID = req.user!.id;
 
     const newReport = await ReportModel.create({
       child: childId,
@@ -36,17 +34,17 @@ export const getReports = catchAsync(
     next: NextFunction,
   ) => {
     const { childId, limit = 10 } = req.query;
-    const parentID = (req.user as IParent)._id;
+    const parentID = req.user!.id;
     let options: {
-      parent: mongoose.Types.ObjectId;
-      child?: mongoose.Types.ObjectId;
+      parent: string;
+      child?: string;
     } = {
       parent: parentID,
     };
     if (childId) {
       options = {
         parent: parentID,
-        child: new mongoose.Types.ObjectId(childId),
+        child: childId,
       };
     }
     const reports = await ReportModel.find(options)

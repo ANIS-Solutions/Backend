@@ -1,10 +1,8 @@
-import { Types } from 'mongoose';
-
 import { QuestModel } from './quest.model.js';
 import { AddQuestBodyInput } from './quest.schema.js';
 
 export const addQuestService = async (
-  parentID: Types.ObjectId,
+  parentID: string,
   questData: AddQuestBodyInput,
 ) => {
   const newQuest = await QuestModel.create({

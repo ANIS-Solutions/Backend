@@ -1,37 +1,26 @@
 import config from '@/config/base';
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
-import HttpStatusCode from '@/core/utils/HttpStatusCode';
+import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
-import { JwtPayload } from 'jsonwebtoken';
 
-import { IParent, ParentModel } from './auth.model.js';
 import {
-  ChangePasswordBodyInput,
-  DeactivateAccountInput,
   ForgetPasswordBodyInput,
   LoginBodyInput,
   OTPBodyInput,
-  ReactivatePasswordInput,
   RegisterBodyInput,
   ResetPasswordBodyInput,
   ResetPasswordParamsInput,
-  UpdateProfileBodyInput,
   VerifyOTPBodyInput,
 } from './auth.schema.js';
 import {
-  changePasswordService,
-  deactivateAccountService,
   forgetPasswordService,
   generateOTPService,
-  getMeService,
   loginService,
   logoutService,
-  reactivateAccountService,
   refreshTokenService,
   registerService,
   resetPasswordService,
-  updateProfileService,
   verifyOTPService,
 } from './auth.services.js';
 
@@ -62,9 +51,10 @@ export const register = catchAsync(
       res,
       HttpStatusCode.CREATED,
       'User Registered successful',
-      { user: newUser },
-      undefined,
-      accessToken,
+      {
+        data: { user: newUser },
+        accessToken,
+      },
     );
   },
 );
@@ -90,14 +80,9 @@ export const login = catchAsync(
       sameSite: true,
       maxAge: 7 * 24 * 60 * 60_000,
     });
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'User Logged-in successful',
-      undefined,
-      undefined,
+    ApiResponse.success(res, HttpStatusCode.OK, 'User Logged-in successful', {
       accessToken,
-    );
+    });
   },
 );
 
@@ -114,9 +99,7 @@ export const generate_otp = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    console.log('msg ---------------------------------0 \n');
     await generateOTPService(req.body);
-    console.log('msg ---------------------------------2 \n');
     ApiResponse.success(
       res,
       HttpStatusCode.OK,
@@ -138,23 +121,19 @@ export const verify_otp = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    const { accessToken } = await verifyOTPService(req.body);
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'OTP verified successfully.',
-      undefined,
-      undefined,
-      accessToken,
-    );
+    const otpRet = await verifyOTPService(req.body);
+    ApiResponse.success(res, HttpStatusCode.OK, 'OTP verified successfully.', {
+      ...(otpRet?.accessToken && { accessToken: otpRet?.accessToken }),
+    });
   },
 );
 
 /**
  * Forget Password
  * @auth none
- * @route {POST} /auth/forget-password
- * @bodyparam user info @ForgetPasswordBodyInput
+ * @route {POST} /auth/password/forget
+ * @bodyparam 
+       - email: string;
  * @returns none
  */
 export const forget_password = catchAsync(
@@ -163,14 +142,19 @@ export const forget_password = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    console.log(req.body.email, req.protocol, req.host);
-    await forgetPasswordService(req.body.email, req.protocol, req.host); //get('host')
+    const resetToken = await forgetPasswordService(
+      req.body.email,
+      req.protocol,
+      req.host,
+    );
 
-    console.log(req.body.email, req.protocol, req.host);
     ApiResponse.success(
       res,
       HttpStatusCode.OK,
       'Reset token sent to email successfully!',
+      {
+        devInfo: { resetToken },
+      },
     );
   },
 );
@@ -178,9 +162,11 @@ export const forget_password = catchAsync(
 /**
  * Reset Password
  * @auth none
- * @route {PATCH} /auth/reset-password
- * @bodyparam none
- * @returns none
+ * @route {PATCH} /auth/password/reset/:token
+ * @bodyparam
+      - password: string;
+      - confirmPassword: string;
+  * @returns none
  */
 export const reset_password = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -191,42 +177,9 @@ export const reset_password = catchAsync(
       res,
       HttpStatusCode.OK,
       'Password reset successfully!',
-      undefined,
-      undefined,
-      accessToken,
-    );
-  },
-);
-
-export const deactivate_account = catchAsync(
-  async (
-    req: Request<{}, {}, DeactivateAccountInput>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const { otp, reason } = req.body;
-    const userId = (req.user as JwtPayload).userId;
-    await deactivateAccountService(otp, reason, userId);
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'Account is deactivated successfully!',
-    );
-  },
-);
-
-export const reactivate_account = catchAsync(
-  async (
-    req: Request<{}, {}, ReactivatePasswordInput>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const email: string = req.body.email;
-    await reactivateAccountService(email, req.protocol, req.host);
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'Reset token sent to email successfully!',
+      {
+        accessToken,
+      },
     );
   },
 );
@@ -251,58 +204,6 @@ export const logout = catchAsync(
 );
 
 /**
- * CHange Password
- * @auth through access token
- * @route {PATCH} /auth/change-password
- * @bodyparam info @ChangePasswordBodyInput
- * @returns none
- */
-export const change_password = catchAsync(
-  async (
-    req: Request<{}, {}, ChangePasswordBodyInput>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const userId = (req.user as JwtPayload).userId!;
-
-    await changePasswordService(req.body, userId);
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'password changed successfully!',
-    );
-  },
-);
-
-/**
- * Update Profile
- * @auth through access token
- * @route {PATCH} /auth/update-profile
- * @bodyparam user info @UpdateProfileBodyInput
- * @returns updated user data
- */
-export const update_profile = catchAsync(
-  async (
-    req: Request<{}, {}, UpdateProfileBodyInput>,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    const { currUser } = await updateProfileService(
-      req.body,
-      (req.user as JwtPayload).userId,
-    );
-    ApiResponse.success(
-      res,
-      HttpStatusCode.OK,
-      'Profile updated successfully!',
-      {
-        updatedUser: currUser,
-      },
-    );
-  },
-);
-
-/**
  * Refresh Token
  * @auth through refresh token from cookies
  * @route {POST} /auth/refresh-token
@@ -318,44 +219,9 @@ export const refresh_token = catchAsync(
       res,
       HttpStatusCode.OK,
       'Token refreshed successfully!',
-      undefined,
-      undefined,
-      accessToken,
+      {
+        accessToken,
+      },
     );
-  },
-);
-/**
- * Get ME
- * @auth through access token
- * @route {GET} /auth/me
- * @returns current user
- */
-export const get_me = catchAsync(async (req: Request, res: Response, next) => {
-  const currUser = await getMeService(req.user as IParent);
-
-  ApiResponse.success(
-    res,
-    HttpStatusCode.OK,
-    'User profile from /me',
-    currUser,
-  );
-});
-
-export const testOperation = catchAsync(
-  async (req, res, next): Promise<Response> => {
-    try {
-      const users = await ParentModel.find({});
-      return res.status(HttpStatusCode.OK).json({
-        success: true,
-        message: 'iam test operations',
-        users,
-      });
-    } catch (err) {
-      return res.status(HttpStatusCode.SERVICE_UNAVAILABLE).json({
-        success: false,
-        message: 'iam error from test operations',
-        err,
-      });
-    }
   },
 );

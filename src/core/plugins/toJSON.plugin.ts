@@ -2,9 +2,6 @@
 import { Schema } from 'mongoose';
 
 export const toJSON = (schema: Schema): any => {
-  // A. Declare the option type so TypeScript doesn't complain
-  // (You might need a .d.ts file for this in strict setups)
-
   schema.set('toJSON', {
     virtuals: true,
     versionKey: false,

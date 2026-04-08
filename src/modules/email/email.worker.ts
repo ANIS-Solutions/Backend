@@ -1,28 +1,30 @@
-// import { redisQueueConnection } from '@/config/redis';
-// import { emailService } from '@/core/handlers/email.handler';
-// import { EmailJobData } from '@/core/queues/email.queue';
-// import logger from '@/core/utils/logger';
-// import { Job, Worker } from 'bullmq';
+import { redisQueueConnection } from '@/config/redis';
+import { emailService, IEmailOptions } from '@/core/handlers/email.handler';
+import logger from '@/core/utils/logger';
+import { Job, Worker } from 'bullmq';
 
-// export const setupEmailWorker = () => {
-//   const worker = new Worker<EmailJobData>(
-//     'email-queue',
-//     async (job: Job) => {
-//       logger.info(`Processing email job ${job.id} for ${job.data.to}`);
+export const setupEmailWorker = (): Worker<IEmailOptions> => {
+  const worker = new Worker<IEmailOptions>(
+    'email-queue',
+    async (job: Job<IEmailOptions>) => {
+      logger.info(
+        `[EMAIL_WORKER] Processing job ${job.id} -> ${job.data.to} [${job.data.type}]`,
+      );
 
-//       // Call your existing nodemailer logic
-//       const success = await emailService.send(job.data);
+      await emailService.send(job.data);
 
-//       if (!success) {
-//         throw new Error('Email failed to send, triggering BullMQ retry');
-//       }
-//     },
-//     { connection: redisQueueConnection },
-//   );
+      logger.info(`[EMAIL_WORKER] Job ${job.id} completed.`);
+    },
+    { connection: redisQueueConnection },
+  );
 
-//   worker.on('failed', (job, err) => {
-//     logger.error(`Job ${job?.id} failed: ${err.message}`);
-//   });
+  worker.on('failed', (job, err) => {
+    logger.error(`[EMAIL_WORKER] Job ${job?.id} failed: ${err.message}`);
+  });
 
-//   return worker;
-// };
+  worker.on('error', (err) => {
+    logger.error('[EMAIL_WORKER] Worker error:', err);
+  });
+
+  return worker;
+};
