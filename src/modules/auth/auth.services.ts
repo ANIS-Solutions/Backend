@@ -10,7 +10,13 @@ import AppError from '@/core/utils/AppError';
 import { AuthUtils } from '@/core/utils/auth.utils';
 import logger from '@/core/utils/logger';
 import { IParent, ParentModel } from '@/modules/parent/parent.model';
-import { API, createPath, emailReasons, HttpStatusCode } from '@anis/shared';
+import {
+  API,
+  createPath,
+  emailReasons,
+  HttpStatusCode,
+  UserRoles,
+} from '@anis/shared';
 import { JwtPayload } from 'jsonwebtoken';
 
 import {
@@ -20,6 +26,18 @@ import {
   VerifyOTPBodyInput,
 } from './auth.schema.js';
 
+const genAccessToken = (user: IParent): string => {
+  return signAccessToken({
+    id: user.id,
+    role: UserRoles.PARENT,
+  });
+};
+const genRefreshToken = (user: IParent): string => {
+  return signRefreshToken({
+    id: user.id,
+    role: UserRoles.PARENT,
+  });
+};
 export const registerService = async (
   registerData: RegisterBodyInput,
 ): Promise<{ newUser: IParent; accessToken: string; refreshToken: string }> => {
@@ -50,13 +68,11 @@ export const registerService = async (
     lastName,
     birthDate,
   });
-  const accessToken = signAccessToken({ userId: newUser.id });
-  logger.warn(newUser.id);
-  logger.warn(accessToken);
+  const accessToken = genAccessToken(newUser);
+  // logger.warn(newUser.id);
+  // logger.warn(accessToken);
 
-  const refreshToken = signRefreshToken({
-    userId: newUser.id,
-  });
+  const refreshToken = genRefreshToken(newUser);
 
   newUser.refreshToken = refreshToken;
   await newUser.save({ validateBeforeSave: false });
@@ -87,10 +103,8 @@ export const loginService = async (
       HttpStatusCode.BAD_REQUEST,
     );
   }
-  const accessToken = signAccessToken({ userId: currUser.id });
-  const refreshToken = signRefreshToken({
-    userId: currUser.id,
-  });
+  const accessToken = genAccessToken(currUser);
+  const refreshToken = genRefreshToken(currUser);
 
   currUser.refreshToken = refreshToken;
   await currUser.save({ validateBeforeSave: false });
@@ -147,7 +161,7 @@ export const verifyOTPService = async (
   if (reason === emailReasons.VERIFY_EMAIL) {
     currUser.isVerified = true;
     await currUser.save({ validateModifiedOnly: true });
-    const accessToken = signAccessToken({ userId: currUser.id });
+    const accessToken = genAccessToken(currUser);
     return { accessToken };
   }
   return null;
@@ -219,7 +233,7 @@ export const resetPasswordService = async (
 
   await currUser.save();
 
-  const accessToken = signAccessToken({ userId });
+  const accessToken = genAccessToken(currUser);
 
   return { accessToken };
 };
@@ -243,13 +257,13 @@ export const refreshTokenService = async (
   }
   const decoded = verifyToken<JwtPayload>(refreshToken);
 
-  if (!decoded?.userId) {
+  if (!decoded?.id) {
     throw new AppError(
       'Invalid or expired refresh token',
       HttpStatusCode.FORBIDDEN,
     );
   }
-  const currUser = await ParentModel.findById(decoded.userId);
+  const currUser = await ParentModel.findById(decoded.id);
   if (
     !currUser ||
     !currUser.isActive ||
@@ -260,6 +274,6 @@ export const refreshTokenService = async (
       HttpStatusCode.FORBIDDEN,
     );
   }
-  const accessToken = signAccessToken({ userId: currUser.id });
+  const accessToken = genAccessToken(currUser);
   return { accessToken };
 };

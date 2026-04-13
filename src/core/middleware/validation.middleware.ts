@@ -21,10 +21,17 @@ export const reqValidate = (schema: ZodType): RequestHandler =>
       Object.assign(req.body, okay.body);
     }
     if (okay.query) {
-      Object.assign(req.query, okay.query);
+      Object.defineProperty(req, 'query', {
+        value: okay.query,
+        writable: true,
+      });
     }
     if (okay.params) {
-      Object.assign(req.params, okay.params);
+      // Object.assign(req.params, okay.params);
+      Object.defineProperty(req, 'params', {
+        value: okay.params,
+        writable: true,
+      });
     }
     next();
   });

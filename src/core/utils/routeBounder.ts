@@ -5,6 +5,8 @@ import { RequestHandler, Router } from 'express';
 import { RateLimitRequestHandler } from 'express-rate-limit';
 import { ZodType } from 'zod';
 
+import { verifyChildOwnership } from '../middleware/isParent.middleware.js';
+
 /* eslint-disable @typescript-eslint/no-explicit-any */
 const bindRoute = (
   router: Router,
@@ -21,6 +23,10 @@ const bindRoute = (
 
   if (schema) {
     middlewares.push(reqValidate(schema));
+  }
+
+  if (endpoint.grantChild) {
+    middlewares.push(verifyChildOwnership);
   }
 
   if (rateLimiter && endpoint.rateLimiter) {

@@ -1,8 +1,7 @@
 import 'jsonwebtoken';
 
+import IJwtPayload from '@anis/shared';
+
 declare module 'jsonwebtoken' {
-  export interface JwtPayload {
-    userId: string | undefined;
-    role: string | undefined;
-  }
+  export interface JwtPayload extends IJwtPayload {}
 }

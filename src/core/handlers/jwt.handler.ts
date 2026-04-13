@@ -1,4 +1,5 @@
 import config from '@/config/base';
+import { IJwtPayload } from '@anis/shared';
 import jwt, { JwtPayload, SignOptions, VerifyOptions } from 'jsonwebtoken';
 
 export type TokenPayload = Record<string, unknown>;
@@ -35,7 +36,7 @@ export const signRefreshToken = (
  * @param token - The data to encode (e.g., { userId: '...' })
  * @param token - Expiration string (e.g., '15m', '7d'). Defaults to config.
  */
-export const verifyToken = <T = JwtPayload>(
+export const verifyToken = <T = jwt.JwtPayload & IJwtPayload>(
   token: string,
   options?: VerifyOptions,
 ): T | null => {

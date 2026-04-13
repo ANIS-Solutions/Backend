@@ -36,7 +36,7 @@ export const deactivate_account = catchAsync(
   ) => {
     const { otp, reason } = req.body;
     const userId = req.user!.id;
-    await deactivateAccountService(otp, reason, userId);
+    await deactivateAccountService(otp, userId);
     ApiResponse.success(
       res,
       HttpStatusCode.OK,

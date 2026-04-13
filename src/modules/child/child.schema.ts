@@ -1,12 +1,6 @@
+import { objectIdRegex } from '@anis/shared';
 import { z } from 'zod';
 import { partial } from 'zod/mini';
-
-export interface IChild {
-  firstName: string;
-  gender: boolean;
-  hobbies: string[];
-  dob: Date;
-}
 
 export const createChildSchema = z.object({
   body: z.object({
@@ -20,9 +14,7 @@ export const createChildSchema = z.object({
         'First name contains non-alphabetic characters',
       ),
 
-    gender: z.boolean().refine((val) => val !== undefined, {
-      message: 'Gender is required',
-    }),
+    gender: z.literal(['MALE', 'FEMALE'], 'Gender is required'),
 
     hobbies: z.array(z.string().min(1, 'Hobby cannot be empty')).optional(),
 
@@ -43,7 +35,7 @@ export const getSingleChildSchema = z.object({
     childId: z.string(),
   }),
 });
-export type GetSingleChildParamsInput = z.infer<
+export type GetMyChildParamsInput = z.infer<
   typeof getSingleChildSchema
 >['params'];
 export const updateChildSchema = z.object({
@@ -57,3 +49,18 @@ export type UpdateChildParamsInput = z.infer<
 >['params'];
 
 export type UpdateChildBodyInput = z.infer<typeof updateChildSchema>['body'];
+
+export const pairChildSchema = z.object({
+  body: z.object({
+    childId: z
+      .string()
+      .regex(
+        objectIdRegex,
+        'Invalid Child ID format. Must be a valid ObjectId.',
+      ),
+    token: z.uuid('Invalid pairing token format'),
+    deviceId: z.string(),
+    deviceName: z.string().optional(),
+  }),
+});
+export type PairChildInput = z.infer<typeof pairChildSchema>['body'];

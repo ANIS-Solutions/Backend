@@ -4,6 +4,10 @@ import config from '@/config/base';
 import bcrypt from 'bcryptjs';
 
 export const AuthUtils = {
+  generateCryptoUUID(): { token: string } {
+    const token = crypto.randomUUID();
+    return { token };
+  },
   generateCryptoToken(): { token: string; hashedToken: string } {
     const token = crypto.randomBytes(32).toString('hex');
     const hashedToken = crypto.createHash('sha256').update(token).digest('hex');
@@ -45,5 +49,14 @@ export const AuthUtils = {
       parseInt(`${passwordChangedAt.getTime() / 1000}`, 10) <= iatJWT_Timestamp
     );
     // return parseInt(`${passwordChangedAt.getTime() / 1000}`, 10) < iatJWT_Timestamp;
+  },
+  isUnPairedAfterAccessTokenIAT(
+    tokenInfo: { isActive: boolean; deviceId: string },
+    chidInfo: { isActive: boolean; deviceId: string },
+  ): boolean {
+    return (
+      tokenInfo.isActive !== chidInfo.isActive ||
+      tokenInfo.deviceId !== chidInfo.deviceId
+    );
   },
 };

@@ -15,7 +15,7 @@ interface IApp {
     firstInstallAt?: Date;
     lastOpenedAt?: Date;
     totalUsage: number;
-    dailyUsage: Map<Date, number>;
+    dailyUsage: Map<Date, number>; // {st, ed}
   };
   createdAt: Date;
   updatedAt: Date;

@@ -1,41 +1,30 @@
-import { authMiddleware } from '@/core/middleware/auth.middleware';
-import { reqValidate } from '@/core/middleware/validation.middleware';
+import bindRoute from '@/core/utils/routeBounder';
 import {
-  add_children,
-  get_all_children,
-  get_single_children,
-  update_my_child,
+  addChildren,
+  getMe,
+  getMyChild,
+  getMyChildren,
+  pairChild,
+  updateMyChild,
 } from '@/modules/child/child.controller';
 import {
   createChildSchema,
   getSingleChildSchema,
+  pairChildSchema,
   updateChildSchema,
 } from '@/modules/child/child.schema';
 import { API } from '@anis/shared';
 import { Router } from 'express';
 
 const childRouter = Router();
-const { ADD, GET, GET_ALL, UPDATE } = API.CHILDREN.ROUTES;
-childRouter[ADD.method](
-  ADD.path,
-  authMiddleware,
-  reqValidate(createChildSchema),
-  add_children,
-);
+const { ADD, GET, GET_ALL, UPDATE, PAIR, ME } = API.CHILDREN.ROUTES;
 
-childRouter[GET_ALL.method](GET_ALL.path, authMiddleware, get_all_children);
+bindRoute(childRouter, ME, getMe);
 
-childRouter[GET.method](
-  GET.path,
-  authMiddleware,
-  reqValidate(getSingleChildSchema),
-  get_single_children,
-);
+bindRoute(childRouter, ADD, addChildren, createChildSchema);
+bindRoute(childRouter, GET_ALL, getMyChildren);
+bindRoute(childRouter, GET, getMyChild, getSingleChildSchema);
+bindRoute(childRouter, UPDATE, updateMyChild, updateChildSchema);
+bindRoute(childRouter, PAIR, pairChild, pairChildSchema);
 
-childRouter[UPDATE.method](
-  UPDATE.path,
-  authMiddleware,
-  reqValidate(updateChildSchema),
-  update_my_child,
-);
 export default childRouter;

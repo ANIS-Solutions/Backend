@@ -1,51 +1,58 @@
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
+import logger from '@/core/utils/logger';
 import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
 import {
   CreateChildBodyInput,
-  GetSingleChildParamsInput,
+  GetMyChildParamsInput,
+  PairChildInput,
   UpdateChildBodyInput,
   UpdateChildParamsInput,
 } from './child.schema.js';
 import {
   addChildService,
+  getMeService,
   GetMyChildrenService,
   getMyChildService,
-  updateMyChild,
+  pairChildService,
+  updateMyChildService,
 } from './child.services.js';
 
-//=============== Add Children =====================//
-export const add_children = catchAsync(
+export const addChildren = catchAsync(
   async (
     req: Request<{}, {}, CreateChildBodyInput>,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = req.user!.id;
-
-    const childData = await addChildService(parentId, req.body);
+    const { childData, pairingQrCode, pairToken } = await addChildService(
+      req.user!,
+      req.body,
+    );
     ApiResponse.success(
       res,
       HttpStatusCode.CREATED,
       'Child added successfully!',
       {
         data: childData,
+        qrcode: pairingQrCode,
+        devInfo: {
+          pairToken,
+        },
       },
     );
   },
 );
 
 //=============== Get All Children =====================//
-export const get_all_children = catchAsync(
+export const getMyChildren = catchAsync(
   async (
     req: Request,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = req.user!.id;
-    const childrenData = await GetMyChildrenService(parentId);
+    const childrenData = await GetMyChildrenService(req.user!);
     ApiResponse.success(res, HttpStatusCode.OK, 'The children data', {
       data: childrenData,
     });
@@ -53,15 +60,13 @@ export const get_all_children = catchAsync(
 );
 
 //=============== Get Single Children =====================//
-export const get_single_children = catchAsync(
+export const getMyChild = catchAsync(
   async (
-    req: Request<GetSingleChildParamsInput>,
+    req: Request<GetMyChildParamsInput>,
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const parentId = req.user!.id;
-    const childId = req.params.childId;
-    const childData = await getMyChildService(parentId, childId);
+    const childData = await getMyChildService(req.user!, req.params);
     ApiResponse.success(
       res,
       HttpStatusCode.OK,
@@ -73,7 +78,7 @@ export const get_single_children = catchAsync(
   },
 );
 
-export const update_my_child = catchAsync(
+export const updateMyChild = catchAsync(
   async (
     req: Request<UpdateChildParamsInput, {}, UpdateChildBodyInput>,
     res: Response,
@@ -82,7 +87,7 @@ export const update_my_child = catchAsync(
     const parentId = req.user!.id;
     const childId = req.params.childId;
     const newChildFields = req.body;
-    const updatedChildData = await updateMyChild(
+    const updatedChildData = await updateMyChildService(
       parentId,
       childId,
       newChildFields,
@@ -97,3 +102,29 @@ export const update_my_child = catchAsync(
     );
   },
 );
+export const pairChild = catchAsync(
+  async (
+    req: Request<{}, {}, PairChildInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const pairChildPayload = req.body;
+    const { childData, accessToken } = await pairChildService(pairChildPayload);
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'The child is paired successfully',
+      {
+        data: childData,
+        accessToken,
+      },
+    );
+  },
+);
+export const getMe = catchAsync(async (req: Request, res: Response, next) => {
+  const currChild = await getMeService(req.user!.id);
+
+  ApiResponse.success(res, HttpStatusCode.OK, 'Child profile from /me', {
+    data: currChild,
+  });
+});

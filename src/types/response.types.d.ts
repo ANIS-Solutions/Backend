@@ -17,6 +17,7 @@ export interface IApiResponse<T> {
   data?: T;
   meta?: IMeta;
   accessToken?: string;
+  qrcode?: string;
   errors?: IFieldError[];
   devInfo?: Record<string, unknown>;
 }

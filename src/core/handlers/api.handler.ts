@@ -7,6 +7,7 @@ interface SuccessOptions<T> {
   data?: T;
   meta?: IMeta;
   accessToken?: string;
+  qrcode?: string;
   devInfo?: Record<string, unknown>;
 }
 
@@ -35,7 +36,7 @@ class ApiResponse {
     message: string,
     options: SuccessOptions<T> = {},
   ): Response<IApiResponse<T>> {
-    const { data, meta, accessToken, devInfo } = options;
+    const { data, meta, accessToken, devInfo, qrcode } = options;
 
     const payload: IApiResponse<T> = {
       success: true,
@@ -47,6 +48,7 @@ class ApiResponse {
     if (data !== undefined) payload.data = data;
     if (meta !== undefined) payload.meta = meta;
     if (accessToken !== undefined) payload.accessToken = accessToken;
+    if (qrcode !== undefined) payload.qrcode = qrcode;
 
     if (devInfo && !config.IS_PROD_ENV) {
       payload.devInfo = devInfo;

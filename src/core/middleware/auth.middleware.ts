@@ -1,12 +1,11 @@
 import { verifyToken } from '@/core/handlers/jwt.handler';
 import AppError from '@/core/utils/AppError';
 import { catchAsync } from '@/core/utils/catchAsync';
-import { ParentModel } from '@/modules/parent/parent.model';
-import { HttpStatusCode } from '@anis/shared';
+import logger from '@/core/utils/logger';
+import { HttpStatusCode, IJwtPayload } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
-import { AuthUtils } from '../utils/auth.utils.js';
-import logger from '../utils/logger.js';
+import { RoleValidators } from './auth.validation.middleware.js';
 
 export const authMiddleware = catchAsync(
   async (req: Request, res: Response, next: NextFunction) => {
@@ -37,55 +36,39 @@ export const authMiddleware = catchAsync(
     }
 
     const decoded = verifyToken(token);
-    logger.warn(token);
-    logger.warn(decoded);
-    if (!decoded?.userId) {
+    if (!decoded?.id || !decoded?.role) {
       return next(
         new AppError('Invalid or expired token.', HttpStatusCode.UNAUTHORIZED),
       );
     }
 
-    const stillUser = await ParentModel.findById(decoded.userId);
+    const validatorStrategy = RoleValidators[decoded.role];
 
-    if (!stillUser || !stillUser.isActive) {
+    if (!validatorStrategy) {
       return next(
         new AppError(
-          'The user belonging to this token no longer exists.',
-          HttpStatusCode.UNAUTHORIZED,
+          'Unsupported user role detected.',
+          HttpStatusCode.FORBIDDEN,
         ),
       );
     }
 
-    if (!stillUser.refreshToken) {
-      return next(
-        new AppError(
-          'Session expired. Please log in again.',
-          HttpStatusCode.UNAUTHORIZED,
-        ),
-      );
-    }
-    if (
-      decoded.iat &&
-      AuthUtils.isPasswordChangedAfterAccessTokenIAT(
-        stillUser.createdAt,
-        stillUser.passwordChangedAt,
-        decoded.iat,
-      )
-    ) {
-      return next(
-        new AppError(
-          'User recently changed password! Please log in again.',
-          HttpStatusCode.UNAUTHORIZED,
-        ),
-      );
-    }
+    const isActive = await validatorStrategy(decoded);
 
-    req.user = {
-      id: stillUser.id,
-      email: stillUser.email,
-      isActive: stillUser.isActive,
-      role: 'PARENT',
+    const userPayload: IJwtPayload = {
+      id: decoded.id,
+      role: decoded.role,
+      isActive: isActive,
+      iat: decoded.iat,
+      exp: decoded.exp,
     };
+    if (decoded.sub) userPayload.sub = decoded.sub;
+    if (decoded.jti) userPayload.jti = decoded.jti;
+    if (decoded.scopes) userPayload.scopes = decoded.scopes;
+    if (decoded.deviceId) userPayload.deviceId = decoded.deviceId;
+    req.user = userPayload;
+
+    logger.info(`Authenticated ${decoded.role}: ${decoded.id}`);
     next();
   },
 );

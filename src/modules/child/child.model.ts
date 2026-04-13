@@ -1,22 +1,23 @@
-import { toJSON } from '@/core/plugins/toJSON.plugin';
+import { IChildBase } from '@anis/shared';
 import mongoose, { Document, Schema } from 'mongoose';
 
-import { IChild } from './child.schema.js';
-
-export interface IChildren extends IChild, Document {
-  parent: mongoose.Types.ObjectId;
+export interface IChild extends Omit<IChildBase, 'id' | 'parentId'>, Document {
+  id: string;
+  parentId: mongoose.Types.ObjectId;
   createdAt: Date;
-  updatedAt?: Date;
+  updatedAt: Date;
 }
 
-const ChildSchema = new Schema<IChildren>(
+const ChildSchema = new Schema<IChild>(
   {
     firstName: {
       type: String,
       required: true,
+      trim: true,
     },
     gender: {
-      type: Boolean,
+      type: String,
+      enum: ['MALE', 'FEMALE'],
       required: true,
     },
     hobbies: {
@@ -27,26 +28,36 @@ const ChildSchema = new Schema<IChildren>(
       type: Date,
       required: true,
     },
-    parent: {
+    isActive: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
+    deviceId: {
+      type: String,
+      required: false,
+    },
+    deviceName: {
+      type: String,
+      required: false,
+    },
+    parentId: {
       type: mongoose.Types.ObjectId,
       ref: 'Parent',
       required: true,
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now(),
-    },
-    updatedAt: {
-      type: Date,
-      default: Date.now(),
+      index: true,
     },
   },
   {
     timestamps: true,
-    toJSON: {
-      virtuals: true,
-    },
+    toJSON: { virtuals: true },
     toObject: { virtuals: true },
   },
 );
-export const ChildModel = mongoose.model<IChildren>('Child', ChildSchema);
+ChildSchema.virtual('locations', {
+  ref: 'Locations',
+  localField: '_id',
+  foreignField: 'childId',
+  justOne: false,
+});
+export const ChildModel = mongoose.model<IChild>('Child', ChildSchema);

@@ -1,17 +1,11 @@
-import { IParent } from '@/modules/parent/parent.model';
-import { JwtPayload } from 'jsonwebtoken';
-
-export interface IAuthUser {
-  id: string;
-  email: string;
-  isActive: boolean;
-  role: 'PARENT' | 'CHILD';
-}
+import { IJwtPayload, UserRole } from '@anis/shared';
+import jwt from 'jsonwebtoken';
 
 declare global {
   namespace Express {
     interface Request {
-      user?: IAuthUser;
+      // user?: IAuthUser;
+      user?: jwt.JwtPayload & IJwtPayload;
       cookies: {
         refreshToken?: string;
         // eslint-disable-next-line

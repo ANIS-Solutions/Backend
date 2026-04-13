@@ -5,7 +5,7 @@ import { Redis, RedisOptions } from 'ioredis';
 export const redisCache = new Redis(config.REDIS_URL, {
   maxRetriesPerRequest: null,
 });
-
+export const redisSubscriber = redisCache.duplicate();
 export const redisQueueConnection: RedisOptions = {
   host: config.REDIS_HOST,
   port: +config.REDIS_PORT,
