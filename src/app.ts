@@ -5,6 +5,7 @@ import routes from '@/api/apiRouter';
 import config from '@/config/base';
 import globalErrorHandler from '@/core/middleware/error.middleware';
 import { limiter } from '@/core/middleware/ratelimit.middleware';
+import { corsOptions } from '@/core/utils/cors.utils';
 import logger from '@/core/utils/logger';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
@@ -20,13 +21,7 @@ app.use(helmet());
 
 app.use(cookieParser());
 
-app.use(
-  cors({
-    origin: config.CLIENT_URL || `http://localhost:${config.PORT}`,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
-    credentials: true,
-  }),
-);
+app.use(cors(corsOptions));
 
 const morganStream = {
   write: (message: string): void => {
