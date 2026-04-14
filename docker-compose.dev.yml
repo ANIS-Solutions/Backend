@@ -19,6 +19,7 @@ services:
     volumes:
       - ./:/app/anis-backend
       - ../anis-shared:/app/anis-shared
+      - /app/anis-backend/node_modules
     networks:
       - anis-dev
     depends_on:
@@ -49,6 +50,7 @@ services:
       REDIS_PASSWORD: ''
     volumes:
       - ./:/app/anis-backend
+      - /app/anis-backend/node_modules
       - ../anis-shared:/app/anis-shared
     networks:
       - anis-dev

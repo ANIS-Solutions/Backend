@@ -6,10 +6,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 RUN npm install -g pnpm@latest
 
-RUN mkdir -p /app/anis-shared /app/anis-backend
-
 WORKDIR /app/anis-backend
+
+COPY package.json pnpm-lock.yaml ./
+
+RUN pnpm install
 
 EXPOSE 5000
 
 CMD ["pnpm", "dev"]
+

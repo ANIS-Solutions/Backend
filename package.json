@@ -53,6 +53,7 @@
   "dependencies": {
     "@anis/shared": "link:../anis-shared",
     "@types/nodemailer": "^7.0.4",
+    "axios": "^1.15.0",
     "bcryptjs": "^3.0.3",
     "bullmq": "^5.71.1",
     "check-password-strength": "^3.0.0",
