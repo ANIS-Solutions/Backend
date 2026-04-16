@@ -119,7 +119,19 @@ services:
       - anis-dev
     depends_on:
       - redis
-
+  mongo-express:
+    image: mongo-express:latest
+    container_name: anis-mongo-express
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+    networks:
+      - anis-dev
+    depends_on:
+      mongo:
+        condition: service_healthy
 networks:
   anis-dev:
     driver: bridge

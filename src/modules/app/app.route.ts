@@ -1,39 +1,36 @@
-import { reqValidate } from '@/core/middleware/validation.middleware';
 import bindRoute from '@/core/utils/routeBounder';
 import { API } from '@anis/shared';
 import { Router } from 'express';
 
 import {
   addApp,
-  blockApp,
+  addBulkApps,
   getApp,
   getApps,
   limitApp,
   removeApp,
-  updateApp,
+  toggleBlockApp,
 } from './app.controller.js';
 import {
   addAppSchema,
+  addBulkAppsSchema,
   getAppSchema,
   getAppsSchema,
   removeAppSchema,
   setLimitSchema,
   toggleBlockSchema,
-  updateAppSchema,
 } from './app.schema.js';
 
-const { ADD, GET_CHILD_APPS, GET_CHILD_APP, UPDATE, DELETE, BLOCK, LIMIT } =
+const { ADD, ADD_BULK, GET_CHILD_APPS, GET_CHILD_APP, DELETE, BLOCK, LIMIT } =
   API.APP.ROUTES;
 const appRouter = Router();
 
-// child auth middleware
-
 bindRoute(appRouter, ADD, addApp, addAppSchema);
+bindRoute(appRouter, ADD_BULK, addBulkApps, addBulkAppsSchema);
 bindRoute(appRouter, GET_CHILD_APPS, getApps, getAppsSchema);
 bindRoute(appRouter, GET_CHILD_APP, getApp, getAppSchema);
-bindRoute(appRouter, UPDATE, updateApp, updateAppSchema);
 bindRoute(appRouter, DELETE, removeApp, removeAppSchema);
-bindRoute(appRouter, BLOCK, blockApp, toggleBlockSchema);
+bindRoute(appRouter, BLOCK, toggleBlockApp, toggleBlockSchema);
 bindRoute(appRouter, LIMIT, limitApp, setLimitSchema);
 
 export default appRouter;

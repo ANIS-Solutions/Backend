@@ -23,13 +23,16 @@ import {
 } from './child.schema.js';
 
 const genAccessToken = (user: IChild): string => {
-  return signAccessToken({
-    id: user.id,
-    role: UserRoles.CHILD,
-    deviceId: user.deviceId,
-    isActive: user.isActive,
-    scopes: [UserScopes.WRITE_TELEMETRY],
-  } as Partial<IJwtPayload>);
+  return signAccessToken(
+    {
+      id: user.id,
+      role: UserRoles.CHILD,
+      deviceId: user.deviceId,
+      isActive: user.isActive,
+      scopes: [UserScopes.WRITE_TELEMETRY],
+    } as Partial<IJwtPayload>,
+    '120M',
+  );
 };
 export const addChildService = async (
   reqUser: JwtPayload & IJwtPayload,
@@ -112,6 +115,7 @@ export const pairChildService = async (
 ): Promise<{ childData: IChildBase; accessToken: string }> => {
   const { childId, token, deviceId, deviceName } = pairChildData;
   const redisKey = `pairing:token:${token}`;
+  logger.error(redisKey);
   const id = await CacheService.get(redisKey);
   if (!id) {
     throw new AppError(

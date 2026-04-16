@@ -3,7 +3,7 @@ import fs from 'fs';
 import axios from 'axios';
 
 const BASE_URL = 'http://localhost:5000/api/v1';
-const OUTPUT_FILE = './seed-output.json';
+const OUTPUT_FILE = './seed/seed-output.json';
 
 const parents = [
   {

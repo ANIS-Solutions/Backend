@@ -1,42 +1,26 @@
-import mongoose from 'mongoose';
+import { IAppBase } from '@anis/shared';
+import mongoose, { Document } from 'mongoose';
 
-interface IApp {
-  child: mongoose.Types.ObjectId;
-  name: string;
-  storeId: string;
-  category: string[];
-  iconUrl: string;
-  about: string;
-  settings: {
-    isBlocked: boolean;
-    dailyLimit: number;
-  };
-  stats: {
-    firstInstallAt?: Date;
-    lastOpenedAt?: Date;
-    totalUsage: number;
-    dailyUsage: Map<Date, number>; // {st, ed}
-  };
+export interface IApp
+  extends Omit<IAppBase, 'id' | 'packageId' | 'childId'>, Document {
+  id: string;
+  childId: mongoose.Types.ObjectId;
+  packageId: string;
   createdAt: Date;
   updatedAt: Date;
 }
 
 const AppSchema = new mongoose.Schema<IApp>(
   {
-    child: {
+    childId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Child',
       required: true,
       index: true,
     },
-
-    iconUrl: { type: String },
-    category: { type: [String], default: [] },
-
-    name: { type: String, required: true, trim: true },
-
-    storeId: {
+    packageId: {
       type: String,
+      ref: 'AppPackage',
       required: true,
       index: true,
     },
@@ -45,7 +29,8 @@ const AppSchema = new mongoose.Schema<IApp>(
       dailyLimit: { type: Number, default: 0 },
     },
     stats: {
-      lastOpenedAt: Date,
+      firstInstallAt: { type: Date },
+      lastOpenedAt: { type: Date },
       totalUsage: { type: Number, default: 0 },
       dailyUsage: {
         type: Map,
@@ -53,11 +38,18 @@ const AppSchema = new mongoose.Schema<IApp>(
         default: {},
       },
     },
-    about: { type: String },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: {
+      virtuals: true,
+      transform: function (doc, ret): void {
+        ret.id = ret.packageId;
+      },
+    },
+    toObject: { virtuals: true },
+  },
 );
 
-AppSchema.index({ child: 1, storeId: 1 }, { unique: true });
-
+AppSchema.index({ childId: 1, packageId: 1 }, { unique: true });
 export const AppModel = mongoose.model<IApp>('App', AppSchema);

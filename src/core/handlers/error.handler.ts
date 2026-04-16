@@ -21,6 +21,7 @@ export interface MongoValidationError extends Error {
 export interface JwtAuthError extends Error {
   name: 'JsonWebTokenError' | 'TokenExpiredError';
 }
+
 const safeErrParse = (err: unknown): Record<string, unknown> | null => {
   return typeof err === 'object' && err !== null
     ? (err as Record<string, unknown>)
@@ -90,6 +91,16 @@ export const normalizeError = (err: unknown): AppError => {
       return handleJWTExpiredError();
     }
     return handleJWTError();
+  }
+
+  if (
+    typeof err === 'object' &&
+    (err as Error)?.message == 'App not found (404)'
+  ) {
+    return new AppError(
+      `The app package could not be found on the Google Play Store. Please check the package name.`,
+      HttpStatusCode.NOT_FOUND,
+    );
   }
 
   const fallbackError = new AppError(
