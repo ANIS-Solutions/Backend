@@ -4,6 +4,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IChild extends Omit<IChildBase, 'id' | 'parentId'>, Document {
   id: string;
   parentId: mongoose.Types.ObjectId;
+  fcmToken: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -40,6 +41,14 @@ const ChildSchema = new Schema<IChild>(
     deviceName: {
       type: String,
       required: false,
+    },
+    fcmToken: {
+      type: String,
+      required: true,
+    },
+    points: {
+      type: Number,
+      default: 0,
     },
     parentId: {
       type: mongoose.Types.ObjectId,

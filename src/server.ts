@@ -12,6 +12,8 @@ import app from '@app';
 
 import '@/modules/email/email.listener';
 
+import { initFirebase } from '@/config/firebase';
+
 process.on('uncaughtException', uncaughtExceptionHandler);
 
 export let server: Server;
@@ -19,8 +21,7 @@ export let server: Server;
 export const startServer = async (): Promise<void> => {
   try {
     await dbConnect();
-    // logger.info('-> DB Connected successfully');
-
+    initFirebase();
     server = app.listen(config.PORT, () => {
       logger.info(
         `-> START: Server Running in ${config.NODE_ENV} mode on: http://localhost:${config.PORT}/api/v1`,

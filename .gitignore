@@ -11,8 +11,10 @@ coverage/
 !README.md
 !.vscode
 !.husky
-
+__test_fcm
+secrets
 /node_modules
 /dist
 _/
 *.bak*
+logs/

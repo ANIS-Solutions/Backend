@@ -1,5 +1,6 @@
 import { CacheService } from '@/core/cache/cache.service';
 import { eventBus } from '@/core/events/eventBus';
+import { FCMService } from '@/core/utils/fcm.utils';
 import logger from '@/core/utils/logger';
 
 import { TelemetryTrackLocationBodyInput } from './location.schema.js';

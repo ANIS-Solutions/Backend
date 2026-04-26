@@ -10,6 +10,7 @@ import {
   limitApp,
   removeApp,
   toggleBlockApp,
+  updateChildUsage,
 } from './app.controller.js';
 import {
   addAppSchema,
@@ -19,10 +20,19 @@ import {
   removeAppSchema,
   setLimitSchema,
   toggleBlockSchema,
+  updateUsageAppSchema,
 } from './app.schema.js';
 
-const { ADD, ADD_BULK, GET_CHILD_APPS, GET_CHILD_APP, DELETE, BLOCK, LIMIT } =
-  API.APP.ROUTES;
+const {
+  ADD,
+  ADD_BULK,
+  GET_CHILD_APPS,
+  GET_CHILD_APP,
+  DELETE,
+  BLOCK,
+  LIMIT,
+  UPDATE_USAGE,
+} = API.APP.ROUTES;
 const appRouter = Router();
 
 bindRoute(appRouter, ADD, addApp, addAppSchema);
@@ -32,5 +42,6 @@ bindRoute(appRouter, GET_CHILD_APP, getApp, getAppSchema);
 bindRoute(appRouter, DELETE, removeApp, removeAppSchema);
 bindRoute(appRouter, BLOCK, toggleBlockApp, toggleBlockSchema);
 bindRoute(appRouter, LIMIT, limitApp, setLimitSchema);
+bindRoute(appRouter, UPDATE_USAGE, updateChildUsage, updateUsageAppSchema);
 
 export default appRouter;

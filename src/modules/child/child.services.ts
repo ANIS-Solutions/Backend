@@ -2,7 +2,6 @@ import { CacheService } from '@/core/cache/cache.service';
 import { signAccessToken } from '@/core/handlers/jwt.handler';
 import AppError from '@/core/utils/AppError';
 import { AuthUtils } from '@/core/utils/auth.utils';
-import logger from '@/core/utils/logger';
 import { QrCode } from '@/core/utils/qrcode.utils';
 import {
   HttpStatusCode,
@@ -34,36 +33,38 @@ const genAccessToken = (user: IChild): string => {
     '120M',
   );
 };
+
 export const addChildService = async (
   reqUser: JwtPayload & IJwtPayload,
   addChildData: CreateChildBodyInput,
 ): Promise<{
-  childData: IChildBase;
   pairingQrCode: string;
   pairToken: string;
 }> => {
   const parentId = reqUser.id;
-
   const { firstName, gender, hobbies, dob } = addChildData;
-  const child = await ChildModel.create({
+  const { token } = AuthUtils.generateCryptoUUID();
+  const redisKey = `pairing:pending:${token}`;
+
+  const pendingChildData = {
+    parentId,
     firstName,
     gender,
     hobbies: hobbies ?? [],
     dob,
-    parentId,
-  });
-  const { token } = AuthUtils.generateCryptoUUID();
-  const redisKey = `pairing:token:${token}`;
-
-  await CacheService.setWithTTL(redisKey, child.id, 10 * 60);
+  };
+  await CacheService.setWithTTL(
+    redisKey,
+    JSON.stringify(pendingChildData),
+    10 * 60,
+  );
 
   const qrPayload = {
     action: 'PAIR_DEVICE',
-    childId: child.id,
     token: token,
   };
   const pairingQrCode = await QrCode.generateBase64(qrPayload);
-  return { childData: toChildProfile(child), pairingQrCode, pairToken: token };
+  return { pairingQrCode, pairToken: token };
 };
 
 export const GetMyChildrenService = async (
@@ -113,28 +114,34 @@ export const updateMyChildService = async (
 export const pairChildService = async (
   pairChildData: PairChildInput,
 ): Promise<{ childData: IChildBase; accessToken: string }> => {
-  const { childId, token, deviceId, deviceName } = pairChildData;
-  const redisKey = `pairing:token:${token}`;
-  logger.error(redisKey);
-  const id = await CacheService.get(redisKey);
-  if (!id) {
+  const { token, deviceId, deviceName, fcmToken } = pairChildData;
+  const redisKey = `pairing:pending:${token}`;
+  const cachedData = await CacheService.get(redisKey);
+  if (!cachedData) {
     throw new AppError(
-      'Qrcode is expired or malformed, please try again.',
+      'QR code has expired or is invalid. Please generate a new one.',
       HttpStatusCode.FORBIDDEN,
     );
   }
+  const pendingChild = JSON.parse(cachedData) as CreateChildBodyInput & {
+    parentId: string;
+  };
+  const newChild = await ChildModel.create({
+    firstName: pendingChild.firstName,
+    gender: pendingChild.gender,
+    parentId: pendingChild.parentId,
+    dob: pendingChild.dob,
+    hobbies: pendingChild.hobbies ?? [],
+    deviceId,
+    deviceName: deviceName ?? '',
+    fcmToken,
+  });
+
   await CacheService.delete(redisKey);
-  const currChild = await ChildModel.findById(id);
-  if (!currChild) {
-    // TODO: centralized it later
-    throw new AppError(`No child with id ${id}.`, HttpStatusCode.FORBIDDEN);
-  }
-  currChild.deviceId = deviceId;
-  if (deviceName) currChild.deviceName = deviceName;
-  await currChild.save();
-  const accessToken = genAccessToken(currChild);
-  return { childData: toChildProfile(currChild), accessToken };
+  const accessToken = genAccessToken(newChild);
+  return { childData: toChildProfile(newChild), accessToken };
 };
+
 export const getMeService = async (userId: string): Promise<IChildBase> => {
   const currUser = await ChildModel.findById(userId).lean();
   if (!currUser)

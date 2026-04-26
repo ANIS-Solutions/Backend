@@ -4,6 +4,9 @@
 │       ├── REACTIVATE.html
 │       ├── RESET_PASSWORD.html
 │       └── VERIFY_OTP.html
+├── seed
+│   ├── script.js
+│   └── seed-output.json
 ├── src
 │   ├── api
 │   │   ├── apiRouter.ts
@@ -15,6 +18,8 @@
 │   ├── core
 │   │   ├── cache
 │   │   │   └── cache.service.ts
+│   │   ├── events
+│   │   │   └── eventBus.ts
 │   │   ├── handlers
 │   │   │   ├── api.handler.ts
 │   │   │   ├── email.handler.ts
@@ -23,7 +28,9 @@
 │   │   │   └── server.handler.ts
 │   │   ├── middleware
 │   │   │   ├── auth.middleware.ts
+│   │   │   ├── auth.validation.middleware.ts
 │   │   │   ├── error.middleware.ts
+│   │   │   ├── isParent.middleware.ts
 │   │   │   ├── ratelimit.middleware.ts
 │   │   │   └── validation.middleware.ts
 │   │   ├── plugins
@@ -34,15 +41,21 @@
 │   │       ├── AppError.ts
 │   │       ├── auth.utils.ts
 │   │       ├── catchAsync.ts
+│   │       ├── cors.utils.ts
 │   │       ├── logger.ts
+│   │       ├── qrcode.utils.ts
 │   │       ├── routeBounder.ts
-│   │       └── schema.utils.ts
+│   │       ├── schema.utils.ts
+│   │       └── sse.utils.ts
 │   ├── modules
 │   │   ├── app
 │   │   │   ├── app.controller.ts
+│   │   │   ├── app.dto.ts
 │   │   │   ├── app.model.ts
+│   │   │   ├── appPackage.model.ts
 │   │   │   ├── app.route.ts
-│   │   │   └── app.schema.ts
+│   │   │   ├── app.schema.ts
+│   │   │   └── app.services.ts
 │   │   ├── auth
 │   │   │   ├── auth.controller.ts
 │   │   │   ├── auth.route.ts
@@ -50,6 +63,7 @@
 │   │   │   └── auth.services.ts
 │   │   ├── child
 │   │   │   ├── child.controller.ts
+│   │   │   ├── child.dto.ts
 │   │   │   ├── child.model.ts
 │   │   │   ├── child.route.ts
 │   │   │   ├── child.schema.ts
@@ -61,13 +75,17 @@
 │   │   │   ├── edu.schema.ts
 │   │   │   └── edu.services.ts
 │   │   ├── email
+│   │   │   ├── email.listener.ts
 │   │   │   └── email.worker.ts
 │   │   ├── locations
 │   │   │   ├── location.controller.ts
+│   │   │   ├── location.dto.ts
 │   │   │   ├── location.model.ts
 │   │   │   ├── location.route.ts
 │   │   │   ├── location.schema.ts
-│   │   │   └── location.services.ts
+│   │   │   ├── location.services.ts
+│   │   │   ├── location.utils.ts
+│   │   │   └── tracking.services.ts
 │   │   ├── parent
 │   │   │   ├── parent.controller.ts
 │   │   │   ├── parent.dto.ts
@@ -76,11 +94,6 @@
 │   │   │   ├── parent.schema.ts
 │   │   │   └── parent.services.ts
 │   │   ├── quest
-│   │   │   ├── quest.controller.ts
-│   │   │   ├── quest.model.ts
-│   │   │   ├── quest.route.ts
-│   │   │   ├── quest.schema.ts
-│   │   │   └── quest.services.ts
 │   │   └── report
 │   │       ├── report.controller.ts
 │   │       ├── report.model.ts
@@ -108,4 +121,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.json
 
-25 directories, 84 files
+27 directories, 95 files

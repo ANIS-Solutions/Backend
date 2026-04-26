@@ -10,6 +10,9 @@ redisSubscriber.on('message', (channel, message) => {
 });
 
 export const CacheService = {
+  async update(key: string, value: string): Promise<void> {
+    await redisCache.set(key, value);
+  },
   async setWithTTL(
     key: string,
     value: string,
@@ -45,9 +48,11 @@ export const CacheService = {
   ): Promise<void> {
     await redisCache.zremrangebyscore(key, min, max);
   },
+
   async pub<T>(channelKey: string, data: T): Promise<void> {
     await redisCache.publish(channelKey, JSON.stringify(data));
   },
+
   async sub(channelKey: string, cb: (message: string) => void): Promise<void> {
     if (!channelListeners.has(channelKey)) {
       channelListeners.set(channelKey, []);
@@ -71,5 +76,41 @@ export const CacheService = {
     } else {
       channelListeners.set(channelKey, updatedListeners);
     }
+  },
+
+  async incby(channelKey: string, incrementValue: number): Promise<number> {
+    return await redisCache.incrby(channelKey, incrementValue);
+  },
+
+  async setTTL(key: string, ttlSeconds: number): Promise<void> {
+    await redisCache.expire(key, ttlSeconds);
+  },
+  async scanPattern(pattern: string): Promise<string[]> {
+    const keys: string[] = [];
+    let cursor = '0';
+
+    do {
+      const [nextCursor, elements] = await redisCache.scan(
+        cursor,
+        'MATCH',
+        pattern,
+        'COUNT',
+        100,
+      );
+      cursor = nextCursor;
+      keys.push(...elements);
+    } while (cursor !== '0');
+
+    return keys;
+  },
+
+  async mGet(keys: string[]): Promise<(string | null)[]> {
+    if (keys.length === 0) return [];
+    return await redisCache.mget(...keys);
+  },
+
+  async exists(key: string): Promise<boolean> {
+    const result = await redisCache.exists(key);
+    return result > 0;
   },
 };

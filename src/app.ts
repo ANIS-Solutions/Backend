@@ -31,6 +31,14 @@ const morganStream = {
 
 if (config.IS_DEV_ENV) {
   app.use(morgan('dev', { stream: morganStream }));
+  app.use((req, res, next) => {
+    logger.info(`Method: ${req.method}`);
+    logger.info(`URL: ${req.url}`);
+    logger.info(`Query Params:`, req.query);
+    logger.info(`Body:`, req.body);
+    logger.info(`-----------------------------------`);
+    next();
+  });
 }
 
 if (config.IS_PROD_ENV) {

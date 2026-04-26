@@ -1,5 +1,6 @@
 import config from '@/config/base';
 import winston from 'winston';
+import DailyRotateFile from 'winston-daily-rotate-file';
 
 const levels = {
   error: 0,
@@ -18,26 +19,59 @@ const colors = {
 };
 
 winston.addColors(colors);
-/* eslint-disable @typescript-eslint/restrict-template-expressions */
-const format = winston.format.combine(
-  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+/* eslint-disable @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string */
+
+const devFormat = winston.format.combine(
   winston.format.colorize({ all: true }),
-  winston.format.printf(
-    (info) => `${info.timestamp} ${info.level}: ${info.message}`,
-  ),
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+  winston.format.errors({ stack: true }),
+  winston.format.printf((info) => {
+    const { timestamp, level, message, stack, ...meta } = info;
+    let log = `${timestamp} [${level}]: ${message}`;
+    if (stack) log += `\n${stack}`;
+    const metaString = Object.keys(meta).length
+      ? JSON.stringify(meta, null, 2)
+      : '';
+    if (metaString && metaString !== '{}') log += `\n${metaString}`;
+    return log;
+  }),
 );
 
+const prodFormat = winston.format.combine(
+  winston.format.timestamp(),
+  winston.format.errors({ stack: true }),
+  winston.format.json(),
+);
+
+const dailyRotateTransport = new DailyRotateFile({
+  filename: 'logs/api-%DATE%.log',
+  datePattern: 'YYYY-MM-DD',
+  zippedArchive: true,
+  maxSize: '20m',
+  maxFiles: '3d',
+  format: prodFormat,
+});
+
+const errorRotateTransport = new DailyRotateFile({
+  filename: 'logs/error-%DATE%.log',
+  datePattern: 'YYYY-MM-DD',
+  zippedArchive: true,
+  maxSize: '20m',
+  maxFiles: '10d',
+  level: 'error',
+  format: prodFormat,
+});
+
 const logger = winston.createLogger({
-  level: config.IS_DEV_ENV ? 'debug' : 'warn',
+  level: config.IS_DEV_ENV ? 'debug' : 'info',
   levels,
+  format: config.IS_DEV_ENV ? devFormat : prodFormat,
   transports: [
     new winston.transports.Console({
-      format: format,
+      format: config.IS_DEV_ENV ? devFormat : prodFormat,
     }),
-    // new winston.transports.File({
-    //   filename: 'logs/error.log',
-    //   level: 'error',
-    // }),
+    dailyRotateTransport,
+    errorRotateTransport,
   ],
 });
 

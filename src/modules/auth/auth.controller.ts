@@ -1,6 +1,7 @@
 import config from '@/config/base';
 import ApiResponse from '@/core/handlers/api.handler';
 import { catchAsync } from '@/core/utils/catchAsync';
+import logger from '@/core/utils/logger';
 import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 

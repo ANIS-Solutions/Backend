@@ -1,8 +1,10 @@
+import { CacheService } from '@/core/cache/cache.service';
 import AppError from '@/core/utils/AppError';
-import logger from '@/core/utils/logger';
-import { HttpStatusCode, IAppBase, IJwtPayload } from '@anis/shared';
+import { FCMService } from '@/core/utils/fcm.utils';
+import { FcmAction, HttpStatusCode, IAppBase, IJwtPayload } from '@anis/shared';
 import gplay from 'google-play-scraper';
 
+import { ChildModel } from '../child/child.model.js';
 import { toAppProfile } from './app.dto.js';
 import { AppModel } from './app.model.js';
 import {
@@ -15,6 +17,8 @@ import {
   SetLimitParamsInput,
   ToggleBlockBodyInput,
   ToggleBlockParamsInput,
+  UpdateUsageAppBodyInput,
+  UpdateUsageAppParamsInput,
 } from './app.schema.js';
 import { AppPackageModel } from './appPackage.model.js';
 
@@ -110,7 +114,6 @@ export const toggleBlockAppService = async (
 ): Promise<IAppBase> => {
   const { packageId, childId } = reqParams;
   const { isBlocked } = reqBody;
-
   const currApp = await AppModel.findOneAndUpdate(
     { packageId, childId },
     { $set: { 'settings.isBlocked': isBlocked } },
@@ -122,6 +125,33 @@ export const toggleBlockAppService = async (
       `App with id ${packageId} not found`,
       HttpStatusCode.NOT_FOUND,
     );
+  }
+  const blockKey = `block:child:${childId}:${packageId}`;
+  await CacheService.setWithTTL(blockKey, String(isBlocked), 24 * 60 * 60);
+  if (!isBlocked) {
+    const todayDate = new Date().toISOString().split('T')[0];
+    await CacheService.delete(
+      `breached:child:${childId}:${packageId}:${todayDate}`,
+    );
+  }
+  let fcmToken = await CacheService.get(`fcm:child:${childId}`);
+  if (!fcmToken) {
+    const child = await ChildModel.findById(childId).select('fcmToken').lean();
+    if (child?.fcmToken) {
+      fcmToken = child.fcmToken;
+      await CacheService.setWithTTL(
+        `fcm:child:${childId}`,
+        fcmToken,
+        48 * 60 * 60,
+      );
+    }
+  }
+  if (fcmToken) {
+    await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
+      packageId,
+      isBlocked,
+      timestamp: new Date().toISOString(),
+    });
   }
   return toAppProfile(currApp);
 };
@@ -144,6 +174,44 @@ export const limitAppService = async (
       `App with id ${packageId} not found`,
       HttpStatusCode.NOT_FOUND,
     );
+  }
+
+  const todayDate = new Date().toISOString().split('T')[0];
+  const limitKey = `limit:child:${childId}:${packageId}`;
+  const breachLockKey = `breached:child:${childId}:${packageId}:${todayDate}`;
+  let limitWasExtended = false;
+  const currCacheLimitStr = await CacheService.get(limitKey);
+  if (currCacheLimitStr) {
+    const oldLimit = parseInt(currCacheLimitStr, 10);
+    if (oldLimit < dailyLimit) {
+      await CacheService.delete(breachLockKey);
+      limitWasExtended = true;
+    }
+  } else {
+    await CacheService.delete(breachLockKey);
+    limitWasExtended = true;
+  }
+  await CacheService.update(limitKey, String(dailyLimit));
+  let fcmToken = await CacheService.get(`fcm:child:${childId}`);
+  if (!fcmToken) {
+    const child = await ChildModel.findById(childId).select('fcmToken').lean();
+    if (child?.fcmToken) {
+      fcmToken = child.fcmToken;
+      await CacheService.setWithTTL(
+        `fcm:child:${childId}`,
+        fcmToken,
+        48 * 60 * 60,
+      );
+    }
+  }
+
+  if (fcmToken) {
+    await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
+      packageId,
+      dailyLimit,
+      limitExtended: limitWasExtended,
+      timestamp: new Date().toISOString(),
+    });
   }
   return toAppProfile(currApp);
 };
@@ -177,4 +245,109 @@ export const getAppsService = async (
   }
 
   return childApps.map(toAppProfile);
+};
+
+/* 
+
+  key: 
+  usage:child:${childId}:${appPackage}:${timestamp}
+  usage_limit:${childId}:${appPackage}
+
+*/
+const SECONDS_IN_DAY = 24 * 60 * 60;
+const TTL_48_HOURS = 48 * 60 * 60;
+export const updateUsageAppService = async (
+  reqParams: UpdateUsageAppParamsInput,
+  reqBody: UpdateUsageAppBodyInput,
+  reqUser: IJwtPayload,
+): Promise<{
+  packageId: string;
+  limitReached: boolean;
+  isBlocked: boolean;
+  remaining: number;
+}> => {
+  const { packageId } = reqParams;
+  const { duration, timestamp, isLive, additionalData } = reqBody;
+  const childId = reqUser.id;
+
+  const todayDate = new Date().toISOString().split('T')[0];
+  const usageKey = `usage:child:${childId}:${packageId}:${todayDate}`;
+  const limitKey = `limit:child:${childId}:${packageId}`;
+  const blockKey = `block:child:${childId}:${packageId}`;
+  const breachLockKey = `breached:child:${childId}:${packageId}:${todayDate}`;
+
+  // const redisKey = `usage:child:${childId}:${packageId}:${timestamp.getDate()}`;
+  // const limitRedisKey = `usage_limit:child:${childId}:${packageId}`;
+
+  const currentUsage = await CacheService.incby(usageKey, duration);
+  // const currAppChildUsage = await CacheService.incby(redisKey, duration);
+  if (currentUsage === duration) {
+    await CacheService.setTTL(usageKey, TTL_48_HOURS);
+  }
+  const [appLimitStr, isBlockedStr] = await CacheService.mGet([
+    limitKey,
+    blockKey,
+  ]);
+  // const appLimitStr = await CacheService.get(limitKey);
+  let appLimit = appLimitStr ? parseInt(appLimitStr, 10) : null;
+  let isBlocked = isBlockedStr === 'true';
+  if (appLimit === null || isBlockedStr === null) {
+    const currAppChild = await AppModel.findOne({ childId, packageId }).lean();
+    if (!currAppChild) {
+      throw new AppError(
+        `App tracking not configured`,
+        HttpStatusCode.NOT_FOUND,
+      );
+    }
+
+    appLimit =
+      currAppChild.settings.dailyLimit > 0
+        ? currAppChild.settings.dailyLimit
+        : SECONDS_IN_DAY;
+    isBlocked = currAppChild.settings.isBlocked ?? false;
+    await CacheService.setWithTTL(limitKey, String(appLimit), SECONDS_IN_DAY);
+    await CacheService.setWithTTL(blockKey, String(isBlocked), SECONDS_IN_DAY);
+  }
+  const remaining = Math.max(0, appLimit - currentUsage);
+  const limitReached = remaining === 0;
+
+  const shouldLock = limitReached || isBlocked;
+  if (shouldLock) {
+    const alreadyBreached = await CacheService.get(breachLockKey);
+
+    if (!alreadyBreached) {
+      let fcmToken = await CacheService.get(`fcm:child:${childId}`);
+      if (!fcmToken) {
+        const child = await ChildModel.findById(childId)
+          .select('fcmToken')
+          .lean();
+        if (child?.fcmToken) {
+          fcmToken = child.fcmToken;
+          await CacheService.setWithTTL(
+            `fcm:child:${childId}`,
+            fcmToken,
+            TTL_48_HOURS,
+          );
+        }
+      }
+
+      if (fcmToken) {
+        await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
+          packageId,
+          isBlocked,
+          limitReached,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      await CacheService.setWithTTL(breachLockKey, 'locked', SECONDS_IN_DAY);
+    }
+  }
+
+  return {
+    packageId,
+    limitReached,
+    isBlocked,
+    remaining,
+  };
 };

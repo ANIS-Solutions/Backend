@@ -119,6 +119,7 @@ services:
       - anis-dev
     depends_on:
       - redis
+
   mongo-express:
     image: mongo-express:latest
     container_name: anis-mongo-express
@@ -132,6 +133,7 @@ services:
     depends_on:
       mongo:
         condition: service_healthy
+
 networks:
   anis-dev:
     driver: bridge

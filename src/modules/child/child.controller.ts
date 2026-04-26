@@ -26,7 +26,7 @@ export const addChildren = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const { childData, pairingQrCode, pairToken } = await addChildService(
+    const { pairingQrCode, pairToken } = await addChildService(
       req.user!,
       req.body,
     );
@@ -35,7 +35,7 @@ export const addChildren = catchAsync(
       HttpStatusCode.CREATED,
       'Child added successfully!',
       {
-        data: childData,
+        // data: childData,
         qrcode: pairingQrCode,
         devInfo: {
           pairToken,

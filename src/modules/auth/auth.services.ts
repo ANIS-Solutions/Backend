@@ -144,7 +144,7 @@ export const verifyOTPService = async (
 ): Promise<{ accessToken: string } | null> => {
   const { email, otp, reason } = verifyOtpData;
   const currUser = await ParentModel.findOne({ email });
-  if (!currUser || !currUser.isActive) {
+  if (!currUser?.isActive) {
     throw new AppError(
       `Your account email is inactive.`,
       HttpStatusCode.FORBIDDEN,

@@ -52,14 +52,15 @@ export type UpdateChildBodyInput = z.infer<typeof updateChildSchema>['body'];
 
 export const pairChildSchema = z.object({
   body: z.object({
-    childId: z
-      .string()
-      .regex(
-        objectIdRegex,
-        'Invalid Child ID format. Must be a valid ObjectId.',
-      ),
+    // childId: z
+    //   .string()
+    //   .regex(
+    //     objectIdRegex,
+    //     'Invalid Child ID format. Must be a valid ObjectId.',
+    //   ),
     token: z.uuid('Invalid pairing token format'),
     deviceId: z.string(),
+    fcmToken: z.string(),
     deviceName: z.string().optional(),
   }),
 });

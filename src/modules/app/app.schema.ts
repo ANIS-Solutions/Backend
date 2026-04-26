@@ -56,3 +56,25 @@ export const getAppsSchema = z.object({
 });
 
 export type GetAppsInput = z.infer<typeof getAppsSchema>['params'];
+
+export const updateUsageAppSchema = z.object({
+  params: paramsSchema.omit({ childId: true }),
+  body: z.object({
+    duration: z.number(),
+    timestamp: z.coerce.date(),
+    isLive: z.boolean(),
+    additionalData: z
+      .object({
+        youtubeVideoId: z.string().optional(),
+        screenshotUrl: z.url().optional(),
+      })
+      .optional(),
+  }),
+});
+
+export type UpdateUsageAppParamsInput = z.infer<
+  typeof updateUsageAppSchema
+>['params'];
+export type UpdateUsageAppBodyInput = z.infer<
+  typeof updateUsageAppSchema
+>['body'];

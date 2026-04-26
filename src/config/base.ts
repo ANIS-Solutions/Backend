@@ -43,6 +43,7 @@ const config = {
   REDIS_URL: verifyEnvVar('REDIS_URL'),
   REDIS_HOST: verifyEnvVar('REDIS_HOST'),
   REDIS_PORT: verifyEnvVar('REDIS_PORT'),
+  FIREBASE_KEY_PATH: verifyEnvVar('FIREBASE_KEY_PATH'),
   REDIS_PASSWORD: process.env.REDIS_PASSWORD?.trim() ?? '',
 };
 

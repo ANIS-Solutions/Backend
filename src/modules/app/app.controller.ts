@@ -13,6 +13,8 @@ import {
   SetLimitParamsInput,
   ToggleBlockBodyInput,
   ToggleBlockParamsInput,
+  UpdateUsageAppBodyInput,
+  UpdateUsageAppParamsInput,
 } from './app.schema.js';
 import {
   addAppService,
@@ -22,6 +24,7 @@ import {
   limitAppService,
   removeAppService,
   toggleBlockAppService,
+  updateUsageAppService,
 } from './app.services.js';
 
 export const addApp = catchAsync(
@@ -133,6 +136,27 @@ export const getApps = catchAsync(
       success: true,
       message: 'The child apps is founded successfully.',
       data: { apps: childApps },
+    });
+  },
+);
+
+export const updateChildUsage = catchAsync(
+  async (
+    req: Request<UpdateUsageAppParamsInput, {}, UpdateUsageAppBodyInput>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const { packageId, limitReached, isBlocked, remaining } =
+      await updateUsageAppService(req.params, req.body, req.user!);
+    return res.status(HttpStatusCode.OK).json({
+      success: true,
+      message: `The app with packageId ${packageId}, ${
+        limitReached
+          ? 'is reached the limit'
+          : isBlocked
+            ? 'is blocked by parent'
+            : 'has ' + remaining + ' seconds'
+      }.`,
     });
   },
 );
