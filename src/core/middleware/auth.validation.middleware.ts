@@ -14,7 +14,7 @@ export const RoleValidators: Record<string, RoleValidator> = {
   [UserRoles.PARENT]: async (decoded: JWT_TYPE) => {
     const stillUser = await ParentModel.findById(decoded.id);
 
-    if (!stillUser || !stillUser.isActive) {
+    if (!stillUser?.isActive) {
       throw new AppError(
         'The user belonging to this token no longer exists.',
         HttpStatusCode.UNAUTHORIZED,
@@ -47,8 +47,7 @@ export const RoleValidators: Record<string, RoleValidator> = {
 
   [UserRoles.CHILD]: async (decoded: JWT_TYPE) => {
     const stillChild = await ChildModel.findById(decoded.id);
-
-    if (!stillChild || !stillChild.isActive) {
+    if (!stillChild?.isActive) {
       throw new AppError(
         'The device belonging to this token has been removed or deactivated.',
         HttpStatusCode.UNAUTHORIZED,

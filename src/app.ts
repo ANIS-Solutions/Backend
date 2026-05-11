@@ -23,6 +23,15 @@ app.use(cookieParser());
 
 app.use(cors(corsOptions));
 
+app.use('/public', express.static(__dirname + '/public'));
+
+// Serve test clients in dev mode at /test-clients
+if (config.IS_DEV_ENV) {
+  app.use('/test-clients', express.static(__dirname + '/../test-clients'));
+}
+
+app.use(express.json({ limit: '10kb' }));
+
 const morganStream = {
   write: (message: string): void => {
     logger.info(message.trim());
@@ -34,9 +43,10 @@ if (config.IS_DEV_ENV) {
   app.use((req, res, next) => {
     logger.info(`Method: ${req.method}`);
     logger.info(`URL: ${req.url}`);
-    logger.info(`Query Params:`, req.query);
-    logger.info(`Body:`, req.body);
-    logger.info(`-----------------------------------`);
+    logger.info(`Query Params: ${JSON.stringify(req.query ?? {}, null, 2)}`);
+    logger.info(`Req Params: ${JSON.stringify(req.params ?? {}, null, 2)}`);
+    logger.info(`Body: ${JSON.stringify(req.body ?? {}, null, 2)}`);
+    logger.info('-----------------------------------');
     next();
   });
 }
@@ -44,10 +54,6 @@ if (config.IS_DEV_ENV) {
 if (config.IS_PROD_ENV) {
   app.use('/api', limiter);
 }
-
-app.use('/public', express.static(__dirname + '/public'));
-
-app.use(express.json({ limit: '10kb' }));
 
 app.use('/api/v1', routes);
 

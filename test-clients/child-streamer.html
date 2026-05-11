@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Anis — Child Screen Streamer</title>
+  <script src="https://cdn.socket.io/4.8.3/socket.io.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+      background: #0f0f14;
+      color: #e4e4e7;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #a78bfa;
+      margin-bottom: 0.25rem;
+    }
+    .subtitle {
+      color: #71717a;
+      font-size: 0.85rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .card {
+      background: #18181b;
+      border: 1px solid #27272a;
+      border-radius: 12px;
+      padding: 1.5rem;
+      width: 100%;
+      max-width: 540px;
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #a1a1aa;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 0.35rem;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      background: #09090b;
+      border: 1px solid #3f3f46;
+      border-radius: 8px;
+      color: #fafafa;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.8rem;
+      margin-bottom: 1rem;
+      transition: border-color 0.2s;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #a78bfa;
+    }
+    textarea { resize: vertical; min-height: 60px; }
+
+    .btn-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #7c3aed;
+      color: #fff;
+    }
+    .btn-primary:hover { background: #6d28d9; }
+    .btn-primary:disabled {
+      background: #3f3f46;
+      color: #71717a;
+      cursor: not-allowed;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: #fff;
+    }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-danger:disabled {
+      background: #3f3f46;
+      color: #71717a;
+      cursor: not-allowed;
+    }
+
+    .status-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.3rem 0.7rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+    .status-badge .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+    }
+    .status-disconnected { background: #27272a; color: #71717a; }
+    .status-disconnected .dot { background: #71717a; }
+    .status-connected { background: #052e16; color: #4ade80; }
+    .status-connected .dot { background: #4ade80; }
+    .status-streaming { background: #1e1b4b; color: #a78bfa; }
+    .status-streaming .dot { background: #a78bfa; animation: pulse 1.5s infinite; }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    #log {
+      background: #09090b;
+      border: 1px solid #27272a;
+      border-radius: 8px;
+      padding: 0.75rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 0.72rem;
+      line-height: 1.6;
+      max-height: 280px;
+      overflow-y: auto;
+      color: #a1a1aa;
+    }
+    #log .info { color: #60a5fa; }
+    #log .success { color: #4ade80; }
+    #log .error { color: #f87171; }
+    #log .warn { color: #fbbf24; }
+
+    video {
+      width: 100%;
+      max-width: 540px;
+      border-radius: 12px;
+      border: 1px solid #27272a;
+      background: #000;
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <h1>📱 Child Screen Streamer</h1>
+  <p class="subtitle">Simulates the child device — captures and streams screen via WebRTC</p>
+
+  <div class="card">
+    <div id="statusBadge" class="status-badge status-disconnected">
+      <span class="dot"></span>
+      <span id="statusText">Disconnected</span>
+    </div>
+
+    <label for="serverUrl">Server URL</label>
+    <input id="serverUrl" type="text" value="http://localhost:5000" />
+
+    <label for="token">JWT Token (Child)</label>
+    <textarea id="token" placeholder="Paste child JWT token here..."></textarea>
+
+    <label for="childId">Child ID</label>
+    <input id="childId" type="text" placeholder="e.g. 6654abc1234def5678901234" />
+
+    <div class="btn-row">
+      <button id="connectBtn" class="btn-primary" onclick="connectSocket()">Connect</button>
+      <button id="startBtn" class="btn-primary" onclick="startStreaming()" disabled>Start Sharing</button>
+      <button id="stopBtn" class="btn-danger" onclick="stopStreaming()" disabled>Stop</button>
+    </div>
+  </div>
+
+  <video id="localPreview" autoplay muted playsinline></video>
+
+  <div class="card">
+    <label>Event Log</label>
+    <div id="log"></div>
+  </div>
+
+  <script>
+    let socket = null;
+    let peerConnection = null;
+    let localStream = null;
+    let childId = '';
+    let pendingCandidates = []; // Buffer ICE candidates until remote description is set
+
+    const ICE_SERVERS = [
+      { urls: 'stun:stun.l.google.com:19302' },
+      { urls: 'stun:stun1.l.google.com:19302' },
+    ];
+
+    // ── Logging ──────────────────────────────────────────────────────────────
+    function log(msg, level = 'info') {
+      const el = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      el.innerHTML += `<div class="${level}"><span style="color:#52525b">[${time}]</span> ${msg}</div>`;
+      el.scrollTop = el.scrollHeight;
+      console.log(`[${level}] ${msg}`);
+    }
+
+    function setStatus(state) {
+      const badge = document.getElementById('statusBadge');
+      const text = document.getElementById('statusText');
+      badge.className = `status-badge status-${state}`;
+      const labels = { disconnected: 'Disconnected', connected: 'Connected', streaming: 'Streaming' };
+      text.textContent = labels[state] || state;
+    }
+
+    // ── Socket Connection ────────────────────────────────────────────────────
+    function connectSocket() {
+      const url = document.getElementById('serverUrl').value.trim();
+      const token = document.getElementById('token').value.trim();
+      childId = document.getElementById('childId').value.trim();
+
+      if (!token || !childId) {
+        log('Token and Child ID are required', 'error');
+        return;
+      }
+
+      log(`Connecting to ${url}...`);
+
+      socket = io(url, {
+        auth: { token },
+      });
+
+      socket.on('connect', () => {
+        log(`Socket connected (ID: ${socket.id})`, 'success');
+        setStatus('connected');
+        document.getElementById('connectBtn').disabled = true;
+        document.getElementById('startBtn').disabled = false;
+
+        // Join the screen room
+        socket.emit('screen:join', { childId });
+        log(`Joined screen room for child: ${childId}`);
+      });
+
+      socket.on('connect_error', (err) => {
+        log(`Connection failed: ${err.message}`, 'error');
+        setStatus('disconnected');
+      });
+
+      socket.on('disconnect', (reason) => {
+        log(`Disconnected: ${reason}`, 'warn');
+        setStatus('disconnected');
+        document.getElementById('connectBtn').disabled = false;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = true;
+      });
+
+      // ── WebRTC Signaling: Receive offer from parent ──
+      socket.on('webrtc:offer', async (payload) => {
+        log('📥 Received WebRTC offer from parent', 'info');
+
+        if (!localStream) {
+          log('⚠️ No screen capture active — start sharing first!', 'error');
+          return;
+        }
+
+        try {
+          // Create fresh peer connection with local tracks
+          if (peerConnection) {
+            peerConnection.close();
+          }
+          pendingCandidates = [];
+
+          peerConnection = new RTCPeerConnection({ iceServers: ICE_SERVERS });
+          log('Created new RTCPeerConnection');
+
+          // Add screen capture tracks BEFORE setting remote description
+          localStream.getTracks().forEach(track => {
+            peerConnection.addTrack(track, localStream);
+            log(`Added track: ${track.kind} (${track.label})`);
+          });
+
+          // ICE candidate handler
+          peerConnection.onicecandidate = (event) => {
+            if (event.candidate) {
+              socket.emit('webrtc:ice-candidate', {
+                childId,
+                candidate: event.candidate.toJSON(),
+              });
+              log('📤 Sent ICE candidate');
+            } else {
+              log('ICE gathering complete');
+            }
+          };
+
+          peerConnection.oniceconnectionstatechange = () => {
+            const state = peerConnection.iceConnectionState;
+            log(`ICE connection state: ${state}`, state === 'connected' ? 'success' : 'info');
+            if (state === 'connected' || state === 'completed') {
+              setStatus('streaming');
+              log('🎉 WebRTC P2P connection established!', 'success');
+            }
+            if (state === 'disconnected' || state === 'failed') {
+              log('WebRTC connection lost', 'warn');
+              setStatus('connected');
+            }
+          };
+
+          peerConnection.onconnectionstatechange = () => {
+            log(`Connection state: ${peerConnection.connectionState}`);
+          };
+
+          // Set remote description (the offer from parent)
+          await peerConnection.setRemoteDescription(payload.sdp);
+          log('Set remote description (offer)', 'success');
+
+          // Flush any buffered ICE candidates
+          for (const candidate of pendingCandidates) {
+            await peerConnection.addIceCandidate(candidate);
+            log('Added buffered ICE candidate');
+          }
+          pendingCandidates = [];
+
+          // Create and send answer
+          const answer = await peerConnection.createAnswer();
+          await peerConnection.setLocalDescription(answer);
+          log('Created local description (answer)');
+
+          socket.emit('webrtc:answer', { childId, sdp: peerConnection.localDescription });
+          log('📤 Sent WebRTC answer to parent', 'success');
+
+        } catch (err) {
+          log(`Error handling offer: ${err.message}`, 'error');
+          console.error(err);
+        }
+      });
+
+      // ── WebRTC Signaling: Receive ICE candidate from parent ──
+      socket.on('webrtc:ice-candidate', async (payload) => {
+        log('📥 Received ICE candidate from parent');
+        try {
+          if (peerConnection && peerConnection.remoteDescription) {
+            await peerConnection.addIceCandidate(payload.candidate);
+            log('Added ICE candidate');
+          } else {
+            // Buffer until remote description is set
+            pendingCandidates.push(payload.candidate);
+            log('Buffered ICE candidate (waiting for remote description)', 'warn');
+          }
+        } catch (err) {
+          log(`ICE candidate error: ${err.message}`, 'error');
+        }
+      });
+
+      socket.on('screen:user-joined', (payload) => {
+        log(`👤 User joined room: ${payload.role} (${payload.userId})`, 'success');
+      });
+
+      socket.on('screen:ended', () => {
+        log('Screen share ended by remote', 'warn');
+        // Only clean up WebRTC, do NOT leave the room — we stay for re-negotiation
+        if (peerConnection) {
+          peerConnection.close();
+          peerConnection = null;
+        }
+        pendingCandidates = [];
+        setStatus('connected');
+      });
+
+      socket.on('screen:error', (msg) => {
+        log(`Server error: ${msg}`, 'error');
+      });
+    }
+
+    // ── Screen Capture ───────────────────────────────────────────────────────
+    async function startStreaming() {
+      try {
+        localStream = await navigator.mediaDevices.getDisplayMedia({
+          video: { cursor: 'always' },
+          audio: false,
+        });
+
+        document.getElementById('localPreview').srcObject = localStream;
+        document.getElementById('startBtn').disabled = true;
+        document.getElementById('stopBtn').disabled = false;
+
+        // Handle user stopping share via browser UI
+        localStream.getVideoTracks()[0].onended = () => {
+          log('Screen sharing stopped by user (browser UI)', 'warn');
+          stopStreaming();
+        };
+
+        log('✅ Screen capture started — waiting for parent to send offer', 'success');
+      } catch (err) {
+        log(`Screen capture failed: ${err.message}`, 'error');
+      }
+    }
+
+    function stopStreaming() {
+      if (localStream) {
+        localStream.getTracks().forEach(track => track.stop());
+        localStream = null;
+      }
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      pendingCandidates = [];
+
+      document.getElementById('localPreview').srcObject = null;
+      document.getElementById('startBtn').disabled = false;
+      document.getElementById('stopBtn').disabled = true;
+      setStatus('connected');
+
+      // Notify peers that streaming stopped, but stay in the room
+      if (socket && socket.connected) {
+        socket.emit('screen:leave', { childId });
+        // Re-join immediately so we can receive new offers
+        socket.emit('screen:join', { childId });
+        log('Stopped streaming (still in room for re-negotiation)');
+      }
+    }
+  </script>
+</body>
+</html>

@@ -21,7 +21,7 @@ const colors = {
 winston.addColors(colors);
 /* eslint-disable @typescript-eslint/restrict-template-expressions, @typescript-eslint/no-base-to-string */
 
-const devFormat = winston.format.combine(
+const consoleFormat = winston.format.combine(
   winston.format.colorize({ all: true }),
   winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
@@ -37,8 +37,8 @@ const devFormat = winston.format.combine(
   }),
 );
 
-const prodFormat = winston.format.combine(
-  winston.format.timestamp(),
+const fileFormat = winston.format.combine(
+  winston.format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
   winston.format.errors({ stack: true }),
   winston.format.json(),
 );
@@ -49,7 +49,7 @@ const dailyRotateTransport = new DailyRotateFile({
   zippedArchive: true,
   maxSize: '20m',
   maxFiles: '3d',
-  format: prodFormat,
+  format: fileFormat,
 });
 
 const errorRotateTransport = new DailyRotateFile({
@@ -59,16 +59,16 @@ const errorRotateTransport = new DailyRotateFile({
   maxSize: '20m',
   maxFiles: '10d',
   level: 'error',
-  format: prodFormat,
+  format: fileFormat,
 });
 
 const logger = winston.createLogger({
   level: config.IS_DEV_ENV ? 'debug' : 'info',
   levels,
-  format: config.IS_DEV_ENV ? devFormat : prodFormat,
   transports: [
     new winston.transports.Console({
-      format: config.IS_DEV_ENV ? devFormat : prodFormat,
+      silent: !config.IS_DEV_ENV,
+      format: consoleFormat,
     }),
     dailyRotateTransport,
     errorRotateTransport,

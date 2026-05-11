@@ -8,12 +8,24 @@ import locationsRouter from '@/modules/locations/location.route';
 import parentRouter from '@/modules/parent/parent.route';
 import questRouter from '@/modules/quest/quest.route';
 import reportRouter from '@/modules/report/report.route';
+import rewardRouter from '@/modules/reward/reward.route';
+import screenCastRouter from '@/modules/screencast/screencast.route';
 import { API, HttpStatusCode } from '@anis/shared';
 import { Router } from 'express';
 
 const router = Router();
-const { PARENT, AUTH, QUEST, CHILDREN, REPORT, EDUCATION, LOCATIONS, APP } =
-  API;
+const {
+  PARENT,
+  AUTH,
+  QUEST,
+  CHILDREN,
+  REPORT,
+  EDUCATION,
+  LOCATIONS,
+  APP,
+  REWARD,
+  SCREEN_CAST,
+} = API;
 router.use('/', healthRouter);
 
 router.use(AUTH.PREFIX, authRouter);
@@ -24,6 +36,8 @@ router.use(EDUCATION.PREFIX, eduRouter);
 router.use(LOCATIONS.PREFIX, locationsRouter);
 router.use(APP.PREFIX, appRouter);
 router.use(QUEST.PREFIX, questRouter);
+router.use(REWARD.PREFIX, rewardRouter);
+router.use(SCREEN_CAST.PREFIX, screenCastRouter);
 
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {

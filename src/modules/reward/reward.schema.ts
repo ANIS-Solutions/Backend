@@ -1,5 +1,5 @@
 import { objectIdRegex, RewardRedemption } from '@anis/shared';
-import z, { ZodNull } from 'zod';
+import z from 'zod';
 
 const rewardBodySchema = z.object({
   name: z.string().min(1, 'Name is required').trim(),

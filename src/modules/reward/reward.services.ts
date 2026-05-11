@@ -1,4 +1,5 @@
 import AppError from '@/core/utils/AppError';
+import logger from '@/core/utils/logger';
 import { HttpStatusCode, IRewardBase, RewardRedemption } from '@anis/shared';
 
 import { ChildModel } from '../child/child.model.js';
@@ -45,7 +46,7 @@ export const getRewardService = async (
 ): Promise<IRewardBase> => {
   const { childId, rewardId } = reqParams;
 
-  const currReward = await RewardModel.findOne({ childId, id: rewardId });
+  const currReward = await RewardModel.findOne({ childId, _id: rewardId });
   if (!currReward)
     throw new AppError(
       'The reward not found in this child profile',
@@ -73,7 +74,7 @@ export const redeemRewardService = async (
 ): Promise<IRewardBase> => {
   const { childId, rewardId } = reqParams;
 
-  const currReward = await RewardModel.findOne({ childId, id: rewardId });
+  const currReward = await RewardModel.findOne({ childId, _id: rewardId });
   if (!currReward)
     throw new AppError('Reward not found.', HttpStatusCode.NOT_FOUND);
   const currChild = await ChildModel.findById(childId);
@@ -115,6 +116,7 @@ export const redeemRewardService = async (
     { $inc: { points: -currReward.pointsCost } },
     { new: true },
   );
+  logger.info(updatedChild?.points);
   if (!updatedChild) {
     throw new AppError(
       'Insufficient points to redeem this reward.',
@@ -136,7 +138,7 @@ export const updateRewardService = async (
   const { childId, rewardId } = reqParams;
 
   const updatedReward = await RewardModel.findOneAndUpdate(
-    { id: rewardId, childId },
+    { _id: rewardId, childId },
     { $set: reqBody },
     { new: true, runValidators: true },
   );
@@ -147,13 +149,14 @@ export const updateRewardService = async (
 
   return toRewardInfo(updatedReward);
 };
+
 export const deleteRewardService = async (
   reqParams: GetRewardParamsInput,
 ): Promise<void> => {
   const { childId, rewardId } = reqParams;
 
   const deletedReward = await RewardModel.findOneAndDelete({
-    id: rewardId,
+    _id: rewardId,
     childId,
   });
 

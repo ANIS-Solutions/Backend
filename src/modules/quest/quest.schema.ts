@@ -10,7 +10,7 @@ export const addQuestSchema = z.object({
     description: z.string(),
     type: z.string(),
     points: z.number().optional().default(0),
-    stats: z.enum(QuestProgress).optional().default(QuestProgress.NOT_STARTED),
+    status: z.enum(QuestProgress).optional().default(QuestProgress.NOT_STARTED),
     deadline: z.coerce.date(),
   }),
 });
@@ -28,6 +28,7 @@ export const updateQuestSchema = z.object({
     description: z.string().optional(),
     points: z.number().optional(),
     type: z.string().optional(),
+    status: z.enum(QuestProgress).optional().default(QuestProgress.NOT_STARTED),
     deadline: z.coerce.date().optional(),
   }),
 });

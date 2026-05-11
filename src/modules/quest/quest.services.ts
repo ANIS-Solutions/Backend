@@ -1,6 +1,8 @@
 import AppError from '@/core/utils/AppError';
+import logger from '@/core/utils/logger';
 import { HttpStatusCode, IQuestBase, QuestProgress } from '@anis/shared';
 
+import { ChildModel } from '../child/child.model.js';
 import { toQuestInfo } from './quest.dto.js';
 import { QuestModel } from './quest.model.js';
 import {
@@ -21,14 +23,14 @@ export const addQuestService = async (
   reqBody: AddQuestBodyInput,
 ): Promise<IQuestBase> => {
   const { childId } = reqParams;
-  const { title, description, type, stats, points, deadline } = reqBody;
+  const { title, description, type, status, points, deadline } = reqBody;
   const currQuest = await QuestModel.create({
     title,
     childId,
     description,
     points,
     type,
-    stats,
+    status,
     deadline,
   });
   return toQuestInfo(currQuest);
@@ -38,7 +40,7 @@ export const getQuestService = async (
   reqParams: GetQuestParamsInput,
 ): Promise<IQuestBase> => {
   const { childId, questId } = reqParams;
-  const currQuest = await QuestModel.findOne({ id: questId, childId });
+  const currQuest = await QuestModel.findOne({ _id: questId, childId });
   if (!currQuest) {
     throw new AppError(
       `No quest for child id ${childId} with id ${questId}`,
@@ -47,6 +49,7 @@ export const getQuestService = async (
   }
   return toQuestInfo(currQuest);
 };
+
 export const getAllQuestService = async (
   reqParams: GetAllQuestParamsInput,
 ): Promise<IQuestBase[]> => {
@@ -68,23 +71,23 @@ export const updateQuestService = async (
   const { childId, questId } = reqParams;
   const updateValues = reqBody;
   const currQuest = await QuestModel.findOneAndUpdate(
-    { id: questId, childId },
-    {
-      ...updateValues,
-    },
+    { _id: questId, childId },
+    { ...updateValues },
   );
   if (!currQuest) {
     throw new AppError(`No quest with id ${questId}`, HttpStatusCode.NOT_FOUND);
   }
   return toQuestInfo(currQuest);
 };
+
 export const cancelQuestService = async (
   reqParams: CancelQuestParamsInput,
 ): Promise<IQuestBase> => {
   const { childId, questId } = reqParams;
   const currQuest = await QuestModel.findOneAndUpdate(
-    { id: questId, childId },
-    { stats: QuestProgress.CANCELED },
+    { _id: questId, childId },
+    { status: QuestProgress.CANCELED },
+    { new: true },
   );
   if (!currQuest) {
     throw new AppError(
@@ -94,13 +97,15 @@ export const cancelQuestService = async (
   }
   return toQuestInfo(currQuest);
 };
+
 export const completeQuestService = async (
   reqParams: CompleteQuestParamsInput,
 ): Promise<IQuestBase> => {
   const { childId, questId } = reqParams;
   const currQuest = await QuestModel.findOneAndUpdate(
-    { id: questId, childId },
-    { stats: QuestProgress.COMPLETED },
+    { _id: questId, childId },
+    { status: QuestProgress.COMPLETED },
+    { new: true },
   );
   if (!currQuest) {
     throw new AppError(
@@ -108,15 +113,22 @@ export const completeQuestService = async (
       HttpStatusCode.NOT_FOUND,
     );
   }
+  const currChild = await ChildModel.findByIdAndUpdate(
+    { _id: childId },
+    { $inc: { points: currQuest.points } },
+  );
+  logger.error(currChild?.points);
   return toQuestInfo(currQuest);
 };
+
 export const startQuestService = async (
   reqParams: StartQuestParamsInput,
 ): Promise<IQuestBase> => {
   const { childId, questId } = reqParams;
   const currQuest = await QuestModel.findOneAndUpdate(
-    { id: questId, childId },
-    { stats: QuestProgress.IN_PROGRESS },
+    { _id: questId, childId },
+    { status: QuestProgress.IN_PROGRESS },
+    { new: true },
   );
   if (!currQuest) {
     throw new AppError(
@@ -126,13 +138,15 @@ export const startQuestService = async (
   }
   return toQuestInfo(currQuest);
 };
+
 export const stopQuestService = async (
   reqParams: StopQuestParamsInput,
 ): Promise<IQuestBase> => {
   const { childId, questId } = reqParams;
   const currQuest = await QuestModel.findOneAndUpdate(
-    { id: questId, childId },
-    { stats: QuestProgress.PENDING },
+    { _id: questId, childId },
+    { status: QuestProgress.PENDING },
+    { new: true },
   );
   if (!currQuest) {
     throw new AppError(

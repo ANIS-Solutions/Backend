@@ -25,7 +25,7 @@ import {
 
 const { ADD, GET_ALL, GET, UPDATE, START, CANCEL, COMPLETE, STOP } =
   API.QUEST.ROUTES;
-const questRouter = Router();
+const questRouter = Router({ mergeParams: true });
 
 bindRoute(questRouter, ADD, addQuest, addQuestSchema);
 bindRoute(questRouter, UPDATE, updateQuest, updateQuestSchema);
