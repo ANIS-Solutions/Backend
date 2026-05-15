@@ -1,10 +1,8 @@
 *.env
 *.env.*
-*.md
 *.txt
 *.log
 *.cast
-.*
 coverage/
 # Exclude files that sure to share it: 
 !*.env.example
@@ -18,3 +16,21 @@ secrets
 _/
 *.bak*
 logs/
+redirect.py
+__pycache__/redirect.cpython-314.pyc
+# Added by code-review-graph
+.code-review-graph/
+AGENTS.md
+CLAUDE.md
+commands.log.md
+GEMINI.md
+QODER.md
+.claude
+.gemini
+.github
+.kiro
+.pnpm-store
+.qoder
+.opencode.json
+.cursorrules
+.windsurfrules
