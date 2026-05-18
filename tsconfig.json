@@ -60,7 +60,12 @@
     "resolveFullPaths": true,
     "verbose": false
   },
-  "include": ["src/**/*.ts", "./**/*.json", "./src/types/**/*.d.ts"],
+  "include": [
+    "src/**/*.ts",
+    "./**/*.json",
+    "./src/types/**/*.d.ts",
+    "src/core/queues/.queue.ts"
+  ],
   "exclude": [
     "node_modules",
     "dist",

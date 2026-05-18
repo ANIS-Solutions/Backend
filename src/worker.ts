@@ -1,15 +1,21 @@
+import dbConnect from '@/config/db';
 import logger from '@/core/utils/logger';
 import { setupEmailWorker } from '@/modules/email/email.worker';
 import { Worker } from 'bullmq';
 
+import { setupEmbeddingWorker } from './core/workers/embedding.worker.js';
+
 const workers: Worker[] = [];
 
 async function bootstrapWorkers(): Promise<void> {
+  logger.info('[WORKER] Connecting to MongoDB...');
+  await dbConnect();
+  logger.info('[WORKER] MongoDB connected.');
   logger.info('[WORKER] Starting Background Workers...');
 
   const emailWorker = setupEmailWorker();
-  workers.push(emailWorker);
-
+  const embeddingWorker = setupEmbeddingWorker();
+  workers.push(emailWorker, embeddingWorker);
   logger.info('[WORKER] All workers are listening for jobs.');
 }
 

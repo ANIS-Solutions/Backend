@@ -1,5 +1,6 @@
 import healthRouter from '@/api/healthRoute';
 import AppError from '@/core/utils/AppError';
+import aiServicesRouter from '@/modules/AiServices/embedding.route';
 import appRouter from '@/modules/app/app.route';
 import authRouter from '@/modules/auth/auth.route';
 import childrenRouter from '@/modules/child/child.route';
@@ -25,6 +26,7 @@ const {
   APP,
   REWARD,
   SCREEN_CAST,
+  AI_SERVICES,
 } = API;
 router.use('/', healthRouter);
 
@@ -38,6 +40,7 @@ router.use(APP.PREFIX, appRouter);
 router.use(QUEST.PREFIX, questRouter);
 router.use(REWARD.PREFIX, rewardRouter);
 router.use(SCREEN_CAST.PREFIX, screenCastRouter);
+router.use(AI_SERVICES.PREFIX, aiServicesRouter);
 
 // https://stackoverflow.com/a/79554232/28759450
 router.all('/{*splat}', (req, res, next) => {

@@ -25,7 +25,7 @@ export const deactivateAccountService = async (
   userId: string,
 ): Promise<void> => {
   const currUser = await ParentModel.findById(userId);
-  if (!currUser || !currUser.isActive) {
+  if (!currUser?.isActive) {
     throw new AppError('Email already inactive.', HttpStatusCode.UNAUTHORIZED);
   }
   const candidateHashOTP = await CacheService.get(

@@ -7,6 +7,7 @@ export const eventBus = new AppEventBus();
 
 export const AppEvents = {
   SEND_EMAIL: 'SEND_EMAIL',
+  EMBEDDING_SERVICE: 'EMBEDDING_SERVICE',
 } as const;
 
 export type EmailEventPayload =

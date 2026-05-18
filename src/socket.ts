@@ -33,7 +33,6 @@ export const initializeWebSockets = (httpServer: HttpServer): TypedServer => {
     });
   });
 
-  // ── Connection handler ──
   io.on('connection', (socket) => {
     const user = socket.data.user;
     logger.info(

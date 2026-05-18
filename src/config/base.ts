@@ -1,14 +1,16 @@
+import logger from '@/core/utils/logger';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: './config.env' });
 
 const verifyEnvVar = (key: string): string => {
-  const value = process.env[key];
+  const value = process.env[key]?.trim();
+
   if (!value) {
-    process.exit(1);
-    // throw new Error(`CRITICAL ERROR: Missing environment variable: ${key}.`);
+    throw new Error(`CRITICAL ERROR: Missing environment variable: ${key}.`);
+    // process.exit(1);
   }
-  return value.trim();
+  return value;
 };
 
 const config = {
@@ -45,6 +47,9 @@ const config = {
   REDIS_PORT: verifyEnvVar('REDIS_PORT'),
   FIREBASE_KEY_PATH: verifyEnvVar('FIREBASE_KEY_PATH'),
   REDIS_PASSWORD: process.env.REDIS_PASSWORD?.trim() ?? '',
+  JWT_M2M_SECRET: verifyEnvVar('JWT_M2M_SECRET'),
+  JWT_M2M_EXPIRES_IN: verifyEnvVar('JWT_M2M_EXPIRES_IN'),
+  EMBEDDING_SERVICE_URL: verifyEnvVar('EMBEDDING_SERVICE_URL'),
 };
 
 export default config;
