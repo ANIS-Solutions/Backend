@@ -18,11 +18,11 @@ import {
 } from './app.schema.js';
 import {
   addAppService,
-  addBulkAppsService,
   getAppService,
   getAppsService,
   limitAppService,
   removeAppService,
+  syncAppsService,
   toggleBlockAppService,
   updateUsageAppService,
 } from './app.services.js';
@@ -50,7 +50,7 @@ export const addBulkApps = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<void | Response> => {
-    const apps = await addBulkAppsService(req.body, req.user!);
+    const apps = await syncAppsService(req.body, req.user!);
     return ApiResponse.success(
       res,
       HttpStatusCode.CREATED,

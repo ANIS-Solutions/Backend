@@ -1,6 +1,7 @@
 import { CacheService } from '@/core/cache/cache.service';
 import AppError from '@/core/utils/AppError';
 import { FCMService } from '@/core/utils/fcm.utils';
+import logger from '@/core/utils/logger';
 import { FcmAction, HttpStatusCode, IAppBase, IJwtPayload } from '@anis/shared';
 import gplay from 'google-play-scraper';
 
@@ -22,80 +23,190 @@ import {
 } from './app.schema.js';
 import { AppPackageModel } from './appPackage.model.js';
 
-const createAppPack = async (
+export interface BulkAppResult {
+  packageId: string;
+  status: 'created' | 'already_exists' | 'failed';
+  reason?: string | undefined;
+}
+
+const titleFromPackageId = (packageId: string): string =>
+  packageId.split('.').at(-1) ?? packageId;
+
+const resolveAppPackage = async (packageId: string) => {
+  const existing = await AppPackageModel.findById(packageId);
+  if (existing) return existing;
+
+  try {
+    const info = await gplay.app({ appId: packageId });
+    logger.info(`[AppPackage] Fetched from Play Store: ${packageId}`);
+
+    return await AppPackageModel.create({
+      _id: info.appId,
+      title: info.title,
+      categories: info.categories,
+      url: info.url,
+      iconUrl: info.icon,
+      genreId: info.genreId,
+      score: info.score,
+      description: info.descriptionHTML,
+      screenshots: info.screenshots,
+      videoUrl: info.video,
+    });
+  } catch (err) {
+    logger.warn(
+      `[AppPackage] Play Store lookup failed for "${packageId}" — saving stub. ` +
+        `Reason: ${err instanceof Error ? err.message : String(err)}`,
+    );
+
+    return await AppPackageModel.create({
+      _id: packageId,
+      title: titleFromPackageId(packageId),
+    });
+  }
+};
+
+const registerApp = async (
   childId: string,
-  appId: string,
-  bulk?: boolean,
-): Promise<IAppBase | false> => {
-  let currApp = await AppModel.findOne({ childId, packageId: appId });
-  if (currApp) {
-    if (bulk) {
-      return false;
-    }
+  packageId: string,
+  options: { bulk: boolean },
+): Promise<IAppBase | null> => {
+  const existingApp = await AppModel.findOne({ childId, packageId });
+  if (existingApp) {
+    if (options.bulk) return null;
     throw new AppError(
-      `App ${appId} already exists for this child`,
+      `App "${packageId}" is already registered for this child.`,
       HttpStatusCode.CONFLICT,
     );
   }
-  let currAppPack = await AppPackageModel.findById(appId);
-  if (!currAppPack) {
-    const appPackInfo = await gplay.app({ appId });
-    currAppPack = await AppPackageModel.create({
-      _id: appPackInfo.appId,
-      title: appPackInfo.title,
-      categories: appPackInfo.categories,
-      url: appPackInfo.url,
-      iconUrl: appPackInfo.icon,
-      genreId: appPackInfo.genreId,
-      score: appPackInfo.score,
-      description: appPackInfo.descriptionHTML,
-      screenshots: appPackInfo.screenshots,
-      videoUrl: appPackInfo.video,
-    });
-  }
-  currApp = await AppModel.create({
-    childId,
-    packageId: currAppPack.id,
-  });
-  return toAppProfile(currApp);
+
+  const appPackage = await resolveAppPackage(packageId);
+  const newApp = await AppModel.create({ childId, packageId: appPackage.id });
+
+  return toAppProfile(newApp);
 };
 
 export const addAppService = async (
-  reqBody: AddAppInput,
-  reUser: IJwtPayload,
+  body: AddAppInput,
+  user: IJwtPayload,
 ): Promise<IAppBase> => {
-  const { packageId } = reqBody;
-  const childId = reUser.id;
-  const currApp = (await createAppPack(childId, packageId)) as IAppBase;
-  return currApp;
+  const result = await registerApp(user.id, body.packageId, { bulk: false });
+  return result!;
 };
 
-export const addBulkAppsService = async (
-  reqBody: AddBulkAppsInput,
-  reUser: IJwtPayload,
-): Promise<
-  IAppBase[] | { successfulToInstall: IAppBase[]; failedToInstall: string[] }
-> => {
-  const packageIds = reqBody;
-  const childId = reUser.id;
-  const successfulApps: IAppBase[] = [];
-  const failedApps = [];
-  for (const app of reqBody) {
-    const currApp = await createAppPack(childId, app.packageId, true);
-    if (!currApp) {
-      failedApps.push(`App ${app.packageId} already exists for this child`);
-    } else {
-      successfulApps.push(currApp);
+export const syncAppsService = async (
+  input: AddBulkAppsInput,
+  user: IJwtPayload,
+): Promise<BulkAppResult[]> => {
+  const childId = user.id;
+  const packageIds = input.packagesId;
+  // const packageIds: string[] = input.map(({ packageId }) => packageId);
+
+  const settlements = await Promise.allSettled(
+    packageIds.map((packageId) =>
+      registerApp(childId, packageId, { bulk: true }),
+    ),
+  );
+  logger.info(settlements);
+
+  return settlements.map((settlement, i): BulkAppResult => {
+    const packageId = packageIds[i]!;
+
+    if (settlement.status === 'fulfilled') {
+      return {
+        packageId,
+        status: settlement.value === null ? 'already_exists' : 'created',
+      };
     }
-  }
-  if (failedApps.length) {
-    return {
-      successfulToInstall: successfulApps,
-      failedToInstall: failedApps,
-    };
-  }
-  return successfulApps;
+
+    const reason =
+      settlement.reason instanceof Error
+        ? settlement.reason.message
+        : String(settlement.reason);
+
+    logger.error(
+      `[AppSync] Failed to register "${packageId}" for child "${childId}": ${reason}`,
+    );
+
+    return { packageId, status: 'failed', reason };
+  });
 };
+
+// const createAppPack = async (
+//   childId: string,
+//   appId: string,
+//   bulk?: boolean,
+// ): Promise<IAppBase | false> => {
+//   let currApp = await AppModel.findOne({ childId, packageId: appId });
+//   if (currApp) {
+//     if (bulk) {
+//       return false;
+//     }
+//     throw new AppError(
+//       `App ${appId} already exists for this child`,
+//       HttpStatusCode.CONFLICT,
+//     );
+//   }
+//   let currAppPack = await AppPackageModel.findById(appId);
+//   if (!currAppPack) {
+//     const appPackInfo = await gplay.app({ appId });
+//     logger.error('------------------logger.error--------------');
+//     logger.error(appPackInfo);
+//     logger.error('------------------logger.error--------------');
+//     currAppPack = await AppPackageModel.create({
+//       _id: appPackInfo.appId,
+//       title: appPackInfo.title,
+//       categories: appPackInfo.categories,
+//       url: appPackInfo.url,
+//       iconUrl: appPackInfo.icon,
+//       genreId: appPackInfo.genreId,
+//       score: appPackInfo.score,
+//       description: appPackInfo.descriptionHTML,
+//       screenshots: appPackInfo.screenshots,
+//       videoUrl: appPackInfo.video,
+//     });
+//   }
+//   currApp = await AppModel.create({
+//     childId,
+//     packageId: currAppPack.id,
+//   });
+//   return toAppProfile(currApp);
+// };
+// export const addAppService = async (
+//   reqBody: AddAppInput,
+//   reUser: IJwtPayload,
+// ): Promise<IAppBase> => {
+//   const { packageId } = reqBody;
+//   const childId = reUser.id;
+//   const currApp = (await createAppPack(childId, packageId)) as IAppBase;
+//   return currApp;
+// };
+
+// export const addBulkAppsService = async (
+//   reqBody: AddBulkAppsInput,
+//   reUser: IJwtPayload,
+// ): Promise<
+//   IAppBase[] | { successfulToInstall: IAppBase[]; failedToInstall: string[] }
+// > => {
+//   const packageIds = reqBody;
+//   const childId = reUser.id;
+//   const successfulApps: IAppBase[] = [];
+//   const failedApps = [];
+//   for (const app of reqBody) {
+//     const currApp = await createAppPack(childId, app.packageId, true);
+//     if (!currApp) {
+//       failedApps.push(`App ${app.packageId} already exists for this child`);
+//     } else {
+//       successfulApps.push(currApp);
+//     }
+//   }
+//   if (failedApps.length) {
+//     return {
+//       successfulToInstall: successfulApps,
+//       failedToInstall: failedApps,
+//     };
+//   }
+//   return successfulApps;
+// };
 
 export const removeAppService = async (
   reqParams: RemoveAppInput,

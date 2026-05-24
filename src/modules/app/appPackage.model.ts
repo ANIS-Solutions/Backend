@@ -2,21 +2,20 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IAppCategory {
   name: string;
-  id?: string | null;
+  id: string | null;
 }
 
 export interface IAppPackage extends Document<string> {
-  // _id: string;
   id: string;
   title: string;
   categories: IAppCategory[];
-  url: string;
-  iconUrl: string;
-  genreId: string;
+  url: string | null;
+  iconUrl: string | null;
+  genreId: string | null;
   score: number;
-  description: string;
+  description: string | null;
   screenshots: string[];
-  videoUrl?: string;
+  videoUrl: string | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -33,14 +32,14 @@ const AppPackageSchema = new Schema<IAppPackage>(
   {
     _id: { type: String, required: true },
     title: { type: String, required: true, trim: true },
-    categories: [AppCategorySchema],
-    url: { type: String, required: true },
-    iconUrl: { type: String, required: true },
-    genreId: { type: String, required: true },
+    categories: { type: [AppCategorySchema], default: [] },
+    url: { type: String, default: null },
+    iconUrl: { type: String, default: null },
+    genreId: { type: String, default: null },
     score: { type: Number, default: 0 },
-    description: { type: String, required: true },
-    screenshots: [{ type: String }],
-    videoUrl: { type: String },
+    description: { type: String, default: null },
+    screenshots: { type: [String], default: [] },
+    videoUrl: { type: String, default: null },
   },
   {
     timestamps: true,

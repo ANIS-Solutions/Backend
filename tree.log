@@ -14,6 +14,7 @@
 │   ├── config
 │   │   ├── base.ts
 │   │   ├── db.ts
+│   │   ├── firebase.ts
 │   │   └── redis.ts
 │   ├── core
 │   │   ├── cache
@@ -23,31 +24,45 @@
 │   │   ├── handlers
 │   │   │   ├── api.handler.ts
 │   │   │   ├── email.handler.ts
+│   │   │   ├── embeddingService.handler.ts
 │   │   │   ├── error.handler.ts
 │   │   │   ├── jwt.handler.ts
-│   │   │   └── server.handler.ts
+│   │   │   ├── server.handler.ts
+│   │   │   └── socket.handler.ts
 │   │   ├── middleware
 │   │   │   ├── auth.middleware.ts
 │   │   │   ├── auth.validation.middleware.ts
 │   │   │   ├── error.middleware.ts
 │   │   │   ├── isParent.middleware.ts
 │   │   │   ├── ratelimit.middleware.ts
+│   │   │   ├── socket.auth.middleware.ts
 │   │   │   └── validation.middleware.ts
 │   │   ├── plugins
 │   │   │   └── toJSON.plugin.ts
 │   │   ├── queues
-│   │   │   └── email.queue.ts
-│   │   └── utils
-│   │       ├── AppError.ts
-│   │       ├── auth.utils.ts
-│   │       ├── catchAsync.ts
-│   │       ├── cors.utils.ts
-│   │       ├── logger.ts
-│   │       ├── qrcode.utils.ts
-│   │       ├── routeBounder.ts
-│   │       ├── schema.utils.ts
-│   │       └── sse.utils.ts
+│   │   │   ├── email.queue.ts
+│   │   │   └── embeddingService.queue.ts
+│   │   ├── utils
+│   │   │   ├── AppError.ts
+│   │   │   ├── auth.utils.ts
+│   │   │   ├── catchAsync.ts
+│   │   │   ├── cors.utils.ts
+│   │   │   ├── fcm.utils.ts
+│   │   │   ├── logger.ts
+│   │   │   ├── qrcode.utils.ts
+│   │   │   ├── routeBounder.ts
+│   │   │   ├── schema.utils.ts
+│   │   │   └── sse.utils.ts
+│   │   └── workers
+│   │       └── embedding.worker.ts
 │   ├── modules
+│   │   ├── AiServices
+│   │   │   ├── embedding.controller.ts
+│   │   │   ├── embedding.dto.ts
+│   │   │   ├── embedding.model.ts
+│   │   │   ├── embedding.route.ts
+│   │   │   ├── embedding.schema.ts
+│   │   │   └── embedding.services.ts
 │   │   ├── app
 │   │   │   ├── app.controller.ts
 │   │   │   ├── app.dto.ts
@@ -94,19 +109,46 @@
 │   │   │   ├── parent.schema.ts
 │   │   │   └── parent.services.ts
 │   │   ├── quest
-│   │   └── report
-│   │       ├── report.controller.ts
-│   │       ├── report.model.ts
-│   │       ├── report.route.ts
-│   │       └── report.schema.ts
+│   │   │   ├── quest.controller.ts
+│   │   │   ├── quest.dto.ts
+│   │   │   ├── quest.model.ts
+│   │   │   ├── quest.route.ts
+│   │   │   ├── quest.schema.ts
+│   │   │   └── quest.services.ts
+│   │   ├── report
+│   │   │   ├── report.controller.ts
+│   │   │   ├── report.model.ts
+│   │   │   ├── report.route.ts
+│   │   │   └── report.schema.ts
+│   │   ├── reward
+│   │   │   ├── reward.controller.ts
+│   │   │   ├── reward.dto.ts
+│   │   │   ├── reward.model.ts
+│   │   │   ├── reward.route.ts
+│   │   │   ├── reward.schema.ts
+│   │   │   └── reward.services.ts
+│   │   └── screencast
+│   │       ├── screencast.controller.ts
+│   │       ├── screencast.gateway.ts
+│   │       ├── screencast.route.ts
+│   │       ├── screencast.schema.ts
+│   │       └── screencast.services.ts
 │   ├── types
 │   │   ├── express.d.ts
 │   │   ├── jwt.d.ts
 │   │   ├── mongoose.d.ts
-│   │   └── response.types.d.ts
+│   │   ├── response.types.d.ts
+│   │   └── socket.d.ts
 │   ├── app.ts
 │   ├── server.ts
+│   ├── socket.ts
 │   └── worker.ts
+├── test-clients
+│   ├── child-streamer.html
+│   └── parent-viewer.html
+├── __test_fcm
+│   ├── firebase-messaging-sw.js
+│   └── index.html
 ├── __tests__
 ├── commitlint.config.ts
 ├── config.env
@@ -121,4 +163,4 @@
 ├── pnpm-workspace.yaml
 └── tsconfig.json
 
-27 directories, 95 files
+36 directories, 140 files

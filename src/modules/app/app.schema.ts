@@ -12,13 +12,10 @@ export const addAppSchema = z.object({
 
 export type AddAppInput = z.infer<typeof addAppSchema>['body'];
 export const addBulkAppsSchema = z.object({
-  body: z.array(
-    z.object({
-      packageId: z.string(),
-    }),
-  ),
+  body: z.object({
+    packagesId: z.array(z.string()),
+  }),
 });
-
 export type AddBulkAppsInput = z.infer<typeof addBulkAppsSchema>['body'];
 export const removeAppSchema = z.object({
   params: paramsSchema,

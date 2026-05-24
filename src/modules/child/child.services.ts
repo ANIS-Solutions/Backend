@@ -1,4 +1,6 @@
 import { CacheService } from '@/core/cache/cache.service';
+import { AUTH } from '@/core/constants/auth.constants';
+import { CACHE } from '@/core/constants/cache.constants';
 import { signAccessToken } from '@/core/handlers/jwt.handler';
 import AppError from '@/core/utils/AppError';
 import { AuthUtils } from '@/core/utils/auth.utils';
@@ -30,7 +32,7 @@ const genAccessToken = (user: IChild): string => {
       isActive: user.isActive,
       scopes: [UserScopes.WRITE_TELEMETRY],
     } as Partial<IJwtPayload>,
-    '120M',
+    AUTH.JWT_CHILD_TOKEN,
   );
 };
 
@@ -44,7 +46,7 @@ export const addChildService = async (
   const parentId = reqUser.id;
   const { firstName, gender, hobbies, dob } = addChildData;
   const { token } = AuthUtils.generateCryptoUUID();
-  const redisKey = `pairing:pending:${token}`;
+  const redisKey = CACHE.PREFIX.PAIRING_PENDING + token;
 
   const pendingChildData = {
     parentId,
@@ -56,7 +58,7 @@ export const addChildService = async (
   await CacheService.setWithTTL(
     redisKey,
     JSON.stringify(pendingChildData),
-    10 * 60,
+    CACHE.TTL.PAIRING_PENDING,
   );
 
   const qrPayload = {
@@ -115,7 +117,7 @@ export const pairChildService = async (
   pairChildData: PairChildInput,
 ): Promise<{ childData: IChildBase; accessToken: string }> => {
   const { token, deviceId, deviceName, fcmToken } = pairChildData;
-  const redisKey = `pairing:pending:${token}`;
+  const redisKey = CACHE.TTL.PAIRING_PENDING + token;
   const cachedData = await CacheService.get(redisKey);
   if (!cachedData) {
     throw new AppError(

@@ -78,8 +78,8 @@ services:
     networks:
       - anis-dev
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:8001/health']
-      interval: 15s
+      test: ['CMD', 'curl', '-f', 'http://embedding-service:8001/health']
+      interval: 60m
       timeout: 10s
       retries: 5
       start_period: 30s
