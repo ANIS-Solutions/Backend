@@ -1,39 +1,50 @@
-import express from 'express';
-import morgan from 'morgan';
-import cors from 'cors';
+import config from '@/config/base';
+import dbConnect from '@/config/db';
+import {
+  sigTermHandler,
+  uncaughtExceptionHandler,
+  unhandledRejectionHandler,
+} from '@/core/handlers/server.handler';
+import logger from '@/core/utils/logger';
+import app from '@app';
 
-import config from '@/configs/base';
-import routes from '@/routes/base';
+import '@/modules/email/email.listener';
 
-const app = express();
+import http, { Server } from 'http';
 
-// app.use(cors());
-// app.options('*', cors());
+import { initFirebase } from '@/config/firebase';
 
-(async () => {
+import { initializeWebSockets } from './socket.js';
+
+process.on('uncaughtException', uncaughtExceptionHandler);
+
+export let server: Server;
+
+export const startServer = async (): Promise<void> => {
   try {
-    app.use(morgan('dev'));
-    app.use('/api/v1', routes);
-    console.log(process.env.PORT);
+    await dbConnect();
+    initFirebase();
 
-    app.listen(config.PORT, () => {
-      console.log(
-        `-> START: Server Running: http://localhost:${config.PORT}/api/v1`,
+    const httpServer = http.createServer(app);
+    const io = initializeWebSockets(httpServer);
+    app.set('io', io);
+
+    server = httpServer;
+    httpServer.listen(config.PORT, () => {
+      logger.info(
+        `-> START: Server Running in ${config.NODE_ENV} mode on: http://localhost:${config.PORT}/api/v1`,
       );
     });
   } catch (err) {
-    console.log('-> FAILURE: Failed to start the server, ', err);
-  }
-})();
-
-const handleServerShutdown = async () => {
-  try {
-    console.log('-> SHUTDOWN: Server shutdown.');
-    process.exit(0);
-  } catch (err) {
-    console.log('-> ERROR: Server shutdown with error, ', err);
+    logger.error('-> FAILURE: Failed to connect to DB or start server', err);
+    process.exit(1);
   }
 };
+void startServer();
 
-process.on('SIGTERM', handleServerShutdown);
-process.on('SIGINT', handleServerShutdown);
+process.on('unhandledRejection', (err: Error) => {
+  unhandledRejectionHandler(err, server);
+});
+
+process.on('SIGTERM', () => sigTermHandler(server));
+process.on('SIGINT', () => sigTermHandler(server));

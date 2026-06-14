@@ -2,19 +2,27 @@
   // Visit https://aka.ms/tsconfig to read more about this file
   "compilerOptions": {
     // File Layout
-    "rootDir": "./src",
+    // "rootDir": "./src",
     "outDir": "./dist",
+    "resolveJsonModule": true,
 
+    "typeRoots": [
+      "./node_modules/@types",
+      "./src/types",
+      "./node_modules/@anis/shared"
+    ],
     // Environment Settings
     // See also https://aka.ms/tsconfig/module
     "module": "nodenext",
     "target": "es2022",
     // For nodejs:
     "lib": ["ES2022"],
-    "types": ["node"],
+    "types": ["node", "jest"],
     "moduleResolution": "nodenext",
     // "esModuleInterop":,
     "allowSyntheticDefaultImports": true,
+    // "rewriteRelativeImportExtensions": true,
+    // "allowImportingTsExtensions": true,
 
     // Other Outputs
     "sourceMap": true,
@@ -43,7 +51,8 @@
     // "moduleDetection": "force",
     "skipLibCheck": true,
     "paths": {
-      "@/*": ["./src/*.js"]
+      "@/*": ["./src/*.js"],
+      "@app": ["./src/app.js"]
     }
   },
   "tsc-alias": {
@@ -51,6 +60,18 @@
     "resolveFullPaths": true,
     "verbose": false
   },
-  "include": ["src/**/*"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src/**/*.ts",
+    "./**/*.json",
+    "./src/types/**/*.d.ts",
+    "src/core/queues/.queue.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "tsconfig.json",
+    "tsconfig-build.json",
+    "*.config.ts",
+    "*.config.cjs"
+  ]
 }

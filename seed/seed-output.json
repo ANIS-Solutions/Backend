@@ -1,0 +1,346 @@
+{
+  "parents": [
+    {
+      "email": "parent1@test.com",
+      "phone": "+201111111111",
+      "firstName": "Ali",
+      "lastName": "Hassan",
+      "birthDate": "1990-11-05T00:00:00.000Z",
+      "isVerified": false,
+      "isActive": true,
+      "passwordChangedAt": "2026-04-15T01:26:21.908Z",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNkOWQ4Mjk3NjI5MTY4ZDVkMyIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODEsImV4cCI6MTc3NjgyMTE4MX0.bBpQCOsnmaUSo8xOOxR0ldOkZJR4JHblQp3kb59W6Ak",
+      "fullName": "Ali Hassan",
+      "id": "69dee93d9d8297629168d5d3",
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNkOWQ4Mjk3NjI5MTY4ZDVkMyIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODEsImV4cCI6MTc3NjIxNzI4MX0.z6u739p8WWnbkFBK2Ku5s1cPv0-xXRFmJwswj0gjgZM",
+      "children": [
+        {
+          "id": "69dee93d9d8297629168d5d7",
+          "firstName": "Youssef",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "aae1243b-a71b-4970-919d-67c745499a98",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d5de",
+              "childId": "69dee93d9d8297629168d5d7",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d5e3",
+              "childId": "69dee93d9d8297629168d5d7",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        },
+        {
+          "id": "69dee93e9d8297629168d5e6",
+          "firstName": "Laila",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "017adf3b-b5a5-4340-9f30-9ca9a2253d07",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d5ed",
+              "childId": "69dee93e9d8297629168d5e6",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d5f2",
+              "childId": "69dee93e9d8297629168d5e6",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "email": "parent2@test.com",
+      "phone": "+201222222222",
+      "firstName": "Mona",
+      "lastName": "Adel",
+      "birthDate": "1990-11-05T00:00:00.000Z",
+      "isVerified": false,
+      "isActive": true,
+      "passwordChangedAt": "2026-04-15T01:26:22.120Z",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNlOWQ4Mjk3NjI5MTY4ZDVmNSIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODIsImV4cCI6MTc3NjgyMTE4Mn0.wE-7KUEFlNj_yjFvBZVoHYgbH4vDsUIAZo6pgeFNWkw",
+      "fullName": "Mona Adel",
+      "id": "69dee93e9d8297629168d5f5",
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNlOWQ4Mjk3NjI5MTY4ZDVmNSIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODIsImV4cCI6MTc3NjIxNzI4Mn0.Fx-I62iykuqmgaCUg1Dj1-_SdRdfHaq9xi_VYGAauyg",
+      "children": [
+        {
+          "id": "69dee93e9d8297629168d5f9",
+          "firstName": "Adam",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "e02495b6-417b-4d7b-a28c-87b47f3fb341",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d600",
+              "childId": "69dee93e9d8297629168d5f9",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d605",
+              "childId": "69dee93e9d8297629168d5f9",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        },
+        {
+          "id": "69dee93e9d8297629168d608",
+          "firstName": "Sara",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "9ae9f873-c60d-4db6-87d1-27afc26a7ce7",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d60f",
+              "childId": "69dee93e9d8297629168d608",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d614",
+              "childId": "69dee93e9d8297629168d608",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        },
+        {
+          "id": "69dee93e9d8297629168d617",
+          "firstName": "Nour",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "b51d2fb8-b46a-48a2-a955-604f58890849",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d61e",
+              "childId": "69dee93e9d8297629168d617",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d623",
+              "childId": "69dee93e9d8297629168d617",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "email": "parent3@test.com",
+      "phone": "+201333333333",
+      "firstName": "Omar",
+      "lastName": "Samy",
+      "birthDate": "1990-11-05T00:00:00.000Z",
+      "isVerified": false,
+      "isActive": true,
+      "passwordChangedAt": "2026-04-15T01:26:22.306Z",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNlOWQ4Mjk3NjI5MTY4ZDYyNiIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODIsImV4cCI6MTc3NjgyMTE4Mn0.yYcqaXDfNviXHkOxJroA9CzLFmsMKP7g_rp4ZbyKrCo",
+      "fullName": "Omar Samy",
+      "id": "69dee93e9d8297629168d626",
+      "accessToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY5ZGVlOTNlOWQ4Mjk3NjI5MTY4ZDYyNiIsInJvbGUiOiJQQVJFTlQiLCJpYXQiOjE3NzYyMTYzODIsImV4cCI6MTc3NjIxNzI4Mn0.KrhZO2Dd-EgR8PnoGcSi0MCpO4UpZRfMuGdH2bkPzPk",
+      "children": [
+        {
+          "id": "69dee93e9d8297629168d62a",
+          "firstName": "Karim",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "a5b35500-9f5d-458f-b3c1-b8c7106fa11c",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d631",
+              "childId": "69dee93e9d8297629168d62a",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d636",
+              "childId": "69dee93e9d8297629168d62a",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        },
+        {
+          "id": "69dee93e9d8297629168d639",
+          "firstName": "Tarek",
+          "gender": "MALE",
+          "hobbies": [
+            "swim",
+            "football"
+          ],
+          "dob": "2014-11-05T00:00:00.000Z",
+          "isActive": true,
+          "pairToken": "0eba79f3-e312-49d1-828a-fb122ac5419c",
+          "locations": [
+            {
+              "id": "69dee93e9d8297629168d640",
+              "childId": "69dee93e9d8297629168d639",
+              "title": "Home",
+              "address": "Maadi, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.2709,
+                  29.9842
+                ]
+              },
+              "safeRadius": 500
+            },
+            {
+              "id": "69dee93e9d8297629168d645",
+              "childId": "69dee93e9d8297629168d639",
+              "title": "School",
+              "address": "Nasr City, Cairo",
+              "location": {
+                "type": "Point",
+                "coordinates": [
+                  31.3,
+                  30.05
+                ]
+              },
+              "safeRadius": 500
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

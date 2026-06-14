@@ -1,0 +1,186 @@
+x-backend-base: &backend-base
+  build:
+    context: .
+    dockerfile: Dockerfile.dev
+  restart: unless-stopped
+  env_file: ./config.env
+  environment: &backend-env
+    HOST_ON: DOCKER_CONTAINER
+    DATABASE: mongodb://mongo:27017
+    REDIS_URL: redis://redis:6379
+    REDIS_HOST: redis
+    REDIS_PORT: '6379'
+    REDIS_PASSWORD: ''
+    EMBEDDING_SERVICE_URL: 'http://embedding-service:8001'
+
+  volumes: &backend-volumes
+    - ./:/app/anis-backend
+    - ../anis-shared:/app/anis-shared
+    - /app/anis-backend/node_modules
+  networks:
+    - anis-dev
+  logging: &default-logging
+    driver: json-file
+    options:
+      max-size: '10m'
+      max-file: '3'
+  depends_on:
+    mongo:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  api:
+    <<: *backend-base
+    container_name: anis-api
+    command: ['pnpm', 'dev']
+    ports:
+      - '5000:5000'
+
+  worker:
+    <<: *backend-base
+    container_name: anis-worker
+    command: ['pnpm', 'dev:worker']
+    environment:
+      <<: *backend-env
+    depends_on:
+      mongo:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      embedding-service:
+        condition: service_healthy
+
+  embedding-service:
+    build:
+      context: ../embedding-service
+      dockerfile: Dockerfile
+    container_name: anis-embedding-dev
+    restart: unless-stopped
+    # ports:
+    #   - '8001:8001'
+    volumes:
+      - ../embedding-service/clip_local:/app/clip_local:ro
+      - ../embedding-service/models:/app/models:ro
+    environment:
+      SERVICE_NAME: 'embedding-service'
+      AUTH_ENABLED: 'true'
+      JWT_ALGORITHM: 'HS256'
+      JWT_SECRET: ${EMBEDDING_JWT_SECRET}
+      ORT_THREADS: '2'
+      TRANSFORMERS_OFFLINE: '1'
+      HF_DATASETS_OFFLINE: '1'
+      HF_HOME: '/home/appuser/.cache/huggingface'
+      TRANSFORMERS_NO_ADVISORY_WARNINGS: '1'
+    networks:
+      - anis-dev
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://embedding-service:8001/health']
+      interval: 60m
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          memory: 2G
+          cpus: '2.0'
+    logging:
+      driver: json-file
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  mongo:
+    image: mongo:7
+    container_name: anis-mongo-dev
+    restart: unless-stopped
+    command: ['mongod', '--quiet', '--logpath', '/dev/null']
+    ports:
+      - '27018:27017'
+    volumes:
+      - mongo_dev_data:/data/db
+    networks:
+      - anis-dev
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+  redis:
+    image: redis:7-alpine
+    container_name: anis-redis-dev
+    restart: unless-stopped
+    command: ['redis-server', '--loglevel', 'warning', '--save', '60', '1']
+    ports:
+      - '6380:6379'
+    volumes:
+      - redis_dev_data:/data
+    networks:
+      - anis-dev
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+  redisinsight:
+    image: redis/redisinsight:latest
+    container_name: anis-redisinsight-dev
+    restart: unless-stopped
+    ports:
+      - '5540:5540'
+    networks:
+      - anis-dev
+    depends_on:
+      redis:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+  mongo-express:
+    image: mongo-express:1
+    container_name: anis-mongo-express-dev
+    restart: unless-stopped
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_BASICAUTH: 'false'
+    networks:
+      - anis-dev
+    depends_on:
+      mongo:
+        condition: service_healthy
+    logging:
+      driver: json-file
+      options:
+        max-size: '5m'
+        max-file: '2'
+
+networks:
+  anis-dev:
+    driver: bridge
+
+volumes:
+  mongo_dev_data:
+  redis_dev_data:

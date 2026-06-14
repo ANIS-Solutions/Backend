@@ -1,0 +1,166 @@
+.
+├── public
+│   └── emails
+│       ├── REACTIVATE.html
+│       ├── RESET_PASSWORD.html
+│       └── VERIFY_OTP.html
+├── seed
+│   ├── script.js
+│   └── seed-output.json
+├── src
+│   ├── api
+│   │   ├── apiRouter.ts
+│   │   └── healthRoute.ts
+│   ├── config
+│   │   ├── base.ts
+│   │   ├── db.ts
+│   │   ├── firebase.ts
+│   │   └── redis.ts
+│   ├── core
+│   │   ├── cache
+│   │   │   └── cache.service.ts
+│   │   ├── events
+│   │   │   └── eventBus.ts
+│   │   ├── handlers
+│   │   │   ├── api.handler.ts
+│   │   │   ├── email.handler.ts
+│   │   │   ├── embeddingService.handler.ts
+│   │   │   ├── error.handler.ts
+│   │   │   ├── jwt.handler.ts
+│   │   │   ├── server.handler.ts
+│   │   │   └── socket.handler.ts
+│   │   ├── middleware
+│   │   │   ├── auth.middleware.ts
+│   │   │   ├── auth.validation.middleware.ts
+│   │   │   ├── error.middleware.ts
+│   │   │   ├── isParent.middleware.ts
+│   │   │   ├── ratelimit.middleware.ts
+│   │   │   ├── socket.auth.middleware.ts
+│   │   │   └── validation.middleware.ts
+│   │   ├── plugins
+│   │   │   └── toJSON.plugin.ts
+│   │   ├── queues
+│   │   │   ├── email.queue.ts
+│   │   │   └── embeddingService.queue.ts
+│   │   ├── utils
+│   │   │   ├── AppError.ts
+│   │   │   ├── auth.utils.ts
+│   │   │   ├── catchAsync.ts
+│   │   │   ├── cors.utils.ts
+│   │   │   ├── fcm.utils.ts
+│   │   │   ├── logger.ts
+│   │   │   ├── qrcode.utils.ts
+│   │   │   ├── routeBounder.ts
+│   │   │   ├── schema.utils.ts
+│   │   │   └── sse.utils.ts
+│   │   └── workers
+│   │       └── embedding.worker.ts
+│   ├── modules
+│   │   ├── AiServices
+│   │   │   ├── embedding.controller.ts
+│   │   │   ├── embedding.dto.ts
+│   │   │   ├── embedding.model.ts
+│   │   │   ├── embedding.route.ts
+│   │   │   ├── embedding.schema.ts
+│   │   │   └── embedding.services.ts
+│   │   ├── app
+│   │   │   ├── app.controller.ts
+│   │   │   ├── app.dto.ts
+│   │   │   ├── app.model.ts
+│   │   │   ├── appPackage.model.ts
+│   │   │   ├── app.route.ts
+│   │   │   ├── app.schema.ts
+│   │   │   └── app.services.ts
+│   │   ├── auth
+│   │   │   ├── auth.controller.ts
+│   │   │   ├── auth.route.ts
+│   │   │   ├── auth.schema.ts
+│   │   │   └── auth.services.ts
+│   │   ├── child
+│   │   │   ├── child.controller.ts
+│   │   │   ├── child.dto.ts
+│   │   │   ├── child.model.ts
+│   │   │   ├── child.route.ts
+│   │   │   ├── child.schema.ts
+│   │   │   └── child.services.ts
+│   │   ├── education
+│   │   │   ├── edu.controller.ts
+│   │   │   ├── edu.model.ts
+│   │   │   ├── edu.route.ts
+│   │   │   ├── edu.schema.ts
+│   │   │   └── edu.services.ts
+│   │   ├── email
+│   │   │   ├── email.listener.ts
+│   │   │   └── email.worker.ts
+│   │   ├── locations
+│   │   │   ├── location.controller.ts
+│   │   │   ├── location.dto.ts
+│   │   │   ├── location.model.ts
+│   │   │   ├── location.route.ts
+│   │   │   ├── location.schema.ts
+│   │   │   ├── location.services.ts
+│   │   │   ├── location.utils.ts
+│   │   │   └── tracking.services.ts
+│   │   ├── parent
+│   │   │   ├── parent.controller.ts
+│   │   │   ├── parent.dto.ts
+│   │   │   ├── parent.model.ts
+│   │   │   ├── parent.route.ts
+│   │   │   ├── parent.schema.ts
+│   │   │   └── parent.services.ts
+│   │   ├── quest
+│   │   │   ├── quest.controller.ts
+│   │   │   ├── quest.dto.ts
+│   │   │   ├── quest.model.ts
+│   │   │   ├── quest.route.ts
+│   │   │   ├── quest.schema.ts
+│   │   │   └── quest.services.ts
+│   │   ├── report
+│   │   │   ├── report.controller.ts
+│   │   │   ├── report.model.ts
+│   │   │   ├── report.route.ts
+│   │   │   └── report.schema.ts
+│   │   ├── reward
+│   │   │   ├── reward.controller.ts
+│   │   │   ├── reward.dto.ts
+│   │   │   ├── reward.model.ts
+│   │   │   ├── reward.route.ts
+│   │   │   ├── reward.schema.ts
+│   │   │   └── reward.services.ts
+│   │   └── screencast
+│   │       ├── screencast.controller.ts
+│   │       ├── screencast.gateway.ts
+│   │       ├── screencast.route.ts
+│   │       ├── screencast.schema.ts
+│   │       └── screencast.services.ts
+│   ├── types
+│   │   ├── express.d.ts
+│   │   ├── jwt.d.ts
+│   │   ├── mongoose.d.ts
+│   │   ├── response.types.d.ts
+│   │   └── socket.d.ts
+│   ├── app.ts
+│   ├── server.ts
+│   ├── socket.ts
+│   └── worker.ts
+├── test-clients
+│   ├── child-streamer.html
+│   └── parent-viewer.html
+├── __test_fcm
+│   ├── firebase-messaging-sw.js
+│   └── index.html
+├── __tests__
+├── commitlint.config.ts
+├── config.env
+├── docker-compose.dev.yml
+├── Dockerfile
+├── Dockerfile.dev
+├── ecosystem.config.cjs
+├── eslint.config.ts
+├── jest.config.ts
+├── package.json
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+└── tsconfig.json
+
+36 directories, 140 files

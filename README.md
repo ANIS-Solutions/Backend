@@ -7,6 +7,9 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 
 ## Tech Stack
 
+<!-- Get colors & icons : https://simpleicons.org/ -->
+<!-- Get colors & icons : https://icon-sets.iconify.design/ -->
+
 ![Node.js](https://img.shields.io/badge/Node.js-339933?logo=node.js&logoColor=white)
 ![Express](https://img.shields.io/badge/Express-000000?logo=express&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white)
@@ -18,8 +21,11 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 ![Nodemailer](https://img.shields.io/badge/Nodemailer-22B573?logo=nodemailer&logoColor=white)
 ![ESLint](https://img.shields.io/badge/ESLint-4B32C3?logo=eslint&logoColor=white)
 ![Prettier](https://img.shields.io/badge/prettier-1A2C34?logo=prettier&logoColor=white)
+![Jest](https://img.shields.io/badge/jest-C21325?logo=jest&logoColor=white)
 ![Commitlint](https://img.shields.io/badge/Commitlint-000000?logo=commitlint&logoColor=white)
+![JWT](https://img.shields.io/badge/JWT-000000?logo=jsonwebtokens&logoColor=white)
 ![PNPM](https://img.shields.io/badge/pnpm-F69220?logo=pnpm&logoColor=white)
+![Postman](https://img.shields.io/badge/postman-FF6C37?logo=postman&logoColor=white)
 
 ---
 
@@ -68,15 +74,15 @@ http://localhost:5000/api/v1
 
 ## Development
 
-```bash
-# Start development server
-pnpm dev
+````bash
+# build containers
+docker compose -f docker-compose.dev.yml up --build
 
-# Build for production
-pnpm build
+# run containers
+docker compose -f docker-compose.dev.yml up
 
-# Run production server
-pnpm start
+# Stop containers
+docker compose -f docker-compose.dev.yml down
 ```
 
 ---
@@ -86,3 +92,5 @@ pnpm start
 If you find any issues, please open an Issue in the repository with detailed steps to reproduce the problem.
 
 _Bye! ... Bye!_
+```
+````
