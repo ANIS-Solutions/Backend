@@ -2,7 +2,7 @@
 
 # ANIS Backend
 
-REST API powering the ANIS parental control & child monitoring platform — user management, app restrictions, quests, behavior analysis, and location tracking.
+REST API powering the ANIS parental control & child monitoring platform - user management, app restrictions, quests, behavior analysis, and location tracking.
 
 <!-- Get colors & icons : https://simpleicons.org/ -->
 <!-- Get colors & icons : https://icon-sets.iconify.design/ -->
@@ -40,11 +40,11 @@ pnpm install
 
 # 4. Configure environment
 cp config.env.example config.env
-# → fill in JWT secrets, email config, DB URIs, etc.
+# -> fill in JWT secrets, email config, DB URIs, etc.
 
 # 5. Start dev server
 pnpm dev
-# → http://localhost:5000/api/v1
+# -> http://localhost:5000/api/v1
 ```
 
 ## Docker
