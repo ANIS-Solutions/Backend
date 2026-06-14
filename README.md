@@ -2,10 +2,7 @@
 
 # ANIS Backend
 
-Backend service for ANIS - a parental control and child care monitoring system.
-This API powers user management, app restrictions, quests, behavior analysis, and location tracking.
-
-## Tech Stack
+REST API powering the ANIS parental control & child monitoring platform — user management, app restrictions, quests, behavior analysis, and location tracking.
 
 <!-- Get colors & icons : https://simpleicons.org/ -->
 <!-- Get colors & icons : https://icon-sets.iconify.design/ -->
@@ -31,66 +28,35 @@ This API powers user management, app restrictions, quests, behavior analysis, an
 
 ## Getting Started
 
-1. Clone the repository:
-
 ```bash
-git clone https://github.com/3bbaas/anis-backend.git
-cd anis-backend
-```
+# 1. Clone & enter
+git clone https://github.com/ANIS-Solutions/backend.git && cd backend
 
-2. Use the correct Node version from `.nvmrc`:
-
-```bash
+# 2. Use correct Node version
 nvm use
-```
 
-3. Install dependencies:
-
-```bash
+# 3. Install dependencies
 pnpm install
-```
 
-4. Copy environment file:
-
-```bash
+# 4. Configure environment
 cp config.env.example config.env
-```
+# → fill in JWT secrets, email config, DB URIs, etc.
 
-Populate your keys (JWT secrets, email config, etc.).
-
-5. Start the development server:
-
-```bash
+# 5. Start dev server
 pnpm dev
+# → http://localhost:5000/api/v1
 ```
 
-6. API will run at:
+## Docker
 
 ```bash
-http://localhost:5000/api/v1
-```
-
----
-
-## Development
-
-````bash
-# build containers
+# Build & start
 docker compose -f docker-compose.dev.yml up --build
 
-# run containers
-docker compose -f docker-compose.dev.yml up
-
-# Stop containers
+# Stop
 docker compose -f docker-compose.dev.yml down
 ```
 
 ---
 
-## Bug Reports
-
-If you find any issues, please open an Issue in the repository with detailed steps to reproduce the problem.
-
-_Bye! ... Bye!_
-```
-````
+Found a bug? [Open an issue](https://github.com/ANIS-Solutions/backend/issues) with steps to reproduce.
