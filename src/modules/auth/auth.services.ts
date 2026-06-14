@@ -20,6 +20,7 @@ import {
 import { JwtPayload } from 'jsonwebtoken';
 
 import {
+  FCMTokenInput,
   LoginBodyInput,
   OTPBodyInput,
   RegisterBodyInput,
@@ -276,4 +277,34 @@ export const refreshTokenService = async (
   }
   const accessToken = genAccessToken(currUser);
   return { accessToken };
+};
+
+export const upsertFcmTokenService = async (
+  parentId: string,
+  reqBody: FCMTokenInput,
+): Promise<void> => {
+  const { fcmToken, platform } = reqBody;
+  const now = new Date();
+
+  const updated = await ParentModel.findOneAndUpdate(
+    {
+      _id: parentId,
+      'devices.fcmToken': fcmToken,
+    },
+    {
+      $set: {
+        'devices.$.lastSeenAt': now,
+        'devices.$.platform': platform,
+      },
+    },
+    { new: true },
+  );
+
+  if (!updated) {
+    await ParentModel.findByIdAndUpdate(parentId, {
+      $push: {
+        devices: { fcmToken, platform, lastSeenAt: now },
+      },
+    });
+  }
 };

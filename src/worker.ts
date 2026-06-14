@@ -3,6 +3,7 @@ import logger from '@/core/utils/logger';
 import { setupEmailWorker } from '@/modules/email/email.worker';
 import { Worker } from 'bullmq';
 
+import { setupChildSessionWorker } from './core/workers/childSessions.worker.js';
 import { setupEmbeddingWorker } from './core/workers/embedding.worker.js';
 
 const workers: Worker[] = [];
@@ -15,7 +16,8 @@ async function bootstrapWorkers(): Promise<void> {
 
   const emailWorker = setupEmailWorker();
   const embeddingWorker = setupEmbeddingWorker();
-  workers.push(emailWorker, embeddingWorker);
+  const childSessionWorker = setupChildSessionWorker();
+  workers.push(emailWorker, embeddingWorker, childSessionWorker);
   logger.info('[WORKER] All workers are listening for jobs.');
 }
 

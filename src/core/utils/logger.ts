@@ -43,36 +43,41 @@ const fileFormat = winston.format.combine(
   winston.format.json(),
 );
 
-const dailyRotateTransport = new DailyRotateFile({
-  filename: 'logs/api-%DATE%.log',
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '3d',
-  format: fileFormat,
-});
+const transports: winston.transport[] = [
+  new winston.transports.Console({
+    silent: !config.IS_DEV_ENV,
+    format: consoleFormat,
+  }),
+];
 
-const errorRotateTransport = new DailyRotateFile({
-  filename: 'logs/error-%DATE%.log',
-  datePattern: 'YYYY-MM-DD',
-  zippedArchive: true,
-  maxSize: '20m',
-  maxFiles: '10d',
-  level: 'error',
-  format: fileFormat,
-});
+// Skip file transports in test env (logs/ may be owned by Docker root)
+if (!config.IS_TEST_ENV) {
+  const dailyRotateTransport = new DailyRotateFile({
+    filename: 'logs/api-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '3d',
+    format: fileFormat,
+  });
+
+  const errorRotateTransport = new DailyRotateFile({
+    filename: 'logs/error-%DATE%.log',
+    datePattern: 'YYYY-MM-DD',
+    zippedArchive: true,
+    maxSize: '20m',
+    maxFiles: '10d',
+    level: 'error',
+    format: fileFormat,
+  });
+
+  transports.push(dailyRotateTransport, errorRotateTransport);
+}
 
 const logger = winston.createLogger({
   level: config.IS_DEV_ENV ? 'debug' : 'info',
   levels,
-  transports: [
-    new winston.transports.Console({
-      silent: !config.IS_DEV_ENV,
-      format: consoleFormat,
-    }),
-    dailyRotateTransport,
-    errorRotateTransport,
-  ],
+  transports,
 });
 
 export default logger;

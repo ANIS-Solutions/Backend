@@ -1,6 +1,29 @@
-import { IParentBase } from '@anis/shared';
+import { IDeviceBase, IParentBase } from '@anis/shared';
 import mongoose, { Document, Schema } from 'mongoose';
 
+const PLATFORM_VALUES = ['ios', 'android', 'web'] as const;
+const DeviceSchema = new Schema<IDeviceBase>(
+  {
+    fcmToken: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    platform: {
+      type: String,
+      enum: PLATFORM_VALUES,
+      required: true,
+    },
+    lastSeenAt: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  {
+    _id: false,
+    timestamps: { createdAt: true, updatedAt: false },
+  },
+);
 export interface IParent extends Omit<IParentBase, 'id'>, Document {
   id: string;
   password: string;
@@ -66,6 +89,10 @@ const ParentSchema = new Schema<IParent>(
       default: true,
       required: true,
     },
+    devices: {
+      type: [DeviceSchema],
+      default: [],
+    },
   },
   {
     timestamps: true,
@@ -73,7 +100,7 @@ const ParentSchema = new Schema<IParent>(
     toObject: { virtuals: true },
   },
 );
-
+ParentSchema.index({ 'devices.fcmToken': 1 });
 ParentSchema.virtual('fullName').get(function (this: IParent) {
   return `${this.firstName} ${this.lastName}`;
 });

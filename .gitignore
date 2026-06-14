@@ -16,6 +16,7 @@ secrets
 _/
 *.bak*
 logs/
+__temp
 redirect.py
 __pycache__/redirect.cpython-314.pyc
 # Added by code-review-graph
@@ -34,3 +35,4 @@ QODER.md
 .opencode.json
 .cursorrules
 .windsurfrules
+uploads/

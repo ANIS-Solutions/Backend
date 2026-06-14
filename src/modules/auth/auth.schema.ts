@@ -101,3 +101,11 @@ export type ResetPasswordParamsInput = z.infer<
 
 export const logoutSchema = z.object({});
 export type LogoutInput = z.infer<typeof logoutSchema>['body'];
+
+export const fcmTokenSchema = z.object({
+  body: z.object({
+    fcmToken: z.string(),
+    platform: z.literal(['ios', 'android', 'web']),
+  }),
+});
+export type FCMTokenInput = z.infer<typeof fcmTokenSchema>['body'];

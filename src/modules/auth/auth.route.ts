@@ -4,6 +4,7 @@ import {
 } from '@/core/middleware/ratelimit.middleware';
 import bindRoute from '@/core/utils/routeBounder';
 import {
+  fcmTokenSchema,
   forgetPasswordSchema,
   loginSchema,
   OTPSchema,
@@ -22,6 +23,7 @@ import {
   refresh_token,
   register,
   reset_password,
+  upsertFcmToken,
   verify_otp,
 } from './auth.controller.js';
 
@@ -36,6 +38,7 @@ const {
   RESET_PASSWORD,
   LOGOUT,
   REFRESH_TOKEN,
+  FCM_TOKEN,
 } = API.AUTH.ROUTES;
 
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────
@@ -46,16 +49,15 @@ bindRoute(authRouter, RESET_PASSWORD, reset_password, resetPasswordSchema);
 bindRoute(authRouter, REFRESH_TOKEN, refresh_token);
 
 // ─── RATE-LIMITED ROUTES ──────────────────────────────────────────────────
-bindRoute(authRouter, GENERATE_OTP, generate_otp, OTPSchema, otpLimiter);
-bindRoute(
-  authRouter,
-  VERIFY_OTP,
-  verify_otp,
-  VerifyOTPSchema,
-  otpVerifyLimiter,
-);
+bindRoute(authRouter, GENERATE_OTP, generate_otp, OTPSchema, {
+  rateLimiter: otpLimiter,
+});
+bindRoute(authRouter, VERIFY_OTP, verify_otp, VerifyOTPSchema, {
+  rateLimiter: otpVerifyLimiter,
+});
 
 // ─── PROTECTED ROUTES  ──────────────────────────
 bindRoute(authRouter, LOGOUT, logout);
+bindRoute(authRouter, FCM_TOKEN, upsertFcmToken, fcmTokenSchema);
 
 export default authRouter;

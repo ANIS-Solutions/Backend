@@ -257,13 +257,19 @@ export const toggleBlockAppService = async (
       );
     }
   }
+
   if (fcmToken) {
-    await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
-      packageId,
-      isBlocked,
-      timestamp: new Date().toISOString(),
+    await FCMService.silentPush({
+      fcmToken,
+      action: FcmAction.SYNC_APP_STATE,
+      payload: {
+        packageId,
+        isBlocked,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
+
   return toAppProfile(currApp);
 };
 
@@ -317,11 +323,15 @@ export const limitAppService = async (
   }
 
   if (fcmToken) {
-    await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
-      packageId,
-      dailyLimit,
-      limitExtended: limitWasExtended,
-      timestamp: new Date().toISOString(),
+    await FCMService.silentPush({
+      fcmToken,
+      action: FcmAction.SYNC_APP_STATE,
+      payload: {
+        packageId,
+        dailyLimit,
+        limitExtended: limitWasExtended,
+        timestamp: new Date().toISOString(),
+      },
     });
   }
   return toAppProfile(currApp);
@@ -441,13 +451,16 @@ export const updateUsageAppService = async (
           );
         }
       }
-
       if (fcmToken) {
-        await FCMService.silentPush(fcmToken, FcmAction.SYNC_APP_STATE, {
-          packageId,
-          isBlocked,
-          limitReached,
-          timestamp: new Date().toISOString(),
+        await FCMService.silentPush({
+          fcmToken,
+          action: FcmAction.SYNC_APP_STATE,
+          payload: {
+            packageId,
+            isBlocked,
+            limitReached,
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 

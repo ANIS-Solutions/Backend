@@ -6,6 +6,7 @@ import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
 import {
+  FCMTokenInput,
   ForgetPasswordBodyInput,
   LoginBodyInput,
   OTPBodyInput,
@@ -22,6 +23,7 @@ import {
   refreshTokenService,
   registerService,
   resetPasswordService,
+  upsertFcmTokenService,
   verifyOTPService,
 } from './auth.services.js';
 
@@ -223,6 +225,19 @@ export const refresh_token = catchAsync(
       {
         accessToken,
       },
+    );
+  },
+);
+
+export const upsertFcmToken = catchAsync(
+  async (req: Request<{}, {}, FCMTokenInput>, res: Response, next) => {
+    const parentId = req.user!.id;
+    await upsertFcmTokenService(parentId, req.body);
+
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'FCM token added successfully!',
     );
   },
 );
