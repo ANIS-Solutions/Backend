@@ -20,10 +20,6 @@ export const childReportQueue = new Queue<ReportGenerationJobPayload>(
   },
 );
 
-/**
- * Enqueue a report generation job.
- * Deduplicates by reportId — one pending job per report document.
- */
 export const enqueueReportGeneration = async (
   payload: ReportGenerationJobPayload,
 ): Promise<void> => {

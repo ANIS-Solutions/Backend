@@ -28,11 +28,7 @@ export const embeddingQueue = new Queue<EmbeddingJobPayload>(
 export const enqueueEmbedding = async (
   payload: EmbeddingJobPayload,
 ): Promise<void> => {
-  await embeddingQueue.add(
-    `embed_${payload.promptId}`, // job name — for display/tracing
-    payload,
-    {
-      jobId: `embed_${payload.promptId}`, // dedup key — one pending job per prompt
-    },
-  );
+  await embeddingQueue.add(`embed_${payload.promptId}`, payload, {
+    jobId: `embed_${payload.promptId}`,
+  });
 };

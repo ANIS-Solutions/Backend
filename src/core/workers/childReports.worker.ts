@@ -18,14 +18,12 @@ const processReportJob = async (
     `[ReportWorker] Processing job ${job.id}: report=${reportId} session=${sessionDocId}`,
   );
 
-  // 1. Mark as processing
   await ChildReportModel.updateOne(
     { _id: reportId },
     { generationStatus: 'processing' },
   );
 
   try {
-    // 2. Load the session document
     const session = await childSessionModel
       .findOne({ _id: sessionDocId, childId })
       .lean();
@@ -34,7 +32,6 @@ const processReportJob = async (
       throw new Error(`Session ${sessionDocId} not found for child ${childId}`);
     }
 
-    // 3. Collect image file paths for highlights that have images stored
     const imageFiles: { path: string; filename: string }[] = [];
     for (const highlight of session.imageHighlights) {
       if (highlight.imagePath) {
@@ -48,7 +45,6 @@ const processReportJob = async (
       }
     }
 
-    // 4. Call FastAPI /report endpoint
     const result = await embeddingService.generateReport({
       childId,
       totalSessions: session.totalSessions,
@@ -62,7 +58,6 @@ const processReportJob = async (
       images: imageFiles,
     });
 
-    // 5. Store the result
     await ChildReportModel.updateOne(
       { _id: reportId },
       {
@@ -87,7 +82,7 @@ const processReportJob = async (
     );
 
     logger.error(`[ReportWorker] Report ${reportId} failed: ${message}`);
-    throw err; // Re-throw for BullMQ retry
+    throw err;
   }
 };
 
