@@ -55,6 +55,22 @@ export const getRewardService = async (
   return toRewardInfo(currReward);
 };
 
+export const myPointsService = async (
+  childId: string,
+): Promise<{
+  points: number;
+}> => {
+  const child = await ChildModel.findById(childId).select('points').lean();
+
+  if (!child) {
+    throw new AppError('Child profile not found', HttpStatusCode.NOT_FOUND);
+  }
+
+  return {
+    points: child.points || 0,
+  };
+};
+
 export const getAllRewardService = async (
   reqParams: GetAllRewardParamsInput,
 ): Promise<IRewardBase[]> => {

@@ -7,6 +7,7 @@ import {
   deleteReward,
   getAllReward,
   getReward,
+  myPoints,
   redeemReward,
   updateReward,
 } from './reward.controller.js';
@@ -18,10 +19,12 @@ import {
   updateRewardSchema,
 } from './reward.schema.js';
 
-const { ADD, GET_ALL, GET, UPDATE, DELETE, REDEEM } = API.REWARD.ROUTES;
+const { ADD, GET_ALL, GET, UPDATE, DELETE, REDEEM, MY_POINTS } =
+  API.REWARD.ROUTES;
 
 const rewardRouter = Router({ mergeParams: true });
 
+bindRoute(rewardRouter, MY_POINTS, myPoints);
 bindRoute(rewardRouter, REDEEM, redeemReward, redeemRewardSchema);
 
 bindRoute(rewardRouter, ADD, addReward, addRewardSchema);
