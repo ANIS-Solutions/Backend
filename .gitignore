@@ -3,6 +3,7 @@
 *.txt
 *.log
 *.cast
+*.agents
 coverage/
 # Exclude files that sure to share it: 
 !*.env.example

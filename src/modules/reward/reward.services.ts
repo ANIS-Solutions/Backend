@@ -70,11 +70,16 @@ export const getAllRewardService = async (
 };
 
 export const redeemRewardService = async (
+  childId: string,
   reqParams: RedeemRewardParamsInput,
 ): Promise<IRewardBase> => {
-  const { childId, rewardId } = reqParams;
+  const { rewardId } = reqParams;
 
-  const currReward = await RewardModel.findOne({ childId, _id: rewardId });
+  // const currReward = await RewardModel.findOne({ childId, _id: rewardId });
+  const currReward = await RewardModel.findById(rewardId);
+  logger.info(currReward);
+  logger.info(childId);
+  logger.info(rewardId);
   if (!currReward)
     throw new AppError('Reward not found.', HttpStatusCode.NOT_FOUND);
   const currChild = await ChildModel.findById(childId);

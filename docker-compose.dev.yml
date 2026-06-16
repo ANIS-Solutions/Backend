@@ -11,7 +11,7 @@ x-backend-base: &backend-base
     REDIS_HOST: redis
     REDIS_PORT: '6379'
     REDIS_PASSWORD: ''
-    EMBEDDING_SERVICE_URL: 'http://embedding-service:8001'
+    FASTAPI_INTERNAL_URL: 'http://embedding-service:8001'
 
   volumes: &backend-volumes
     - ./:/app/anis-backend
@@ -65,11 +65,12 @@ services:
     volumes:
       - ../embedding-service/clip_local:/app/clip_local:ro
       - ../embedding-service/models:/app/models:ro
+    env_file: ../embedding-service/.env
     environment:
       SERVICE_NAME: 'embedding-service'
       AUTH_ENABLED: 'true'
       JWT_ALGORITHM: 'HS256'
-      JWT_SECRET: ${EMBEDDING_JWT_SECRET}
+      JWT_SECRET: ${FASTAPI_INTERNAL_JWT_SECRET}
       ORT_THREADS: '2'
       TRANSFORMERS_OFFLINE: '1'
       HF_DATASETS_OFFLINE: '1'
@@ -158,7 +159,7 @@ services:
         max-file: '2'
 
   mongo-express:
-    image: mongo-express:1
+    image: mongo-express:latest
     container_name: anis-mongo-express-dev
     restart: unless-stopped
     ports:

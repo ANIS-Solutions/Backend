@@ -20,6 +20,7 @@ import {
   cancelQuestService,
   completeQuestService,
   getAllQuestService,
+  getMyQuestsService,
   getQuestService,
   startQuestService,
   stopQuestService,
@@ -87,7 +88,17 @@ export const getAllQuest = catchAsync(
     );
   },
 );
-
+export const getMyQuests = catchAsync(
+  async (req: Request<{}, {}, {}>, res: Response, next: NextFunction) => {
+    const quests = await getMyQuestsService(req.user!.id);
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'Quests is founded successfully!',
+      { data: quests },
+    );
+  },
+);
 export const cancelQuest = catchAsync(
   async (
     req: Request<CancelQuestParamsInput, {}, {}>,

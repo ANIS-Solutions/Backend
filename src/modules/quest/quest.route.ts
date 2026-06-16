@@ -7,6 +7,7 @@ import {
   cancelQuest,
   completeQuest,
   getAllQuest,
+  getMyQuests,
   getQuest,
   startQuest,
   stopQuest,
@@ -23,9 +24,19 @@ import {
   updateQuestSchema,
 } from './quest.schema.js';
 
-const { ADD, GET_ALL, GET, UPDATE, START, CANCEL, COMPLETE, STOP } =
-  API.QUEST.ROUTES;
+const {
+  ADD,
+  GET_ALL,
+  GET,
+  UPDATE,
+  START,
+  CANCEL,
+  COMPLETE,
+  STOP,
+  GET_MY_QUESTS,
+} = API.QUEST.ROUTES;
 const questRouter = Router({ mergeParams: true });
+bindRoute(questRouter, GET_MY_QUESTS, getMyQuests);
 
 bindRoute(questRouter, ADD, addQuest, addQuestSchema);
 bindRoute(questRouter, UPDATE, updateQuest, updateQuestSchema);

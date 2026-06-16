@@ -7,6 +7,7 @@ import {
   deletePrompt,
   getAllPrompts,
   getPrompt,
+  getPromptsEmbeddings,
   updatePrompt,
 } from './embedding.controller.js';
 import {
@@ -14,11 +15,18 @@ import {
   deletePromptSchema,
   getAllPromptSchema,
   getPromptSchema,
+  getPromptsEmbeddingSchema,
   updatePromptSchema,
 } from './embedding.schema.js';
 
-const { ADD_PROMPT, GET_PROMPT, GET_ALL_PROMPT, UPDATE_PROMPT, DELETE_PROMPT } =
-  API.AI_SERVICES.ROUTES;
+const {
+  ADD_PROMPT,
+  GET_PROMPT,
+  GET_ALL_PROMPT,
+  UPDATE_PROMPT,
+  DELETE_PROMPT,
+  GET_ALL_PROMPT_EMBEDDINGS,
+} = API.AI_SERVICES.ROUTES;
 const aiServicesRouter = Router({ mergeParams: true });
 
 bindRoute(aiServicesRouter, ADD_PROMPT, addPrompt, addPromptSchema);
@@ -27,5 +35,11 @@ bindRoute(aiServicesRouter, GET_ALL_PROMPT, getAllPrompts, getAllPromptSchema);
 
 bindRoute(aiServicesRouter, UPDATE_PROMPT, updatePrompt, updatePromptSchema);
 bindRoute(aiServicesRouter, DELETE_PROMPT, deletePrompt, deletePromptSchema);
+bindRoute(
+  aiServicesRouter,
+  GET_ALL_PROMPT_EMBEDDINGS,
+  getPromptsEmbeddings,
+  getPromptsEmbeddingSchema,
+);
 
 export default aiServicesRouter;

@@ -77,6 +77,26 @@ export const getAllPromptService = async (
   return currPrompt.map(toPromptInfo);
 };
 
+export const getPromptsEmbeddingsService = async (
+  childId: string,
+): Promise<object> => {
+  const currPrompts = await PromptModel.find({ childId })
+    .select('_id embedding updatedAt embeddedAt')
+    .lean();
+  if (!currPrompts) {
+    throw new AppError(
+      `No prompt for child id ${childId}`,
+      HttpStatusCode.NOT_FOUND,
+    );
+  }
+  return currPrompts.map((prompt) => ({
+    id: prompt._id.toString(),
+    embedding: prompt.embedding ?? null,
+    updatedAt: prompt.updatedAt,
+    embeddedAt: prompt.embeddedAt ?? null,
+  }));
+};
+
 export const updatePromptService = async (
   reqParams: UpdatePromptParamsInput,
   reqBody: UpdatePromptBodyInput,

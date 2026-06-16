@@ -106,7 +106,7 @@ export const redeemReward = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    const redeemedReward = await redeemRewardService(req.params);
+    const redeemedReward = await redeemRewardService(req.user!.id, req.params);
     return ApiResponse.success(
       res,
       HttpStatusCode.OK,

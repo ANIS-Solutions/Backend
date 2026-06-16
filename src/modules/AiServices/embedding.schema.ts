@@ -62,3 +62,12 @@ export const getAllPromptSchema = z.object({
 export type GetAllPromptParamsInput = z.infer<
   typeof getAllPromptSchema
 >['params'];
+
+export const getPromptsEmbeddingSchema = z.object({
+  params: z.object({
+    // childId: z.string().regex(objectIdRegex),
+  }),
+});
+export type GetPromptsEmbeddingInput = z.infer<
+  typeof getPromptsEmbeddingSchema
+>['params'];

@@ -272,6 +272,15 @@ export class FCMService {
           aps: { sound: 'default', badge: 1 },
         },
       },
+      webpush: {
+        headers: {
+          Urgency: 'high',
+          TTL: '86400',
+        },
+        notification: {
+          icon: '/icons/icon-192x192.png',
+        },
+      },
     };
 
     try {

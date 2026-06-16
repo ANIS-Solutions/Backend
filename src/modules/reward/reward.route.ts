@@ -22,6 +22,8 @@ const { ADD, GET_ALL, GET, UPDATE, DELETE, REDEEM } = API.REWARD.ROUTES;
 
 const rewardRouter = Router({ mergeParams: true });
 
+bindRoute(rewardRouter, REDEEM, redeemReward, redeemRewardSchema);
+
 bindRoute(rewardRouter, ADD, addReward, addRewardSchema);
 
 bindRoute(rewardRouter, GET_ALL, getAllReward, getAllRewardSchema);
@@ -31,7 +33,5 @@ bindRoute(rewardRouter, GET, getReward, getRewardSchema);
 bindRoute(rewardRouter, UPDATE, updateReward, updateRewardSchema);
 
 bindRoute(rewardRouter, DELETE, deleteReward, getRewardSchema);
-
-bindRoute(rewardRouter, REDEEM, redeemReward, redeemRewardSchema);
 
 export default rewardRouter;

@@ -9,6 +9,7 @@ import {
   DeletePromptParamsInput,
   GetAllPromptParamsInput,
   GetPromptParamsInput,
+  GetPromptsEmbeddingInput,
   UpdatePromptBodyInput,
   UpdatePromptParamsInput,
 } from './embedding.schema.js';
@@ -16,6 +17,7 @@ import {
   addPromptService,
   deletePromptService,
   getAllPromptService,
+  getPromptsEmbeddingsService,
   getPromptService,
   updatePromptService,
 } from './embedding.services.js';
@@ -64,6 +66,22 @@ export const getAllPrompts = catchAsync(
       HttpStatusCode.CREATED,
       'Prompts is retrieved successfully!',
       { data: prompts },
+    );
+  },
+);
+
+export const getPromptsEmbeddings = catchAsync(
+  async (
+    req: Request<GetPromptsEmbeddingInput>,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    const promptsEmbeddings = await getPromptsEmbeddingsService(req.user!.id);
+    ApiResponse.success(
+      res,
+      HttpStatusCode.CREATED,
+      'Prompts embeddings is retrieved successfully!',
+      { data: promptsEmbeddings },
     );
   },
 );

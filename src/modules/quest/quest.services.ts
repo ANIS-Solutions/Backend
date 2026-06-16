@@ -50,6 +50,19 @@ export const getQuestService = async (
   return toQuestInfo(currQuest);
 };
 
+export const getMyQuestsService = async (
+  childId: string,
+): Promise<IQuestBase[]> => {
+  const currQuest = await QuestModel.find({ childId });
+  if (!currQuest) {
+    throw new AppError(
+      `No quests for child id ${childId}`,
+      HttpStatusCode.NOT_FOUND,
+    );
+  }
+  return currQuest.map(toQuestInfo);
+};
+
 export const getAllQuestService = async (
   reqParams: GetAllQuestParamsInput,
 ): Promise<IQuestBase[]> => {
