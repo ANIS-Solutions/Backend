@@ -359,7 +359,9 @@ export const getAppsService = async (
 ): Promise<IAppBase[]> => {
   const { childId } = reqParams;
 
-  const childApps = await AppModel.find({ childId });
+  const childApps = await AppModel.find({ childId })
+    .populate('packageId')
+    .lean();
 
   if (!childApps) {
     throw new AppError(`Apps not found`, HttpStatusCode.NOT_FOUND);
