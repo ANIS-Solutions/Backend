@@ -208,7 +208,7 @@ export const requestRepairChildService = async (
   reqParams: RequestRepairChildParamsInput,
 ): Promise<{
   pairingQrCode: string;
-  repairToken: string;
+  pairToken: string;
 }> => {
   const parentId = reqUser.id;
   const childId = reqParams.childId;
@@ -237,7 +237,7 @@ export const requestRepairChildService = async (
   };
   const pairingQrCode = await QrCode.generateBase64(qrPayload);
 
-  return { pairingQrCode, repairToken: token };
+  return { pairingQrCode, pairToken: token };
 };
 
 export const repairChildService = async (

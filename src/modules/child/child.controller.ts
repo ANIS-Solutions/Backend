@@ -161,7 +161,7 @@ export const requestRepairChild = catchAsync(
     res: Response,
     next: NextFunction,
   ): Promise<Response | void> => {
-    const { pairingQrCode, repairToken } = await requestRepairChildService(
+    const { pairingQrCode, pairToken } = await requestRepairChildService(
       req.user!,
       req.params,
     );
@@ -172,7 +172,7 @@ export const requestRepairChild = catchAsync(
       {
         qrcode: pairingQrCode,
         devInfo: {
-          repairToken,
+          pairToken,
         },
       },
     );
