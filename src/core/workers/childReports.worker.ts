@@ -2,8 +2,12 @@ import fs from 'fs/promises';
 
 import { redisQueueConnection } from '@/config/redis';
 import { embeddingService } from '@/core/handlers/embeddingService.handler';
+import { FCMService } from '@/core/utils/fcm.utils';
+import { ChildModel } from '@/modules/child/child.model';
 import { ChildReportModel } from '@/modules/childReports/childReports.model';
 import { childSessionModel } from '@/modules/childSessions/childSessions.model';
+import { ParentModel } from '@/modules/parent/parent.model';
+import { FcmAction, NotificationType } from '@anis/shared';
 import { Job, Worker } from 'bullmq';
 
 import type { ReportGenerationJobPayload } from '../queues/childReports.queue.js';
@@ -68,6 +72,35 @@ const processReportJob = async (
         errorMessage: null,
       },
     );
+
+    const child = await ChildModel.findById(childId)
+      .select('firstName parentId')
+      .lean();
+    if (child) {
+      const parent = await ParentModel.findById(child.parentId)
+        .select('devices')
+        .lean();
+      if (parent && parent.devices.length > 0) {
+        const fcmTokens = parent.devices.map((d) => d.fcmToken);
+        const { staleTokens } = await FCMService.sendMulticastNotification({
+          recipientId: child.parentId.toString(),
+          fcmTokens,
+          title: 'Behavioral Report Ready',
+          body: `A new behavioral report is ready for ${child.firstName}`,
+          type: NotificationType.REPORT_READY,
+          action: FcmAction.REPORT_READY,
+          payload: { childId, reportId },
+        });
+
+        if (staleTokens.length > 0) {
+          await FCMService.removeStaleFcmTokens(
+            ParentModel,
+            child.parentId.toString(),
+            staleTokens,
+          );
+        }
+      }
+    }
 
     logger.info(`[ReportWorker] Report ${reportId} completed successfully`);
   } catch (err) {

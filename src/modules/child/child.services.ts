@@ -22,8 +22,11 @@ import { toChildProfile } from './child.dto.js';
 import { ChildModel, IChild } from './child.model.js';
 import {
   CreateChildBodyInput,
+  DeleteChildParamsInput,
   GetMyChildParamsInput,
   PairChildInput,
+  RepairChildInput,
+  RequestRepairChildParamsInput,
   UpdateChildBodyInput,
 } from './child.schema.js';
 
@@ -117,6 +120,23 @@ export const updateMyChildService = async (
   return toChildProfile(updatedChild!);
 };
 
+export const deleteMyChildService = async (
+  parentId: string,
+  childId: string,
+): Promise<void> => {
+  const deletedChild = await ChildModel.findOneAndDelete({
+    _id: childId,
+    parentId,
+  }).exec();
+
+  if (!deletedChild) {
+    throw new AppError(
+      'Child not found or already deleted',
+      HttpStatusCode.NOT_FOUND,
+    );
+  }
+};
+
 export const pairChildService = async (
   pairChildData: PairChildInput,
 ): Promise<{ childData: IChildBase; accessToken: string }> => {
@@ -152,7 +172,7 @@ export const pairChildService = async (
     const { staleTokens } = await FCMService.sendMulticastNotification({
       recipientId: pendingChild.parentId,
       fcmTokens,
-      title: '🎉 Child Device Paired',
+      title: 'Child Device Paired',
       body: `${pendingChild.firstName}'s device has been successfully linked to your account.`,
       type: NotificationType.NEW_CHILD,
       action: FcmAction.NEW_CHILD_PAIRED,
@@ -181,4 +201,110 @@ export const getMeService = async (userId: string): Promise<IChildBase> => {
   if (!currUser)
     throw new AppError('No current user', HttpStatusCode.NOT_FOUND);
   return toChildProfile(currUser);
+};
+
+export const requestRepairChildService = async (
+  reqUser: JwtPayload & IJwtPayload,
+  reqParams: RequestRepairChildParamsInput,
+): Promise<{
+  pairingQrCode: string;
+  repairToken: string;
+}> => {
+  const parentId = reqUser.id;
+  const childId = reqParams.childId;
+
+  const child = await ChildModel.findOne({ _id: childId, parentId }).lean();
+  if (!child) {
+    throw new AppError('Child not found', HttpStatusCode.NOT_FOUND);
+  }
+
+  const { token } = AuthUtils.generateCryptoUUID();
+  const redisKey = CACHE.PREFIX.REPAIR_PENDING + token;
+
+  const pendingRepairData = {
+    childId: child._id.toString(),
+  };
+
+  await CacheService.setWithTTL(
+    redisKey,
+    JSON.stringify(pendingRepairData),
+    CACHE.TTL.REPAIR_PENDING,
+  );
+
+  const qrPayload = {
+    action: 'REPAIR_DEVICE',
+    token: token,
+  };
+  const pairingQrCode = await QrCode.generateBase64(qrPayload);
+
+  return { pairingQrCode, repairToken: token };
+};
+
+export const repairChildService = async (
+  repairData: RepairChildInput,
+): Promise<{ childData: IChildBase; accessToken: string }> => {
+  const { token, deviceId, deviceName, fcmToken } = repairData;
+  const redisKey = CACHE.PREFIX.REPAIR_PENDING + token;
+  const cachedData = await CacheService.get(redisKey);
+
+  if (!cachedData) {
+    throw new AppError(
+      'QR code has expired or is invalid. Please generate a new one.',
+      HttpStatusCode.FORBIDDEN,
+    );
+  }
+
+  const pendingRepair = JSON.parse(cachedData) as { childId: string };
+
+  const updatedChild = await ChildModel.findByIdAndUpdate(
+    pendingRepair.childId,
+    {
+      $set: {
+        deviceId,
+        deviceName: deviceName ?? '',
+        fcmToken,
+        isActive: true,
+      },
+    },
+    { new: true, runValidators: true },
+  );
+
+  if (!updatedChild) {
+    throw new AppError('Child not found', HttpStatusCode.NOT_FOUND);
+  }
+
+  const parent = await ParentModel.findById(updatedChild.parentId)
+    .select('devices firstName')
+    .lean();
+
+  if (parent && parent.devices.length > 0) {
+    const fcmTokens = parent.devices.map((d) => d.fcmToken);
+
+    const { staleTokens } = await FCMService.sendMulticastNotification({
+      recipientId: updatedChild.parentId.toString(),
+      fcmTokens,
+      title: 'Child Device Re-paired',
+      body: `${updatedChild.firstName}'s device has been successfully re-linked.`,
+      type: NotificationType.NEW_CHILD,
+      action: FcmAction.CHILD_REPAIRED,
+      payload: {
+        childId: String(updatedChild._id),
+        childName: updatedChild.firstName,
+        deviceName: deviceName ?? '',
+      },
+    });
+
+    if (staleTokens.length > 0) {
+      await FCMService.removeStaleFcmTokens(
+        ParentModel,
+        updatedChild.parentId.toString(),
+        staleTokens,
+      );
+    }
+  }
+
+  await CacheService.delete(redisKey);
+  const accessToken = genAccessToken(updatedChild);
+
+  return { childData: toChildProfile(updatedChild), accessToken };
 };

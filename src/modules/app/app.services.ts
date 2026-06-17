@@ -2,10 +2,17 @@ import { CacheService } from '@/core/cache/cache.service';
 import AppError from '@/core/utils/AppError';
 import { FCMService } from '@/core/utils/fcm.utils';
 import logger from '@/core/utils/logger';
-import { FcmAction, HttpStatusCode, IAppBase, IJwtPayload } from '@anis/shared';
+import {
+  FcmAction,
+  HttpStatusCode,
+  IAppBase,
+  IJwtPayload,
+  NotificationType,
+} from '@anis/shared';
 import gplay from 'google-play-scraper';
 
 import { ChildModel } from '../child/child.model.js';
+import { ParentModel } from '../parent/parent.model.js';
 import { toAppProfile } from './app.dto.js';
 import { AppModel } from './app.model.js';
 import {
@@ -81,6 +88,34 @@ const registerApp = async (
 
   const appPackage = await resolveAppPackage(packageId);
   const newApp = await AppModel.create({ childId, packageId: appPackage.id });
+
+  const child = await ChildModel.findById(childId)
+    .select('firstName parentId')
+    .lean();
+  if (child) {
+    const parent = await ParentModel.findById(child.parentId)
+      .select('devices')
+      .lean();
+    if (parent && parent.devices.length > 0) {
+      const fcmTokens = parent.devices.map((d) => d.fcmToken);
+      const { staleTokens } = await FCMService.sendMulticastNotification({
+        recipientId: child.parentId.toString(),
+        fcmTokens,
+        title: 'New App Installed',
+        body: `${child.firstName} has installed ${appPackage.title}`,
+        type: NotificationType.APP_INSTALLED,
+        action: FcmAction.SYNC_APP_STATE,
+        payload: { packageId, childId },
+      });
+      if (staleTokens.length > 0) {
+        await FCMService.removeStaleFcmTokens(
+          ParentModel,
+          child.parentId.toString(),
+          staleTokens,
+        );
+      }
+    }
+  }
 
   return toAppProfile(newApp);
 };
@@ -464,6 +499,36 @@ export const updateUsageAppService = async (
             timestamp: new Date().toISOString(),
           },
         });
+      }
+
+      if (limitReached) {
+        const child = await ChildModel.findById(childId)
+          .select('firstName parentId')
+          .lean();
+        if (child) {
+          const parent = await ParentModel.findById(child.parentId)
+            .select('devices')
+            .lean();
+          if (parent && parent.devices.length > 0) {
+            const parentTokens = parent.devices.map((d) => d.fcmToken);
+            const { staleTokens } = await FCMService.sendMulticastNotification({
+              recipientId: child.parentId.toString(),
+              fcmTokens: parentTokens,
+              title: 'App Limit Reached',
+              body: `${child.firstName} has reached their daily limit for this app`,
+              type: NotificationType.LIMIT_REACHED,
+              action: FcmAction.SYNC_APP_STATE,
+              payload: { packageId, childId },
+            });
+            if (staleTokens.length > 0) {
+              await FCMService.removeStaleFcmTokens(
+                ParentModel,
+                child.parentId.toString(),
+                staleTokens,
+              );
+            }
+          }
+        }
       }
 
       await CacheService.setWithTTL(breachLockKey, 'locked', SECONDS_IN_DAY);
