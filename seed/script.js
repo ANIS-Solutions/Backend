@@ -47,7 +47,6 @@ const locations = [
   },
 ];
 
-// 📦 in-memory store
 const output = {
   parents: [],
 };
@@ -128,8 +127,6 @@ async function addLocations(token, childId) {
 
 async function run() {
   for (let i = 0; i < parents.length; i++) {
-    console.log(`👨‍👩‍👧 Creating parent ${i + 1}`);
-
     const { token, user } = await registerParent(parents[i]);
 
     const parentRecord = {
@@ -141,8 +138,6 @@ async function run() {
     const kids = childrenNames[i];
 
     for (const kidName of kids) {
-      console.log(`  👶 Adding child: ${kidName}`);
-
       const child = await createChild(token, kidName);
 
       await pairChild(child);
@@ -159,10 +154,7 @@ async function run() {
     output.parents.push(parentRecord);
   }
 
-  // 💾 write file
   fs.writeFileSync(OUTPUT_FILE, JSON.stringify(output, null, 2));
-
-  console.log(`✅ Data saved to ${OUTPUT_FILE}`);
 }
 
 run().catch((err) => {

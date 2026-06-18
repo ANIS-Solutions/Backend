@@ -40,11 +40,9 @@ pnpm install
 
 # 4. Configure environment
 cp config.env.example config.env
-# -> fill in JWT secrets, email config, DB URIs, etc.
 
 # 5. Start dev server
 pnpm dev
-# -> http://localhost:5000/api/v1
 ```
 
 ## Docker
