@@ -5,7 +5,7 @@
 *.cast
 *.agents
 coverage/
-# Exclude files that sure to share it: 
+tree.log
 !*.env.example
 !README.md
 !.vscode
@@ -37,3 +37,10 @@ QODER.md
 .cursorrules
 .windsurfrules
 uploads/
+docs
+seed/seed-output.json
+docs
+
+
+
+
