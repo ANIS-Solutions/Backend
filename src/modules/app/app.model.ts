@@ -31,12 +31,6 @@ const AppSchema = new mongoose.Schema<IApp>(
     stats: {
       firstInstallAt: { type: Date },
       lastOpenedAt: { type: Date },
-      totalUsage: { type: Number, default: 0 },
-      dailyUsage: {
-        type: Map,
-        of: Number,
-        default: {},
-      },
     },
   },
   {

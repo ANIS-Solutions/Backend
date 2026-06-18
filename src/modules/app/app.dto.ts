@@ -3,6 +3,18 @@ import { Types } from 'mongoose';
 
 import { IApp } from './app.model.js';
 import { IAppCategory, IAppPackage } from './appPackage.model.js';
+import { IAppUsageDocument } from './appUsage.model.js';
+
+export interface IDailyUsageProfile {
+  id: string;
+  childId: string;
+  date: string;
+  totalScreenTimeMinutes: number;
+  apps: {
+    packageName: string;
+    totalAppTimeMinutes: number;
+  }[];
+}
 
 export interface IAppProfileResponse extends IAppBase {
   title?: string;
@@ -55,8 +67,6 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
       stats: {
         firstInstallAt: app.stats.firstInstallAt,
         lastOpenedAt: app.stats.lastOpenedAt,
-        totalUsage: app.stats.totalUsage ?? 0,
-        dailyUsage: app.stats.dailyUsage,
       },
     }),
   };
@@ -77,4 +87,19 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
   }
 
   return response;
+};
+
+export const toDailyUsageProfile = (
+  usage: IAppUsageDocument,
+): IDailyUsageProfile => {
+  return {
+    id: usage._id.toString(),
+    childId: usage.childId.toString(),
+    date: usage.date.toISOString().split('T')[0] ?? '',
+    totalScreenTimeMinutes: usage.totalScreenTimeMinutes,
+    apps: usage.apps.map((app) => ({
+      packageName: app.packageName,
+      totalAppTimeMinutes: app.totalAppTimeMinutes,
+    })),
+  };
 };

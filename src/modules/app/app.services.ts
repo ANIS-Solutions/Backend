@@ -18,17 +18,20 @@ import { AppModel } from './app.model.js';
 import {
   AddAppInput,
   AddBulkAppsInput,
+  AddDailyUsageInput,
   GetAppInput,
   GetAppsInput,
+  GetDailyUsageQuery,
+  PingAppUsageBody,
+  PingAppUsageParams,
   RemoveAppInput,
   SetLimitBodyInput,
   SetLimitParamsInput,
   ToggleBlockBodyInput,
   ToggleBlockParamsInput,
-  UpdateUsageAppBodyInput,
-  UpdateUsageAppParamsInput,
 } from './app.schema.js';
-import { AppPackageModel } from './appPackage.model.js';
+import { AppPackageModel, IAppPackage } from './appPackage.model.js';
+import { AppUsageModel, IAppUsageDocument } from './appUsage.model.js';
 
 export interface BulkAppResult {
   packageId: string;
@@ -39,7 +42,9 @@ export interface BulkAppResult {
 const titleFromPackageId = (packageId: string): string =>
   packageId.split('.').at(-1) ?? packageId;
 
-const resolveAppPackage = async (packageId: string) => {
+const resolveAppPackage = async (
+  packageId: string,
+): Promise<IAppPackage | null> => {
   const existing = await AppPackageModel.findById(packageId);
   if (existing) return existing;
 
@@ -87,7 +92,10 @@ const registerApp = async (
   }
 
   const appPackage = await resolveAppPackage(packageId);
-  const newApp = await AppModel.create({ childId, packageId: appPackage.id });
+  const newApp = await AppModel.create({
+    childId,
+    packageId: appPackage?.id ?? packageId,
+  });
 
   const child = await ChildModel.findById(childId)
     .select('firstName parentId')
@@ -102,7 +110,7 @@ const registerApp = async (
         recipientId: child.parentId.toString(),
         fcmTokens,
         title: 'New App Installed',
-        body: `${child.firstName} has installed ${appPackage.title}`,
+        body: `${child.firstName} has installed ${appPackage?.title ?? titleFromPackageId(packageId)}`,
         type: NotificationType.APP_INSTALLED,
         action: FcmAction.SYNC_APP_STATE,
         payload: { packageId, childId },
@@ -414,9 +422,9 @@ export const getAppsService = async (
 */
 const SECONDS_IN_DAY = 24 * 60 * 60;
 const TTL_48_HOURS = 48 * 60 * 60;
-export const updateUsageAppService = async (
-  reqParams: UpdateUsageAppParamsInput,
-  reqBody: UpdateUsageAppBodyInput,
+export const pingAppUsageService = async (
+  reqParams: PingAppUsageParams,
+  reqBody: PingAppUsageBody,
   reqUser: IJwtPayload,
 ): Promise<{
   packageId: string;
@@ -452,17 +460,15 @@ export const updateUsageAppService = async (
   if (appLimit === null || isBlockedStr === null) {
     const currAppChild = await AppModel.findOne({ childId, packageId }).lean();
     if (!currAppChild) {
-      throw new AppError(
-        `App tracking not configured`,
-        HttpStatusCode.NOT_FOUND,
-      );
+      appLimit = SECONDS_IN_DAY;
+      isBlocked = false;
+    } else {
+      appLimit =
+        currAppChild.settings.dailyLimit > 0
+          ? currAppChild.settings.dailyLimit
+          : SECONDS_IN_DAY;
+      isBlocked = currAppChild.settings.isBlocked ?? false;
     }
-
-    appLimit =
-      currAppChild.settings.dailyLimit > 0
-        ? currAppChild.settings.dailyLimit
-        : SECONDS_IN_DAY;
-    isBlocked = currAppChild.settings.isBlocked ?? false;
     await CacheService.setWithTTL(limitKey, String(appLimit), SECONDS_IN_DAY);
     await CacheService.setWithTTL(blockKey, String(isBlocked), SECONDS_IN_DAY);
   }
@@ -541,4 +547,82 @@ export const updateUsageAppService = async (
     isBlocked,
     remaining,
   };
+};
+
+export const addDailyUsageService = async (
+  childId: string,
+  payload: AddDailyUsageInput,
+): Promise<IAppUsageDocument> => {
+  const dateObj = new Date(payload.date); // Sets to midnight UTC
+
+  let usage = await AppUsageModel.findOne({ childId, date: dateObj });
+
+  if (!usage) {
+    usage = new AppUsageModel({
+      childId,
+      date: dateObj,
+      totalScreenTimeMinutes: payload.totalScreenTimeMinutes,
+      apps: payload.apps,
+    });
+  } else {
+    usage.totalScreenTimeMinutes += payload.totalScreenTimeMinutes;
+
+    for (const incomingApp of payload.apps) {
+      const existingApp = usage.apps.find(
+        (a) => a.packageName === incomingApp.packageName,
+      );
+      if (existingApp) {
+        existingApp.totalAppTimeMinutes += incomingApp.totalAppTimeMinutes;
+      } else {
+        usage.apps.push(incomingApp);
+      }
+    }
+    usage.markModified('apps');
+  }
+
+  await usage.save();
+  return usage;
+};
+
+export const getDailyUsageService = async (
+  childId: string,
+  query: GetDailyUsageQuery,
+): Promise<{
+  data: IAppUsageDocument[];
+  total: number;
+  page: number;
+  limit: number;
+}> => {
+  const limit = query?.limit ?? 30;
+  const page = query?.page ?? 1;
+  const sortDirection = query?.sort === 'asc' ? 1 : -1;
+  const skip = (page - 1) * limit;
+
+  const [data, total] = await Promise.all([
+    AppUsageModel.find({ childId })
+      .sort({ date: sortDirection })
+      .skip(skip)
+      .limit(limit)
+      .lean(),
+    AppUsageModel.countDocuments({ childId }),
+  ]);
+
+  return { data, total, page, limit };
+};
+
+export const getLastWeekUsageService = async (
+  childId: string,
+): Promise<IAppUsageDocument[]> => {
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  sevenDaysAgo.setUTCHours(0, 0, 0, 0);
+
+  const data = await AppUsageModel.find({
+    childId,
+    date: { $gte: sevenDaysAgo },
+  })
+    .sort({ date: 1 })
+    .lean();
+
+  return data;
 };
