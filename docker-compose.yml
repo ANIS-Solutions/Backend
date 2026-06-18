@@ -13,7 +13,7 @@ x-backend-base: &backend-base
     REDIS_HOST: redis
     REDIS_PORT: '6379'
     REDIS_PASSWORD: ${REDIS_PASSWORD}
-    EMBEDDING_SERVICE_URL: 'http://embedding-service:8001'
+    FASTAPI_INTERNAL_URL: 'http://embedding-service:8001'
   networks:
     - anis-prod
   logging: &default-logging
@@ -129,7 +129,7 @@ services:
       SERVICE_NAME: 'embedding-service'
       AUTH_ENABLED: 'true'
       JWT_ALGORITHM: 'HS256'
-      JWT_SECRET: ${EMBEDDING_JWT_SECRET}
+      JWT_SECRET: ${FASTAPI_INTERNAL_JWT_SECRET}
       ORT_THREADS: '2'
       TRANSFORMERS_OFFLINE: '1'
       HF_DATASETS_OFFLINE: '1'

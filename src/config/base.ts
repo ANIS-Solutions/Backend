@@ -49,7 +49,7 @@ const config = {
   REDIS_PASSWORD: process.env.REDIS_PASSWORD?.trim() ?? '',
   JWT_M2M_SECRET: verifyEnvVar('JWT_M2M_SECRET'),
   JWT_M2M_EXPIRES_IN: verifyEnvVar('JWT_M2M_EXPIRES_IN'),
-  EMBEDDING_SERVICE_URL: verifyEnvVar('EMBEDDING_SERVICE_URL'),
+  FASTAPI_INTERNAL_URL: verifyEnvVar('FASTAPI_INTERNAL_URL'),
 };
 
 export default config;

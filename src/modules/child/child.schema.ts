@@ -38,6 +38,12 @@ export const getSingleChildSchema = z.object({
 export type GetMyChildParamsInput = z.infer<
   typeof getSingleChildSchema
 >['params'];
+
+export const deleteChildSchema = getSingleChildSchema;
+export type DeleteChildParamsInput = z.infer<
+  typeof deleteChildSchema
+>['params'];
+
 export const updateChildSchema = z.object({
   params: z.object({
     childId: z.string(),
@@ -65,3 +71,27 @@ export const pairChildSchema = z.object({
   }),
 });
 export type PairChildInput = z.infer<typeof pairChildSchema>['body'];
+
+export const requestRepairChildSchema = z.object({
+  params: z.object({
+    childId: z
+      .string()
+      .regex(
+        objectIdRegex,
+        'Invalid Child ID format. Must be a valid ObjectId.',
+      ),
+  }),
+});
+export type RequestRepairChildParamsInput = z.infer<
+  typeof requestRepairChildSchema
+>['params'];
+
+export const repairChildSchema = z.object({
+  body: z.object({
+    token: z.string('Invalid pairing token format'),
+    deviceId: z.string(),
+    fcmToken: z.string(),
+    deviceName: z.string().optional(),
+  }),
+});
+export type RepairChildInput = z.infer<typeof repairChildSchema>['body'];

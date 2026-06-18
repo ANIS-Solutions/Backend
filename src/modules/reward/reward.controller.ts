@@ -17,6 +17,7 @@ import {
   deleteRewardService,
   getAllRewardService,
   getRewardService,
+  myPointsService,
   redeemRewardService,
   updateRewardService,
 } from './reward.services.js';
@@ -49,6 +50,18 @@ export const getReward = catchAsync(
       HttpStatusCode.CREATED,
       'Reward fetched OK.',
       { data: reward },
+    );
+  },
+);
+
+export const myPoints = catchAsync(
+  async (req: Request<{}>, res: Response, next: NextFunction) => {
+    const points = await myPointsService(req.user!.id);
+    return ApiResponse.success(
+      res,
+      HttpStatusCode.CREATED,
+      'Child points fetched OK.',
+      { data: points },
     );
   },
 );
@@ -106,7 +119,7 @@ export const redeemReward = catchAsync(
     res: Response,
     next: NextFunction,
   ) => {
-    const redeemedReward = await redeemRewardService(req.params);
+    const redeemedReward = await redeemRewardService(req.user!.id, req.params);
     return ApiResponse.success(
       res,
       HttpStatusCode.OK,

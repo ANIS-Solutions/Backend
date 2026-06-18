@@ -5,17 +5,23 @@ import { NextFunction, Request, Response } from 'express';
 
 import {
   CreateChildBodyInput,
+  DeleteChildParamsInput,
   GetMyChildParamsInput,
   PairChildInput,
+  RepairChildInput,
+  RequestRepairChildParamsInput,
   UpdateChildBodyInput,
   UpdateChildParamsInput,
 } from './child.schema.js';
 import {
   addChildService,
+  deleteMyChildService,
   getMeService,
   GetMyChildrenService,
   getMyChildService,
   pairChildService,
+  repairChildService,
+  requestRepairChildService,
   updateMyChildService,
 } from './child.services.js';
 
@@ -101,6 +107,26 @@ export const updateMyChild = catchAsync(
     );
   },
 );
+
+export const deleteMyChild = catchAsync(
+  async (
+    req: Request<DeleteChildParamsInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const parentId = req.user!.id;
+    const childId = req.params.childId;
+
+    await deleteMyChildService(parentId, childId);
+
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'The child data is deleted successfully',
+    );
+  },
+);
+
 export const pairChild = catchAsync(
   async (
     req: Request<{}, {}, PairChildInput>,
@@ -120,6 +146,7 @@ export const pairChild = catchAsync(
     );
   },
 );
+
 export const getMe = catchAsync(async (req: Request, res: Response, next) => {
   const currChild = await getMeService(req.user!.id);
 
@@ -127,3 +154,48 @@ export const getMe = catchAsync(async (req: Request, res: Response, next) => {
     data: currChild,
   });
 });
+
+export const requestRepairChild = catchAsync(
+  async (
+    req: Request<RequestRepairChildParamsInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const { pairingQrCode, pairToken } = await requestRepairChildService(
+      req.user!,
+      req.params,
+    );
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'Repair QR code generated successfully',
+      {
+        qrcode: pairingQrCode,
+        devInfo: {
+          pairToken,
+        },
+      },
+    );
+  },
+);
+
+export const repairChild = catchAsync(
+  async (
+    req: Request<{}, {}, RepairChildInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const repairChildPayload = req.body;
+    const { childData, accessToken } =
+      await repairChildService(repairChildPayload);
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'The child device is re-paired successfully',
+      {
+        data: childData,
+        accessToken,
+      },
+    );
+  },
+);

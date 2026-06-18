@@ -71,7 +71,7 @@ export type GetMyRewardParamsInput = z.infer<
 
 export const redeemRewardSchema = z.object({
   params: z.object({
-    childId: z.string().regex(objectIdRegex),
+    // childId: z.string().regex(objectIdRegex),
     rewardId: z.string().regex(objectIdRegex),
   }),
 });
