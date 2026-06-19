@@ -30,6 +30,8 @@ export interface IParent extends Omit<IParentBase, 'id'>, Document {
   isVerified: boolean;
   refreshToken?: string | undefined;
   passwordChangedAt: Date;
+  googleId?: string;
+  avatar?: string;
   createdAt: Date;
   updatedAt: Date;
   fullName: string;
@@ -48,12 +50,13 @@ const ParentSchema = new Schema<IParent>(
     phone: {
       type: String,
       unique: true,
+      sparse: true,
       index: true,
-      required: true,
+      required: false,
     },
     password: {
       type: String,
-      required: true,
+      required: false,
       select: false,
       private: true,
     },
@@ -83,6 +86,8 @@ const ParentSchema = new Schema<IParent>(
     },
     refreshToken: String,
     passwordChangedAt: { type: Date, default: Date.now },
+    googleId: { type: String, index: true, sparse: true },
+    avatar: { type: String },
 
     isActive: {
       type: Boolean,

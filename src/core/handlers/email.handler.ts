@@ -1,15 +1,14 @@
 import fs from 'fs/promises';
 import path from 'path';
-import { fileURLToPath } from 'url';
 
 import config from '@/config/base';
 import logger from '@/core/utils/logger';
 import { emailReasons, emailTypes } from '@anis/shared';
 import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 const TEMPLATE_DIR = path.join(process.cwd(), 'public', 'emails');
+const RESEND_FROM = 'ANIS Solutions <noreply@anis.solutions>';
 
 type EmailType = emailTypes;
 type IEmailData = Record<string, string | number>;
@@ -20,23 +19,27 @@ export interface IEmailOptions {
 }
 
 class EmailService {
-  private transporter: nodemailer.Transporter;
+  private nodemailerTransporter: nodemailer.Transporter | null = null;
+  private resendClient: Resend | null = null;
 
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      service: config.IS_PROD_ENV ? config.EMAIL_SERVICE : undefined,
-      host: config.IS_PROD_ENV ? config.EMAIL_HOST : config.DEV_EMAIL_HOST,
-      port: config.IS_PROD_ENV ? config.EMAIL_PORT : config.DEV_EMAIL_PORT,
-      secure: config.IS_PROD_ENV,
-      auth: {
-        user: config.IS_PROD_ENV ? config.EMAIL_USER : config.DEV_EMAIL_USER,
-        pass: config.IS_PROD_ENV
-          ? config.EMAIL_PASSWORD
-          : config.DEV_EMAIL_PASSWORD,
-      },
-      pool: true,
-      maxConnections: 5,
-    });
+    if (!config.IS_PROD_ENV) {
+      this.resendClient = new Resend(config.RESEND_API);
+      logger.info('[EmailService] Using Resend provider (production).');
+    } else {
+      this.nodemailerTransporter = nodemailer.createTransport({
+        host: config.DEV_EMAIL_HOST,
+        port: config.DEV_EMAIL_PORT,
+        secure: false,
+        auth: {
+          user: config.DEV_EMAIL_USER,
+          pass: config.DEV_EMAIL_PASSWORD,
+        },
+        pool: true,
+        maxConnections: 5,
+      });
+      logger.info('[EmailService] Using Nodemailer provider (development).');
+    }
   }
 
   private getSubject(template: EmailType): string {
@@ -46,6 +49,7 @@ class EmailService {
     else if (template === 'REACTIVATE') return 'Welcome to ANIS Solutions!';
     return 'Notification from ANIS';
   }
+
   private async loadTemplate(
     templateName: EmailType,
     data: IEmailData,
@@ -81,23 +85,55 @@ class EmailService {
     }
   }
 
+  private async sendViaResend(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<void> {
+    if (!this.resendClient) throw new Error('Resend client not initialized.');
+
+    const { error } = await this.resendClient.emails.send({
+      from: RESEND_FROM,
+      to: [to],
+      subject,
+      html,
+    });
+
+    if (error) {
+      throw new Error(`Resend error: ${error.message}`);
+    }
+  }
+
+  private async sendViaNodemailer(
+    to: string,
+    subject: string,
+    html: string,
+  ): Promise<void> {
+    if (!this.nodemailerTransporter)
+      throw new Error('Nodemailer transporter not initialized.');
+
+    await this.nodemailerTransporter.sendMail({
+      from: `"ANIS Solutions" <${config.DEV_EMAIL_USER}>`,
+      to,
+      subject,
+      html,
+      text: 'placeholder text',
+    });
+  }
+
   public async send(options: IEmailOptions): Promise<void> {
     const { to, type, data } = options;
     try {
       const html = await this.loadTemplate(type, data as unknown as IEmailData);
       const subject = this.getSubject(type);
-      const sender = config.IS_PROD_ENV
-        ? config.EMAIL_USER
-        : config.DEV_EMAIL_USER;
-      const mailOptions = {
-        from: `"ANIS Solutions" <${sender}>`,
-        to,
-        subject,
-        html,
-        text: 'placeholder text',
-      };
-      await this.transporter.sendMail(mailOptions);
-      logger.info(`Email sent to ${options.to} [${options.type.toString()}]`);
+
+      if (!config.IS_PROD_ENV) {
+        await this.sendViaResend(to, subject, html);
+      } else {
+        await this.sendViaNodemailer(to, subject, html);
+      }
+
+      logger.info(`Email sent to ${to} [${type.toString()}]`);
     } catch (error) {
       logger.error('Email Send Error:', error);
     }

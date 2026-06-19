@@ -7,12 +7,12 @@ import { IAppUsageDocument } from './appUsage.model.js';
 
 export interface IDailyUsageProfile {
   id: string;
-  childId: string;
   date: string;
   totalScreenTimeMinutes: number;
   apps: {
     packageName: string;
     totalAppTimeMinutes: number;
+    iconUrl: string | null;
   }[];
 }
 
@@ -91,15 +91,16 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
 
 export const toDailyUsageProfile = (
   usage: IAppUsageDocument,
+  iconUrlMap: Map<string, string | null>,
 ): IDailyUsageProfile => {
   return {
     id: usage._id.toString(),
-    childId: usage.childId.toString(),
     date: usage.date.toISOString().split('T')[0] ?? '',
     totalScreenTimeMinutes: usage.totalScreenTimeMinutes,
     apps: usage.apps.map((app) => ({
       packageName: app.packageName,
       totalAppTimeMinutes: app.totalAppTimeMinutes,
+      iconUrl: iconUrlMap.get(app.packageName) ?? null,
     })),
   };
 };

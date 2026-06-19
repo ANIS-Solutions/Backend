@@ -17,10 +17,12 @@ import {
   HttpStatusCode,
   UserRoles,
 } from '@anis/shared';
+import { OAuth2Client } from 'google-auth-library';
 import { JwtPayload } from 'jsonwebtoken';
 
 import {
   FCMTokenInput,
+  GoogleAuthInput,
   LoginBodyInput,
   OTPBodyInput,
   RegisterBodyInput,
@@ -307,4 +309,81 @@ export const upsertFcmTokenService = async (
       },
     });
   }
+};
+
+const googleAuthClient = new OAuth2Client(config.GOOGLE_CLIENT_ID);
+
+export const googleAuthService = async (
+  body: GoogleAuthInput,
+): Promise<{
+  accessToken: string;
+  refreshToken: string;
+  isNewUser: boolean;
+}> => {
+  // 1. Verify the ID token with Google
+  const ticket = await googleAuthClient
+    .verifyIdToken({
+      idToken: body.idToken,
+      audience: config.GOOGLE_CLIENT_ID,
+    })
+    .catch(() => {
+      throw new AppError(
+        'Invalid Google ID token.',
+        HttpStatusCode.UNAUTHORIZED,
+      );
+    });
+
+  const payload = ticket.getPayload();
+  if (!payload?.email) {
+    throw new AppError(
+      'Google token missing email claim.',
+      HttpStatusCode.BAD_REQUEST,
+    );
+  }
+
+  const { sub: googleId, email, given_name, family_name, picture } = payload;
+
+  // 2. Find by googleId first, then by email (account linking)
+  let parent = await ParentModel.findOne({ $or: [{ googleId }, { email }] });
+  let isNewUser = false;
+
+  if (!parent) {
+    // 3a. New user — create account (no phone, no password for OAuth users)
+    isNewUser = true;
+    const firstName = given_name ?? email.split('@')[0] ?? 'User';
+    const lastName = family_name ?? '';
+    parent = await ParentModel.create({
+      email,
+      googleId,
+      firstName,
+      lastName,
+      ...(picture && { avatar: picture }),
+      birthDate: new Date('2000-01-01'), // placeholder — can be updated later
+      isVerified: true,
+      isActive: true,
+    });
+  } else {
+    if (!parent.isActive) {
+      throw new AppError(
+        'This account is deactivated.',
+        HttpStatusCode.BAD_REQUEST,
+      );
+    }
+    // if (!parent.googleId) {
+    parent.googleId ??= googleId;
+    // }
+    if (picture && !parent.avatar) {
+      parent.avatar = picture;
+    }
+    await parent.save({ validateBeforeSave: false });
+  }
+
+  // 4. Issue tokens
+  const accessToken = genAccessToken(parent);
+  const refreshToken = genRefreshToken(parent);
+  logger.debug(accessToken);
+  parent.refreshToken = refreshToken;
+  await parent.save({ validateBeforeSave: false });
+
+  return { accessToken, refreshToken, isNewUser };
 };

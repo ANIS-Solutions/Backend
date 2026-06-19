@@ -23,6 +23,7 @@ import {
 import {
   addAppService,
   addDailyUsageService,
+  buildIconUrlMapForUsage,
   getAppService,
   getAppsService,
   getDailyUsageService,
@@ -173,8 +174,9 @@ export const addDailyUsage = catchAsync(
   async (req: Request<unknown, unknown, AddDailyUsageInput>, res: Response) => {
     const childId = req.user!.id; // Authenticated child app
     const result = await addDailyUsageService(childId, req.body);
+    const iconUrlMap = await buildIconUrlMapForUsage([result]);
     ApiResponse.success(res, HttpStatusCode.OK, 'Daily usage saved', {
-      data: toDailyUsageProfile(result),
+      data: toDailyUsageProfile(result, iconUrlMap),
     });
   },
 );
@@ -187,16 +189,22 @@ export const getDailyUsage = catchAsync(
     const childId = req.params.childId;
     const result = await getDailyUsageService(childId, req.query);
 
-    // Map DTO
-    const mappedData = result.data.map((usage: IAppUsageDocument) =>
-      toDailyUsageProfile(usage),
+    const items = result.data.map((usage: IAppUsageDocument) =>
+      toDailyUsageProfile(usage, result.iconUrlMap),
     );
 
     ApiResponse.success(
       res,
       HttpStatusCode.OK,
       'Daily usage fetched successfully',
-      { data: { ...result, data: mappedData } },
+      {
+        data: {
+          items,
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
+      },
     );
   },
 );
@@ -207,10 +215,10 @@ export const getLastWeekUsage = catchAsync(
     res: Response,
   ) => {
     const childId = req.params.childId;
-    const result = await getLastWeekUsageService(childId);
+    const { data, iconUrlMap } = await getLastWeekUsageService(childId);
 
-    const mappedData = result.map((usage: IAppUsageDocument) =>
-      toDailyUsageProfile(usage),
+    const mappedData = data.map((usage: IAppUsageDocument) =>
+      toDailyUsageProfile(usage, iconUrlMap),
     );
 
     ApiResponse.success(

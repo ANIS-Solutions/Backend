@@ -74,8 +74,7 @@ export type PingAppUsageBody = z.infer<typeof pingAppUsageSchema>['body'];
 
 export const addDailyUsageSchema = z.object({
   body: z.object({
-    date: z.coerce.date(),
-    // date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
     totalScreenTimeMinutes: z.number().min(0),
     apps: z.array(
       z.object({

@@ -9,6 +9,7 @@ const WEB_ORIGINS: ReadonlySet<string> = new Set(
     'http://localhost:3000',
     'http://localhost:5173',
     'https://anis-backend.apidog.io',
+    'http://127.0.0.1:5500',
   ].filter(Boolean),
 );
 

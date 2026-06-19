@@ -553,21 +553,39 @@ export const addDailyUsageService = async (
   childId: string,
   payload: AddDailyUsageInput,
 ): Promise<IAppUsageDocument> => {
-  const dateObj = new Date(payload.date); // Sets to midnight UTC
+  // Normalize to exact midnight UTC so findOne always hits the same key
+  const [year, month, day] = payload.date.split('-').map(Number);
+  const dateObj = new Date(Date.UTC(year!, month! - 1, day));
 
   let usage = await AppUsageModel.findOne({ childId, date: dateObj });
+
+  const consolidatedApps = new Map<string, number>();
+  for (const app of payload.apps) {
+    consolidatedApps.set(
+      app.packageName,
+      (consolidatedApps.get(app.packageName) ?? 0) + app.totalAppTimeMinutes,
+    );
+  }
+
+  const uniqueApps = Array.from(
+    consolidatedApps,
+    ([packageName, totalAppTimeMinutes]) => ({
+      packageName,
+      totalAppTimeMinutes,
+    }),
+  );
 
   if (!usage) {
     usage = new AppUsageModel({
       childId,
       date: dateObj,
       totalScreenTimeMinutes: payload.totalScreenTimeMinutes,
-      apps: payload.apps,
+      apps: uniqueApps,
     });
   } else {
     usage.totalScreenTimeMinutes += payload.totalScreenTimeMinutes;
 
-    for (const incomingApp of payload.apps) {
+    for (const incomingApp of uniqueApps) {
       const existingApp = usage.apps.find(
         (a) => a.packageName === incomingApp.packageName,
       );
@@ -584,11 +602,32 @@ export const addDailyUsageService = async (
   return usage;
 };
 
+/**
+ * Single batch query to AppPackageModel — returns a Map<packageName, iconUrl>.
+ * Always use this instead of per-record lookups to avoid N+1 queries.
+ */
+export const buildIconUrlMapForUsage = async (
+  usages: IAppUsageDocument[],
+): Promise<Map<string, string | null>> => {
+  const packageNames = [
+    ...new Set(usages.flatMap((u) => u.apps.map((a) => a.packageName))),
+  ];
+  if (packageNames.length === 0) return new Map();
+
+  const packages = await AppPackageModel.find(
+    { _id: { $in: packageNames } },
+    { _id: 1, iconUrl: 1 },
+  ).lean();
+
+  return new Map(packages.map((p) => [p._id, p.iconUrl]));
+};
+
 export const getDailyUsageService = async (
   childId: string,
   query: GetDailyUsageQuery,
 ): Promise<{
   data: IAppUsageDocument[];
+  iconUrlMap: Map<string, string | null>;
   total: number;
   page: number;
   limit: number;
@@ -607,12 +646,16 @@ export const getDailyUsageService = async (
     AppUsageModel.countDocuments({ childId }),
   ]);
 
-  return { data, total, page, limit };
+  const iconUrlMap = await buildIconUrlMapForUsage(data);
+  return { data, iconUrlMap, total, page, limit };
 };
 
 export const getLastWeekUsageService = async (
   childId: string,
-): Promise<IAppUsageDocument[]> => {
+): Promise<{
+  data: IAppUsageDocument[];
+  iconUrlMap: Map<string, string | null>;
+}> => {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   sevenDaysAgo.setUTCHours(0, 0, 0, 0);
@@ -624,5 +667,6 @@ export const getLastWeekUsageService = async (
     .sort({ date: 1 })
     .lean();
 
-  return data;
+  const iconUrlMap = await buildIconUrlMapForUsage(data);
+  return { data, iconUrlMap };
 };
