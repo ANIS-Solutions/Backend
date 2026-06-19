@@ -2,6 +2,7 @@ import { IAppBase } from '@anis/shared';
 import { Types } from 'mongoose';
 
 import { IApp } from './app.model.js';
+import { AppMeta } from './app.services.js';
 import { IAppCategory, IAppPackage } from './appPackage.model.js';
 import { IAppUsageDocument } from './appUsage.model.js';
 
@@ -11,6 +12,7 @@ export interface IDailyUsageProfile {
   totalScreenTimeMinutes: number;
   apps: {
     packageName: string;
+    appName: string | null;
     totalAppTimeMinutes: number;
     iconUrl: string | null;
   }[];
@@ -91,16 +93,20 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
 
 export const toDailyUsageProfile = (
   usage: IAppUsageDocument,
-  iconUrlMap: Map<string, string | null>,
+  appMetaMap: Map<string, AppMeta>,
 ): IDailyUsageProfile => {
   return {
     id: usage._id.toString(),
     date: usage.date.toISOString().split('T')[0] ?? '',
     totalScreenTimeMinutes: usage.totalScreenTimeMinutes,
-    apps: usage.apps.map((app) => ({
-      packageName: app.packageName,
-      totalAppTimeMinutes: app.totalAppTimeMinutes,
-      iconUrl: iconUrlMap.get(app.packageName) ?? null,
-    })),
+    apps: usage.apps.map((app) => {
+      const meta = appMetaMap.get(app.packageName);
+      return {
+        packageName: app.packageName,
+        appName: meta?.title ?? null,
+        totalAppTimeMinutes: app.totalAppTimeMinutes,
+        iconUrl: meta?.iconUrl ?? null,
+      };
+    }),
   };
 };

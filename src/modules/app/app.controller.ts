@@ -174,9 +174,9 @@ export const addDailyUsage = catchAsync(
   async (req: Request<unknown, unknown, AddDailyUsageInput>, res: Response) => {
     const childId = req.user!.id; // Authenticated child app
     const result = await addDailyUsageService(childId, req.body);
-    const iconUrlMap = await buildIconUrlMapForUsage([result]);
+    const appMetaMap = await buildIconUrlMapForUsage([result]);
     ApiResponse.success(res, HttpStatusCode.OK, 'Daily usage saved', {
-      data: toDailyUsageProfile(result, iconUrlMap),
+      data: toDailyUsageProfile(result, appMetaMap),
     });
   },
 );
@@ -190,7 +190,7 @@ export const getDailyUsage = catchAsync(
     const result = await getDailyUsageService(childId, req.query);
 
     const items = result.data.map((usage: IAppUsageDocument) =>
-      toDailyUsageProfile(usage, result.iconUrlMap),
+      toDailyUsageProfile(usage, result.appMetaMap),
     );
 
     ApiResponse.success(
@@ -215,10 +215,10 @@ export const getLastWeekUsage = catchAsync(
     res: Response,
   ) => {
     const childId = req.params.childId;
-    const { data, iconUrlMap } = await getLastWeekUsageService(childId);
+    const { data, appMetaMap } = await getLastWeekUsageService(childId);
 
     const mappedData = data.map((usage: IAppUsageDocument) =>
-      toDailyUsageProfile(usage, iconUrlMap),
+      toDailyUsageProfile(usage, appMetaMap),
     );
 
     ApiResponse.success(

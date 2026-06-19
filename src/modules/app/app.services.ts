@@ -606,9 +606,14 @@ export const addDailyUsageService = async (
  * Single batch query to AppPackageModel — returns a Map<packageName, iconUrl>.
  * Always use this instead of per-record lookups to avoid N+1 queries.
  */
+export interface AppMeta {
+  iconUrl: string | null;
+  title: string | null;
+}
+
 export const buildIconUrlMapForUsage = async (
   usages: IAppUsageDocument[],
-): Promise<Map<string, string | null>> => {
+): Promise<Map<string, AppMeta>> => {
   const packageNames = [
     ...new Set(usages.flatMap((u) => u.apps.map((a) => a.packageName))),
   ];
@@ -616,10 +621,15 @@ export const buildIconUrlMapForUsage = async (
 
   const packages = await AppPackageModel.find(
     { _id: { $in: packageNames } },
-    { _id: 1, iconUrl: 1 },
+    { _id: 1, iconUrl: 1, title: 1 },
   ).lean();
 
-  return new Map(packages.map((p) => [p._id, p.iconUrl]));
+  return new Map(
+    packages.map((p) => [
+      p._id,
+      { iconUrl: p.iconUrl, title: p.title ?? null },
+    ]),
+  );
 };
 
 export const getDailyUsageService = async (
@@ -627,7 +637,7 @@ export const getDailyUsageService = async (
   query: GetDailyUsageQuery,
 ): Promise<{
   data: IAppUsageDocument[];
-  iconUrlMap: Map<string, string | null>;
+  appMetaMap: Map<string, AppMeta>;
   total: number;
   page: number;
   limit: number;
@@ -646,15 +656,15 @@ export const getDailyUsageService = async (
     AppUsageModel.countDocuments({ childId }),
   ]);
 
-  const iconUrlMap = await buildIconUrlMapForUsage(data);
-  return { data, iconUrlMap, total, page, limit };
+  const appMetaMap = await buildIconUrlMapForUsage(data);
+  return { data, appMetaMap, total, page, limit };
 };
 
 export const getLastWeekUsageService = async (
   childId: string,
 ): Promise<{
   data: IAppUsageDocument[];
-  iconUrlMap: Map<string, string | null>;
+  appMetaMap: Map<string, AppMeta>;
 }> => {
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
@@ -667,6 +677,6 @@ export const getLastWeekUsageService = async (
     .sort({ date: 1 })
     .lean();
 
-  const iconUrlMap = await buildIconUrlMapForUsage(data);
-  return { data, iconUrlMap };
+  const appMetaMap = await buildIconUrlMapForUsage(data);
+  return { data, appMetaMap };
 };
