@@ -8,6 +8,7 @@ import { NextFunction, Request, Response } from 'express';
 import {
   FCMTokenInput,
   ForgetPasswordBodyInput,
+  GoogleAuthInput,
   LoginBodyInput,
   OTPBodyInput,
   RegisterBodyInput,
@@ -18,6 +19,7 @@ import {
 import {
   forgetPasswordService,
   generateOTPService,
+  googleAuthService,
   loginService,
   logoutService,
   refreshTokenService,
@@ -238,6 +240,37 @@ export const upsertFcmToken = catchAsync(
       res,
       HttpStatusCode.OK,
       'FCM token added successfully!',
+    );
+  },
+);
+
+/**
+ * Google OAuth Authentication (Sign-in / Sign-up)
+ * @auth none
+ * @route {POST} /auth/google
+ * @bodyparam idToken — Google ID token from the client SDK
+ * @returns accessToken, refreshToken (cookie), isNewUser flag
+ */
+export const googleAuth = catchAsync(
+  async (
+    req: Request<{}, {}, GoogleAuthInput>,
+    res: Response,
+    next: NextFunction,
+  ): Promise<Response | void> => {
+    const { accessToken, refreshToken, isNewUser } = await googleAuthService(
+      req.body,
+    );
+    res.cookie('refreshToken', refreshToken, {
+      httpOnly: true,
+      secure: config.IS_PROD_ENV,
+      sameSite: true,
+      maxAge: 7 * 24 * 60 * 60_000,
+    });
+    ApiResponse.success(
+      res,
+      isNewUser ? HttpStatusCode.CREATED : HttpStatusCode.OK,
+      isNewUser ? 'Account created with Google' : 'Signed in with Google',
+      { accessToken },
     );
   },
 );

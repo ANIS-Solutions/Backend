@@ -4,10 +4,7 @@ import logger from '@/core/utils/logger';
 import { childSessionModel } from '@/modules/childSessions/childSessions.model';
 import { HttpStatusCode, type IActivityEntry } from '@anis/shared';
 
-import {
-  ChildReportModel,
-  type IChildReportDocument,
-} from './childReports.model.js';
+import { ChildReportModel } from './childReports.model.js';
 
 interface ChildReportLean {
   _id: string;

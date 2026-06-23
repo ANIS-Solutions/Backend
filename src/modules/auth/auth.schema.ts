@@ -109,3 +109,10 @@ export const fcmTokenSchema = z.object({
   }),
 });
 export type FCMTokenInput = z.infer<typeof fcmTokenSchema>['body'];
+
+export const googleAuthSchema = z.object({
+  body: z.object({
+    idToken: z.string().min(1, 'Google ID token is required'),
+  }),
+});
+export type GoogleAuthInput = z.infer<typeof googleAuthSchema>['body'];

@@ -1,4 +1,3 @@
-import logger from '@/core/utils/logger';
 import dotenv from 'dotenv';
 
 dotenv.config({ path: './config.env' });
@@ -50,6 +49,8 @@ const config = {
   JWT_M2M_SECRET: verifyEnvVar('JWT_M2M_SECRET'),
   JWT_M2M_EXPIRES_IN: verifyEnvVar('JWT_M2M_EXPIRES_IN'),
   FASTAPI_INTERNAL_URL: verifyEnvVar('FASTAPI_INTERNAL_URL'),
+  RESEND_API: verifyEnvVar('RESEND_API'),
+  GOOGLE_CLIENT_ID: verifyEnvVar('GOOGLE_CLIENT_ID'),
 };
 
 export default config;

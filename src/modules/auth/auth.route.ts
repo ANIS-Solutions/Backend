@@ -6,6 +6,7 @@ import bindRoute from '@/core/utils/routeBounder';
 import {
   fcmTokenSchema,
   forgetPasswordSchema,
+  googleAuthSchema,
   loginSchema,
   OTPSchema,
   registerSchema,
@@ -18,6 +19,7 @@ import { Router } from 'express';
 import {
   forget_password,
   generate_otp,
+  googleAuth,
   login,
   logout,
   refresh_token,
@@ -39,6 +41,7 @@ const {
   LOGOUT,
   REFRESH_TOKEN,
   FCM_TOKEN,
+  GOOGLE_AUTH,
 } = API.AUTH.ROUTES;
 
 // ─── PUBLIC ROUTES ────────────────────────────────────────────────────────
@@ -47,6 +50,7 @@ bindRoute(authRouter, LOGIN, login, loginSchema);
 bindRoute(authRouter, FORGET_PASSWORD, forget_password, forgetPasswordSchema);
 bindRoute(authRouter, RESET_PASSWORD, reset_password, resetPasswordSchema);
 bindRoute(authRouter, REFRESH_TOKEN, refresh_token);
+bindRoute(authRouter, GOOGLE_AUTH, googleAuth, googleAuthSchema);
 
 // ─── RATE-LIMITED ROUTES ──────────────────────────────────────────────────
 bindRoute(authRouter, GENERATE_OTP, generate_otp, OTPSchema, {

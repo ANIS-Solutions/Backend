@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Google Auth Test</title>
+  <script src="https://accounts.google.com/gsi/client" async></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      max-width: 600px;
+      margin: 60px auto;
+      padding: 0 20px;
+      background: #f0f2f5;
+    }
+    h2 { color: #1a1a2e; }
+    #result {
+      margin-top: 20px;
+      padding: 16px;
+      background: #fff;
+      border-radius: 8px;
+      border: 1px solid #ddd;
+      word-break: break-all;
+      white-space: pre-wrap;
+      font-size: 13px;
+    }
+    .label { font-weight: bold; color: #555; margin-top: 12px; }
+    button {
+      margin-top: 16px;
+      padding: 10px 20px;
+      background: #4285f4;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    button:hover { background: #3367d6; }
+    input {
+      width: 100%;
+      padding: 8px;
+      margin-top: 8px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+  <h2>Google Auth Test Tool</h2>
+
+  <div class="label">1. Your Google Client ID:</div>
+  <input id="clientId" type="text" placeholder="Paste your GOOGLE_CLIENT_ID here" />
+
+  <div class="label">2. Backend URL:</div>
+  <input id="backendUrl" type="text" value="http://localhost:3000/api/v1/auth/google" />
+
+  <br />
+  <button onclick="initGoogle()">Initialize Google Sign-In</button>
+
+  <div id="g_id_signin" style="margin-top: 20px;"></div>
+
+  <div id="result">Click "Initialize" then sign in with Google to test.</div>
+
+  <script>
+    let initialized = false;
+
+    function initGoogle() {
+      const clientId = document.getElementById('clientId').value.trim();
+      if (!clientId) {
+        document.getElementById('result').textContent = '❌ Please enter your GOOGLE_CLIENT_ID first.';
+        return;
+      }
+
+      if (initialized) {
+        document.getElementById('result').textContent = 'Already initialized. Click the Google Sign-In button below.';
+        return;
+      }
+
+      google.accounts.id.initialize({
+        client_id: clientId,
+        callback: handleCredentialResponse,
+      });
+
+      google.accounts.id.renderButton(
+        document.getElementById('g_id_signin'),
+        { theme: 'outline', size: 'large', text: 'sign_in_with' }
+      );
+
+      initialized = true;
+      document.getElementById('result').textContent = '✅ Initialized. Click the Google button above to sign in.';
+    }
+
+    async function handleCredentialResponse(response) {
+      const idToken = response.credential;
+      const backendUrl = document.getElementById('backendUrl').value.trim();
+
+      document.getElementById('result').textContent = `⏳ Sending ID token to ${backendUrl}...\n\nID Token (first 60 chars):\n${idToken.substring(0, 60)}...`;
+
+      try {
+        const res = await fetch(backendUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ idToken }),
+        });
+
+        const data = await res.json();
+        document.getElementById('result').textContent =
+          `HTTP ${res.status}\n\n` + JSON.stringify(data, null, 2);
+      } catch (err) {
+        document.getElementById('result').textContent = `❌ Request failed:\n${err.message}\n\n(Make sure backend is running and CORS allows localhost)`;
+      }
+    }
+  </script>
+</body>
+</html>

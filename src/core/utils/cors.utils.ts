@@ -9,6 +9,7 @@ const WEB_ORIGINS: ReadonlySet<string> = new Set(
     'http://localhost:3000',
     'http://localhost:5173',
     'https://anis-backend.apidog.io',
+    'http://127.0.0.1:5500',
   ].filter(Boolean),
 );
 
@@ -64,7 +65,6 @@ export const corsOptions: CorsOptions = {
     'X-Client-Type',
   ],
 
-  // Expose these response headers to browser JS (mobile clients ignore this).
   exposedHeaders: ['X-Request-Id'],
 
   // Send credentials (cookies / Authorization) cross-origin for web clients.
@@ -72,7 +72,6 @@ export const corsOptions: CorsOptions = {
   // setting has no effect on them.
   credentials: true,
 
-  // Cache preflight for 10 minutes — reduces OPTIONS round-trips on web.
   maxAge: 600,
 };
 

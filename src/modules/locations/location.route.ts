@@ -1,4 +1,3 @@
-import { verifyChildOwnership } from '@/core/middleware/isParent.middleware';
 import bindRoute from '@/core/utils/routeBounder';
 import {
   addLocation,

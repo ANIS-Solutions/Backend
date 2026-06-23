@@ -3,29 +3,38 @@ import { catchAsync } from '@/core/utils/catchAsync';
 import { HttpStatusCode } from '@anis/shared';
 import { NextFunction, Request, Response } from 'express';
 
+import { toDailyUsageProfile } from './app.dto.js';
 import {
   AddAppInput,
   AddBulkAppsInput,
+  AddDailyUsageInput,
   GetAppInput,
   GetAppsInput,
+  GetDailyUsageParams,
+  GetDailyUsageQuery,
+  PingAppUsageBody,
+  PingAppUsageParams,
   RemoveAppInput,
   SetLimitBodyInput,
   SetLimitParamsInput,
   ToggleBlockBodyInput,
   ToggleBlockParamsInput,
-  UpdateUsageAppBodyInput,
-  UpdateUsageAppParamsInput,
 } from './app.schema.js';
 import {
   addAppService,
+  addDailyUsageService,
+  buildIconUrlMapForUsage,
   getAppService,
   getAppsService,
+  getDailyUsageService,
+  getLastWeekUsageService,
   limitAppService,
+  pingAppUsageService,
   removeAppService,
   syncAppsService,
   toggleBlockAppService,
-  updateUsageAppService,
 } from './app.services.js';
+import { IAppUsageDocument } from './appUsage.model.js';
 
 export const addApp = catchAsync(
   async (
@@ -140,14 +149,14 @@ export const getApps = catchAsync(
   },
 );
 
-export const updateChildUsage = catchAsync(
+export const pingChildAppUsage = catchAsync(
   async (
-    req: Request<UpdateUsageAppParamsInput, {}, UpdateUsageAppBodyInput>,
+    req: Request<PingAppUsageParams, {}, PingAppUsageBody>,
     res: Response,
     next: NextFunction,
   ) => {
     const { packageId, limitReached, isBlocked, remaining } =
-      await updateUsageAppService(req.params, req.body, req.user!);
+      await pingAppUsageService(req.params, req.body, req.user!);
     return res.status(HttpStatusCode.OK).json({
       success: true,
       message: `The app with packageId ${packageId}, ${
@@ -158,5 +167,65 @@ export const updateChildUsage = catchAsync(
             : 'has ' + remaining + ' seconds'
       }.`,
     });
+  },
+);
+
+export const addDailyUsage = catchAsync(
+  async (req: Request<unknown, unknown, AddDailyUsageInput>, res: Response) => {
+    const childId = req.user!.id; // Authenticated child app
+    const result = await addDailyUsageService(childId, req.body);
+    const appMetaMap = await buildIconUrlMapForUsage([result]);
+    ApiResponse.success(res, HttpStatusCode.OK, 'Daily usage saved', {
+      data: toDailyUsageProfile(result, appMetaMap),
+    });
+  },
+);
+
+export const getDailyUsage = catchAsync(
+  async (
+    req: Request<GetDailyUsageParams, unknown, unknown, GetDailyUsageQuery>,
+    res: Response,
+  ) => {
+    const childId = req.params.childId;
+    const result = await getDailyUsageService(childId, req.query);
+
+    const items = result.data.map((usage: IAppUsageDocument) =>
+      toDailyUsageProfile(usage, result.appMetaMap),
+    );
+
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'Daily usage fetched successfully',
+      {
+        data: {
+          items,
+          total: result.total,
+          page: result.page,
+          limit: result.limit,
+        },
+      },
+    );
+  },
+);
+
+export const getLastWeekUsage = catchAsync(
+  async (
+    req: Request<GetDailyUsageParams, unknown, unknown, unknown>,
+    res: Response,
+  ) => {
+    const childId = req.params.childId;
+    const { data, appMetaMap } = await getLastWeekUsageService(childId);
+
+    const mappedData = data.map((usage: IAppUsageDocument) =>
+      toDailyUsageProfile(usage, appMetaMap),
+    );
+
+    ApiResponse.success(
+      res,
+      HttpStatusCode.OK,
+      'Last week usage fetched successfully',
+      { data: mappedData },
+    );
   },
 );

@@ -1,4 +1,5 @@
 import dbConnect from '@/config/db';
+import { initFirebase } from '@/config/firebase';
 import logger from '@/core/utils/logger';
 import { setupEmailWorker } from '@/modules/email/email.worker';
 import { Worker } from 'bullmq';
@@ -13,6 +14,8 @@ async function bootstrapWorkers(): Promise<void> {
   logger.info('[WORKER] Connecting to MongoDB...');
   await dbConnect();
   logger.info('[WORKER] MongoDB connected.');
+  initFirebase();
+  logger.info('[WORKER] Firebase initialized.');
   logger.info('[WORKER] Starting Background Workers...');
 
   const emailWorker = setupEmailWorker();

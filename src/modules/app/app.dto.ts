@@ -2,7 +2,21 @@ import { IAppBase } from '@anis/shared';
 import { Types } from 'mongoose';
 
 import { IApp } from './app.model.js';
+import { AppMeta } from './app.services.js';
 import { IAppCategory, IAppPackage } from './appPackage.model.js';
+import { IAppUsageDocument } from './appUsage.model.js';
+
+export interface IDailyUsageProfile {
+  id: string;
+  date: string;
+  totalScreenTimeMinutes: number;
+  apps: {
+    packageName: string;
+    appName: string | null;
+    totalAppTimeMinutes: number;
+    iconUrl: string | null;
+  }[];
+}
 
 export interface IAppProfileResponse extends IAppBase {
   title?: string;
@@ -55,8 +69,6 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
       stats: {
         firstInstallAt: app.stats.firstInstallAt,
         lastOpenedAt: app.stats.lastOpenedAt,
-        totalUsage: app.stats.totalUsage ?? 0,
-        dailyUsage: app.stats.dailyUsage,
       },
     }),
   };
@@ -77,4 +89,24 @@ export const toAppProfile = (app: IApp | LeanApp): IAppProfileResponse => {
   }
 
   return response;
+};
+
+export const toDailyUsageProfile = (
+  usage: IAppUsageDocument,
+  appMetaMap: Map<string, AppMeta>,
+): IDailyUsageProfile => {
+  return {
+    id: usage._id.toString(),
+    date: usage.date.toISOString().split('T')[0] ?? '',
+    totalScreenTimeMinutes: usage.totalScreenTimeMinutes,
+    apps: usage.apps.map((app) => {
+      const meta = appMetaMap.get(app.packageName);
+      return {
+        packageName: app.packageName,
+        appName: meta?.title ?? null,
+        totalAppTimeMinutes: app.totalAppTimeMinutes,
+        iconUrl: meta?.iconUrl ?? null,
+      };
+    }),
+  };
 };

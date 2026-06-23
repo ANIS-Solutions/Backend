@@ -54,7 +54,7 @@ export const getAppsSchema = z.object({
 
 export type GetAppsInput = z.infer<typeof getAppsSchema>['params'];
 
-export const updateUsageAppSchema = z.object({
+export const pingAppUsageSchema = z.object({
   params: paramsSchema.omit({ childId: true }),
   body: z.object({
     duration: z.number(),
@@ -69,9 +69,36 @@ export const updateUsageAppSchema = z.object({
   }),
 });
 
-export type UpdateUsageAppParamsInput = z.infer<
-  typeof updateUsageAppSchema
->['params'];
-export type UpdateUsageAppBodyInput = z.infer<
-  typeof updateUsageAppSchema
->['body'];
+export type PingAppUsageParams = z.infer<typeof pingAppUsageSchema>['params'];
+export type PingAppUsageBody = z.infer<typeof pingAppUsageSchema>['body'];
+
+export const addDailyUsageSchema = z.object({
+  body: z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Must be YYYY-MM-DD format'),
+    totalScreenTimeMinutes: z.number().min(0),
+    apps: z.array(
+      z.object({
+        packageName: z.string(),
+        totalAppTimeMinutes: z.number().min(0),
+      }),
+    ),
+  }),
+});
+
+export type AddDailyUsageInput = z.infer<typeof addDailyUsageSchema>['body'];
+
+export const getDailyUsageSchema = z.object({
+  params: z.object({
+    childId: z.string(),
+  }),
+  query: z
+    .object({
+      sort: z.enum(['asc', 'desc']).optional().default('desc'),
+      limit: z.coerce.number().min(1).max(100).optional().default(30),
+      page: z.coerce.number().min(1).optional().default(1),
+    })
+    .optional(),
+});
+
+export type GetDailyUsageParams = z.infer<typeof getDailyUsageSchema>['params'];
+export type GetDailyUsageQuery = z.infer<typeof getDailyUsageSchema>['query'];
