@@ -15,8 +15,9 @@ export const toParentProfile = (parent: IParent | LeanParent): IParentBase => {
     firstName: parent.firstName,
     lastName: parent.lastName,
     email: parent.email,
-    phone: parent.phone,
+    devices: parent.devices,
     birthDate: parent.birthDate,
     isActive: parent.isActive,
+    ...(parent.phone && { phone: parent.phone }),
   };
 };

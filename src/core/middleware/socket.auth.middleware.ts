@@ -1,7 +1,6 @@
 import { verifyToken } from '@/core/handlers/jwt.handler';
 import type { TypedSocket } from '@/core/handlers/socket.handler';
 import logger from '@/core/utils/logger';
-import { Socket } from 'socket.io';
 
 import AppError from '../utils/AppError.js';
 import { RoleValidators } from './auth.validation.middleware.js';

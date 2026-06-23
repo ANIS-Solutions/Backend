@@ -31,8 +31,12 @@ export const requestScreenCastService = async (
     );
   }
 
-  await FCMService.silentPush(fcmToken, FcmAction.START_SCREEN_CAST, {
-    roomId: `screen_${childId}`,
-    timestamp: new Date().toISOString(),
+  await FCMService.silentPush({
+    fcmToken,
+    action: FcmAction.START_SCREEN_CAST,
+    payload: {
+      roomId: `screen_${childId}`,
+      timestamp: new Date().toISOString(),
+    },
   });
 };

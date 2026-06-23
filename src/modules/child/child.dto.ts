@@ -14,6 +14,7 @@ export const toChildProfile = (child: IChild | LeanChild): IChildBase => {
     firstName: child.firstName,
     gender: child.gender,
     hobbies: child.hobbies,
+    points: child.points,
     dob: child.dob,
     isActive: child.isActive,
     deviceId: child.deviceId,

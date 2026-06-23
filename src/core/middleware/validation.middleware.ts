@@ -2,8 +2,6 @@ import { catchAsync } from '@/core/utils/catchAsync';
 import { RequestHandler } from 'express';
 import { ZodType } from 'zod';
 
-import logger from '../utils/logger.js';
-
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any -- will be checked later.*/
 
 interface ValidationParses {

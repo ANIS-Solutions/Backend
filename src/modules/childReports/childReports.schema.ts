@@ -8,7 +8,7 @@ export const generateChildReportSchema = z.object({
     sessionDocId: z
       .string()
       .min(1, 'Session document ID is required')
-      .describe('The ChildSession._id to generate a report from'),
+      .describe('The ChildSession id to generate a report from'),
   }),
 });
 

@@ -5,7 +5,6 @@ import { IPromptEmbedding } from '@/modules/AiServices/embedding.model';
 import axios, { AxiosError, AxiosInstance } from 'axios';
 import FormData from 'form-data';
 
-import logger from '../utils/logger.js';
 import { signM2MToken } from './jwt.handler.js';
 
 interface EmbeddingRequest {
@@ -17,8 +16,6 @@ interface EmbeddingResponse {
   embeddings: IPromptEmbedding;
   labels: string[];
 }
-
-// ── Report Types ─────────────────────────────────────────────────────────────
 
 interface ReportImageHighlight {
   resultId: number;
@@ -92,20 +89,14 @@ class EmbeddingService {
     return data.embeddings;
   }
 
-  /**
-   * Send session data + images to FastAPI /report and return the generated report.
-   * Uses multipart/form-data to include both JSON payload and binary image files.
-   */
   async generateReport(
     payload: ReportRequestPayload,
   ): Promise<ReportGenerationResult> {
     const form = new FormData();
 
-    // JSON payload as a form field
     const { images, ...jsonPayload } = payload;
     form.append('payload', JSON.stringify(jsonPayload));
 
-    // Attach image files
     for (const img of images) {
       form.append('images', fs.createReadStream(img.path), {
         filename: img.filename,
@@ -120,7 +111,7 @@ class EmbeddingService {
         headers: {
           ...form.getHeaders(),
         },
-        timeout: 120_000, // LLM generation can take longer
+        timeout: 120_000,
       },
     );
 

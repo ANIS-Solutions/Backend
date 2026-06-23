@@ -16,9 +16,6 @@ type WebRtcEvent = Extract<
   keyof ServerToClientEvents,
   'webrtc:offer' | 'webrtc:answer' | 'webrtc:ice-candidate'
 >;
-type WebRtcPayload<E extends WebRtcEvent> = Parameters<
-  ServerToClientEvents[E]
->[0];
 
 /**
  * Screencast WebRTC Signaling Gateway
@@ -78,16 +75,16 @@ export const registerScreenCastHandlers = (
    * and logs the event type — all in one place.
    *
    * The generic parameter E ties the event name to its exact payload shape
-   * via WebRtcPayload<E>, giving full compile-time safety at every call-site
-   * without any casts.
+   * via Parameters<ServerToClientEvents[E]>, giving full compile-time safety
+   * at every call-site without any casts.
    */
   const relaySignal = <E extends WebRtcEvent>(
     event: E,
     childId: string,
-    payload: WebRtcPayload<E>,
+    ...args: Parameters<ServerToClientEvents[E]>
   ): void => {
     const roomId = screenRoomId(childId);
-    socket.to(roomId).emit(event, payload);
+    socket.to(roomId).emit(event, ...args);
     logger.info(`[WebRTC] ${event} relayed in room ${roomId}`);
   };
 
